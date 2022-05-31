@@ -1,2 +1,2 @@
-# libyqmudp
-基于Kcp的udp网络工具
+# yrpc
+使用libyqmnet 编写的rpc框架
