@@ -1,7 +1,7 @@
 #pragma once
 #include <boost/context/continuation_fcontext.hpp>
-#include "rpc/YRoutine/YRoutineContext_Base.h"
-#include "rpc/YRoutine/RoutineStack.h"
+#include "YRoutineContext_Base.h"
+#include "RoutineStack.h"
 
 
 namespace yrpc::coroutine::context
@@ -10,7 +10,10 @@ namespace yrpc::coroutine::context
 using namespace yrpc::coroutine::detail;
 
 
-
+/*
+*  为什么不保存来源协程的上下文。因为调度不在于jump_fcontext ，选择依靠下一级的Runtime 来进行调度。只需要实现yield和resume即可。
+* 关于当前协程的管理和保存都在下一级。
+*/
 class YRoutineContext:YRoutineContext_Base
 {
 public:
@@ -27,9 +30,9 @@ public:
      * @param args 
      */
     void Make(YRoutineFunc func,void* args);
+    
     /**
-     * @brief 
-     * 
+     * @brief 主动让出，并挂起当前协程
      * @return true 
      * @return false 
      */
@@ -50,6 +53,10 @@ public:
     boost::context::detail::fcontext_t& GetCurrentContext();
 
 private:
+    /**
+     * @brief 对协程函数和参数的包装
+     * @param t fcontext 切换时入参
+     */
     static void YRoutineFuncWrapper(boost::context::detail::transfer_t t);
 
 private:

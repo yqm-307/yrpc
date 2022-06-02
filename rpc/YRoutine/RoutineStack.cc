@@ -1,4 +1,5 @@
-#include "rpc/YRoutine/RoutineStack.h"
+
+#include "RoutineStack.h"
 #include <YqmUtil/Logger/Logger.h>
 #include <unistd.h>
 #include <assert.h>
@@ -6,7 +7,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
-using namespace yrpc::coroutine::detail::stack;
 
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON
@@ -18,19 +18,35 @@ int save = errno;\
 ERROR(fmt,##__VA_ARGS__,errno);\
 errno=save;\
 
+namespace yrpc::coroutine::detail::stack
+{
+
 
 
 /**
- * @brief 依靠mmap实现的内存分配
+ * @brief mmap实现从系统申请内存
  * 
+ * @param start 起始地址，如果为NULL，由系统选择起始地址
+ * @param len   内存长度，单位byte
+ * @param opt   prot权限
+ * @param flag  选项
+ * @param offset 偏移量，设置为0，即无偏移
+ * @return char* 首地址
  */
-static char* sys_stack_alloc(void* start,size_t len,int opt,int flag,int offset)
+char* sys_stack_alloc(void* start,size_t len,int opt,int flag,int offset)
 {
     flag |= MAP_ANONYMOUS;   //匿名映射
     return (char*)mmap(start,len,opt,flag,-1,offset);
 }
 
-static int sys_stack_free(void* start,size_t len)
+/**
+ * @brief munmap 实现的归还系统内存
+ * 
+ * @param start 起始地址
+ * @param len   内存长度
+ * @return int  如果返回0，归还成功；如果为-1，归还失败
+ */
+int sys_stack_free(void* start,size_t len)
 {
     int ret=0;
     if(ret>munmap(start,len)){
@@ -50,7 +66,7 @@ RoutineStack::RoutineStack(const size_t init_stack_size_,const bool memory_prote
     if(stacksize_%pagesize == 0)
         stacksize_ = init_stack_size_ ;  //额外两页用来加锁保护  
     else    //需要对齐
-        stacksize_ = (init_stack_size_/pagesize + pagesize);
+        stacksize_ = (init_stack_size_/pagesize + 1)*pagesize;
 
     //需要保护栈内存
     if(is_pagelock_)
@@ -74,7 +90,7 @@ RoutineStack::RoutineStack(const size_t init_stack_size_,const bool memory_prote
         char* stack_ = sys_stack_alloc(NULL,stacksize_,
             PROT_READ|PROT_WRITE,MAP_PRIVATE);
         assert(stack_ != nullptr);
-        useable_stack_ = stack_+pagesize;
+        useable_stack_ = stack_;
     }
 }
 
@@ -112,3 +128,4 @@ size_t RoutineStack::Size()
 }
 
 
+}
