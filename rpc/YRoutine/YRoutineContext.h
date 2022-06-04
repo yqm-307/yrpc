@@ -10,18 +10,19 @@ namespace yrpc::coroutine::context
 using namespace yrpc::coroutine::detail;
 
 
+
 /*
 *  为什么不保存来源协程的上下文。因为调度不在于jump_fcontext ，选择依靠下一级的Runtime 来进行调度。只需要实现yield和resume即可。
 * 关于当前协程的管理和保存都在下一级。
 */
-class YRoutineContext:YRoutineContext_Base
+class YRoutineContext:public YRoutineContext_Base
 {
 public:
     YRoutineContext(size_t init_stack_size,YRoutineFunc main_func,void* args,YRoutineDoneCallback done_func,bool memory_protect);
     ~YRoutineContext();
 
 
-    static YRoutineContext* CreateHandle(size_t stacksize,YRoutineFunc main_func,void *args,YRoutineDoneCallback done_func,bool memory_protect);
+    static YRoutineContext_Base* CreateHandle(size_t stacksize,YRoutineFunc main_func,void *args,YRoutineDoneCallback done_func,bool memory_protect);
 
     /**
      * @brief 创建协程上下文环境，并保存到context_ 
@@ -46,11 +47,11 @@ public:
     bool Resume() override;
     
     /**
-     * @brief 获取当前线程上下文
+     * @brief 用来保存和获取主函数
      * 
-     * @return 线程当前上下文的引用 
+     * @return 主函数当前上下文的引用 
      */
-    boost::context::detail::fcontext_t& GetCurrentContext();
+    boost::context::detail::fcontext_t& GetMainContext();
 
 private:
     /**
@@ -69,5 +70,11 @@ private:
     YRoutineDoneCallback donefunc_;
 };
 
-
+class YRoutineContextInit
+{
+    void operator()()
+    {
+        YRoutineContext::SetYRoutineCreateFunc(YRoutineContext::CreateHandle);
+    }
+};
 }

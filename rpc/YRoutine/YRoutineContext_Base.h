@@ -25,7 +25,8 @@ public:
 
     
     static YRoutineContext_Base* Create(size_t init_stack_size,YRoutineFunc main_func,void* args,YRoutineDoneCallback done_func,bool memory_protect);
-    static void SetYRoutineCreateFunc(YContextCreateFunc& func);
+    template<class Func = YContextCreateFunc&>
+    static void SetYRoutineCreateFunc(Func&& func);
 
     static YContextCreateFunc GetContextCreateFunc();
     virtual void Make(YRoutineFunc func,void* args)=0;
@@ -35,6 +36,7 @@ public:
 private:
     static YContextCreateFunc routine_create_func_;
 };
+
 
 
 }

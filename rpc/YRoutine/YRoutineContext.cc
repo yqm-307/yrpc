@@ -4,7 +4,8 @@
 using namespace yrpc::coroutine::context;
 using namespace yrpc::coroutine::detail;
 
-thread_local boost::context::detail::fcontext_t CurrentResume=nullptr;
+thread_local bool FirstJump = true;
+
 
 YRoutineContext::YRoutineContext(size_t init_stack_size,YRoutineFunc main_func,void* args,YRoutineDoneCallback done_func,bool memory_protect)
     :stack_(init_stack_size,memory_protect),
@@ -16,7 +17,7 @@ YRoutineContext::YRoutineContext(size_t init_stack_size,YRoutineFunc main_func,v
 YRoutineContext::~YRoutineContext(){}
 
 
-YRoutineContext* YRoutineContext::CreateHandle(size_t stacksize,YRoutineFunc main_func,void *args,YRoutineDoneCallback done_func,bool memory_protect)
+YRoutineContext_Base* YRoutineContext::CreateHandle(size_t stacksize,YRoutineFunc main_func,void *args,YRoutineDoneCallback done_func,bool memory_protect)
 {
     //生命周期由 下一层协程封装管理
     return new YRoutineContext(stacksize,main_func,args,done_func,memory_protect);
@@ -36,7 +37,10 @@ void YRoutineContext::Make(YRoutineFunc func,void* args)
 
 bool YRoutineContext::Yield()
 {
-    context_ = boost::context::detail::jump_fcontext(GetCurrentContext(),NULL).fctx;
+    boost::context::detail::transfer_t trf;
+    trf = boost::context::detail::jump_fcontext(GetMainContext(),&context_);
+    //如果yield 跳出再返回，一定是从调度协程来的（主协程），那么我们就保存它的上下文到main
+    GetMainContext() = trf.fctx;
     return true;
 }
 
@@ -44,31 +48,35 @@ bool YRoutineContext::Yield()
 
 bool YRoutineContext::Resume()
 {
-    // auto p = boost::context::detail::jump_fcontext(context_,reinterpret_cast<void*>(this));
-    // GetCurrentContext() = p.fctx;
-    GetCurrentContext() = boost::context::detail::jump_fcontext(context_,reinterpret_cast<void*>(this)).fctx;
+    boost::context::detail::transfer_t trf;
+    trf = boost::context::detail::jump_fcontext(context_,reinterpret_cast<void*>(this));
+    //帮助来源协程，保存它的上下文
+    auto prev_context_ = trf.data;
+    *(void**)prev_context_ = trf.fctx;
     return true;
 }
 
 
-
-boost::context::detail::fcontext_t& YRoutineContext::GetCurrentContext()
+boost::context::detail::fcontext_t& YRoutineContext::GetMainContext()
 {
-    static thread_local boost::context::detail::fcontext_t Current_context=nullptr; //当前线程协程上下文
-    return Current_context;
+    static thread_local boost::context::detail::fcontext_t Main_context=nullptr; //当前线程协程上下文
+    return Main_context;
 }
 
+//问题在于主函数不走函数包装器，如果只有协程之间切换，倒是没什么问题
 void YRoutineContext::YRoutineFuncWrapper(boost::context::detail::transfer_t t)
 {
     assert(t.data!=nullptr);
     YRoutineContext* ts = reinterpret_cast<YRoutineContext*>(t.data);
-    //保存栈帧
-    //如果是resume 保存到 tls
-    ts->GetCurrentContext() = t.fctx;
+    if(FirstJump)
+    {
+        ts->GetMainContext() = t.fctx;
+        FirstJump=false;
+    }
 
     ts->main_(ts->args_);
     //回调通知调度器，执行完毕
-    if(ts->donefunc_!=nullptr);
+    if(ts->donefunc_!=nullptr)
         ts->donefunc_();
     //执行完成，主动让出 Yield，控制权回到上一个调用者
     ts->Yield();

@@ -7,7 +7,8 @@ namespace yrpc::coroutine::context
 
 YContextCreateFunc YRoutineContext_Base::routine_create_func_ = nullptr;
 
-void YRoutineContext_Base::SetYRoutineCreateFunc(YContextCreateFunc& func)
+template<class Func>
+void YRoutineContext_Base::SetYRoutineCreateFunc(Func&& func)
 {
     routine_create_func_ = func;
 }
