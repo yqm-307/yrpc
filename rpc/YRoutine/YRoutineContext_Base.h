@@ -37,6 +37,10 @@ private:
     static YContextCreateFunc routine_create_func_;
 };
 
-
+template<class Func>
+void YRoutineContext_Base::SetYRoutineCreateFunc(Func&& func)
+{
+    routine_create_func_ = func;
+}
 
 }

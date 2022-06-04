@@ -33,13 +33,13 @@ public:
     void Make(YRoutineFunc func,void* args);
     
     /**
-     * @brief 主动让出，并挂起当前协程
+     * @brief 挂起当前协程，切换会主协程
      * @return true 
      * @return false 
      */
     bool Yield() override;
     /**
-     * @brief 主动将当前线程的上下文与context_切换
+     * @brief 从当前协程切换到子协程
      * 
      * @return true 
      * @return false 

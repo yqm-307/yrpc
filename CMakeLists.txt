@@ -17,14 +17,14 @@ set(INCLUDE_FILE
 rpc/YRoutine/RoutineStack.h
 rpc/YRoutine/YRoutineContext_Base.h
 rpc/YRoutine/YRoutineContext.h
-rpc/YRoutine/YRoutineRuntime.h
+rpc/YRoutine/YCO_Scheduler.h
 )
 
 set(SRC_FILE
 rpc/YRoutine/RoutineStack.cc
 rpc/YRoutine/YRoutineContext_Base.cc
 rpc/YRoutine/YRoutineContext.cc
-rpc/YRoutine/YRoutineRuntime.cc
+rpc/YRoutine/YCO_Scheduler.cc
 )
 
 

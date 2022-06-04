@@ -27,6 +27,8 @@ clearexec()
 clearexec
 clearfile
 
+rm  
+rm  CmakeCacke.txt
 
 
 

@@ -39,7 +39,7 @@ bool YRoutineContext::Yield()
 {
     boost::context::detail::transfer_t trf;
     trf = boost::context::detail::jump_fcontext(GetMainContext(),&context_);
-    //如果yield 跳出再返回，一定是从调度协程来的（主协程），那么我们就保存它的上下文到main
+    //只有 子协程 会调用yield，那么返回也是子协程，来源是主协程
     GetMainContext() = trf.fctx;
     return true;
 }
@@ -68,17 +68,15 @@ void YRoutineContext::YRoutineFuncWrapper(boost::context::detail::transfer_t t)
 {
     assert(t.data!=nullptr);
     YRoutineContext* ts = reinterpret_cast<YRoutineContext*>(t.data);
-    if(FirstJump)
-    {
-        ts->GetMainContext() = t.fctx;
-        FirstJump=false;
-    }
+    
+    //第一次resume一定是冲main来的，需要保存main的上下文状态
+    ts->GetMainContext() = t.fctx;
 
     ts->main_(ts->args_);
     //回调通知调度器，执行完毕
     if(ts->donefunc_!=nullptr)
         ts->donefunc_();
-    //执行完成，主动让出 Yield，控制权回到上一个调用者
+    //执行完成，yield回到主线程
     ts->Yield();
 }
 
