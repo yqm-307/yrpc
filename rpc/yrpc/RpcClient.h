@@ -22,9 +22,9 @@ namespace yrpc::rpc
 /**
  * @brief RpcClient 是调用方最重要的类，通过该类才可以发起调用
  */
+template<class Req,class Rsp>
 class RpcClient
 {
-
 public:
 
     /* Result 的 指针类型 */
@@ -47,7 +47,8 @@ public:
      * @param stack_size    协程栈大小，默认128kb
      * @param maxqueue      协程数上限
      */
-    RpcClient(std::string ip,int port,std::string logpath="client.log",int stack_size=128*1024,int maxqueue=65535);
+    RpcClient(std::string ip,int port,std::string logpath=InitLogName,int stack_size=128*1024,int maxqueue=65535);
+    RpcClient(yrpc::detail::ynet::YAddress servaddr_,std::string logpath=InitLogName,int stack_size=128*1024,int maxqueue=65535);
     ~RpcClient();   //todo,退出不安全，在Client关闭时，应该先让所有请求都返回或者直接失败
     
     void close();
@@ -79,6 +80,7 @@ private:
     std::mutex lock_;
     std::atomic_bool close_;
     std::shared_ptr<yrpc::rpc::detail::RpcClientSession> session_;
+    static const char[] InitLogName{"client.log"};
 };
 
 
