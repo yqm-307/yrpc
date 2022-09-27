@@ -1,0 +1,11 @@
+
+syntax = "proto3";
+
+
+
+message S2C_HEARTBEAT_RSP
+{
+    int32 tick    = 1;
+}
+
+
