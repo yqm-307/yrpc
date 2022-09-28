@@ -18,6 +18,13 @@ namespace yrpc::rpc::detail
 
 class RpcClientSession final : public Base_RpcSession , std::enable_shared_from_this<RpcClientSession>
 {
+    typedef uint32_t ProtoID; 
+    typedef std::pair<ProtoID,Future*> Entry;
+    typedef std::queue<Entry> RegisterQueue;
+    typedef std::unordered_map<ProtoID,Future*> RegisteredMap;   // 已注册任务
+    typedef std::unordered_map<ProtoID,Future*> FinishedMap;     // 已回复任务
+    typedef std::priority_queue<uint32_t>  TimeQueue;            // 超时队列
+    typedef std::unordered_set<uint32_t> RegisteredProtoIDSet;   // 已经注册ProtoID集合
 public:
     // RpcClientSession(yrpc::coroutine::poller::Epoller* context)
     //         :m_io_context(context)
@@ -78,13 +85,7 @@ private:
     void S2C_HEARTBEAT_RSP_Handler(const yrpc::detail::protocol::RpcResponse&);
 
 private:
-    typedef uint32_t ProtoID; 
-    typedef std::pair<ProtoID,Future*> Entry;
-    typedef std::queue<Entry> RegisterQueue;
-    typedef std::unordered_map<ProtoID,Future*> RegisteredMap;   // 已注册任务
-    typedef std::unordered_map<ProtoID,Future*> FinishedMap;     // 已回复任务
-    typedef std::priority_queue<uint32_t>  TimeQueue;            // 超时队列
-    typedef std::unordered_set<uint32_t> RegisteredProtoIDSet;   // 已经注册ProtoID集合
+
 
     yrpc::coroutine::poller::Epoller* m_io_context;
     
@@ -100,8 +101,7 @@ private:
 
     // 超时队列
     yrpc::util::clock::YTimer<ProtoID> m_timequeue;
-
-    yrpc::socket::Epoll_Cond_t m_handler_cond;
+    yrpc::socket::Epoll_Cond_t m_handler_cond;      // 
 
 };
 

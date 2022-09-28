@@ -32,7 +32,7 @@ private:
      * @param errcode 错误码
      * @return std::string 生成对应的错误响应报文
      */
-    int ErrCodeToByteArray(uint32_t id,uint64_t uid,int errcode,std::string& str);
+    int ErrCodeToByteArray(uint32_t id,uint32_t uid,int errcode,std::string& str,std::string);
     
 
 private:

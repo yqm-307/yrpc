@@ -96,6 +96,13 @@ class AddReq final :
     return *this;
   }
 
+  inline const ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance);
+  }
+  inline ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+  }
+
   static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
     return GetDescriptor();
   }
@@ -186,10 +193,10 @@ class AddReq final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kAFieldNumber = 1,
-    kBFieldNumber = 2,
+    kAFieldNumber = 2,
+    kBFieldNumber = 3,
   };
-  // optional int32 a = 1;
+  // optional int32 a = 2;
   bool has_a() const;
   private:
   bool _internal_has_a() const;
@@ -202,7 +209,7 @@ class AddReq final :
   void _internal_set_a(int32_t value);
   public:
 
-  // optional int32 b = 2;
+  // optional int32 b = 3;
   bool has_b() const;
   private:
   bool _internal_has_b() const;
@@ -262,6 +269,13 @@ class AddRsp final :
       CopyFrom(from);
     }
     return *this;
+  }
+
+  inline const ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance);
+  }
+  inline ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
   }
 
   static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
@@ -354,9 +368,9 @@ class AddRsp final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kResultFieldNumber = 1,
+    kResultFieldNumber = 2,
   };
-  // optional int32 result = 1;
+  // optional int32 result = 2;
   bool has_result() const;
   private:
   bool _internal_has_result() const;
@@ -415,6 +429,13 @@ class EchoReq final :
       CopyFrom(from);
     }
     return *this;
+  }
+
+  inline const ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance);
+  }
+  inline ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
   }
 
   static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
@@ -507,9 +528,9 @@ class EchoReq final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kStrFieldNumber = 1,
+    kStrFieldNumber = 2,
   };
-  // optional string str = 1;
+  // optional string str = 2;
   bool has_str() const;
   private:
   bool _internal_has_str() const;
@@ -573,6 +594,13 @@ class EchoRsp final :
       CopyFrom(from);
     }
     return *this;
+  }
+
+  inline const ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance);
+  }
+  inline ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
   }
 
   static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
@@ -665,9 +693,9 @@ class EchoRsp final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kStrFieldNumber = 1,
+    kStrFieldNumber = 2,
   };
-  // optional string str = 1;
+  // optional string str = 2;
   bool has_str() const;
   private:
   bool _internal_has_str() const;
@@ -711,7 +739,7 @@ class EchoRsp final :
 #endif  // __GNUC__
 // AddReq
 
-// optional int32 a = 1;
+// optional int32 a = 2;
 inline bool AddReq::_internal_has_a() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   return value;
@@ -739,7 +767,7 @@ inline void AddReq::set_a(int32_t value) {
   // @@protoc_insertion_point(field_set:AddReq.a)
 }
 
-// optional int32 b = 2;
+// optional int32 b = 3;
 inline bool AddReq::_internal_has_b() const {
   bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
   return value;
@@ -771,7 +799,7 @@ inline void AddReq::set_b(int32_t value) {
 
 // AddRsp
 
-// optional int32 result = 1;
+// optional int32 result = 2;
 inline bool AddRsp::_internal_has_result() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   return value;
@@ -803,7 +831,7 @@ inline void AddRsp::set_result(int32_t value) {
 
 // EchoReq
 
-// optional string str = 1;
+// optional string str = 2;
 inline bool EchoReq::_internal_has_str() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   return value;
@@ -875,7 +903,7 @@ inline void EchoReq::set_allocated_str(std::string* str) {
 
 // EchoRsp
 
-// optional string str = 1;
+// optional string str = 2;
 inline bool EchoRsp::_internal_has_str() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   return value;

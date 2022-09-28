@@ -24,11 +24,28 @@ uint32_t ServiceMap::insert(std::string name, ServiceFunc service,CodecFunc code
     if(NameToId_.find(name) != NameToId_.end())
     {//服务名冲突
         FATAL("ServiceMap::insert() fatal , service name repeated!");
-        return -1;
+        return 0;
     }
 
     int ret = yrpc::util::hash::BKDRHash(name.c_str(),name.size());
     assert(IdToName_.find(ret) == IdToName_.end());     //hash冲突,需要修改名字
+    ServiceHandles* ptr = new ServiceHandles{service,code};
+    IdToService_.insert({ret,ptr});
+    NameToId_.insert({name,ret});
+    IdToName_.insert({ret,name});
+    return ret;
+}
+
+uint32_t ServiceMap::insert(std::string name, uint32_t id, ServiceFunc service ,CodecFunc code)
+{
+    if(NameToId_.find(name) != NameToId_.end())
+    {
+        FATAL("ServiceMap::insert() fatal , service name repeated!");
+        return 0;
+    }
+
+    int ret = id;
+    assert(IdToName_.find(ret) == IdToName_.end());
     ServiceHandles* ptr = new ServiceHandles{service,code};
     IdToService_.insert({ret,ptr});
     NameToId_.insert({name,ret});

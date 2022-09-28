@@ -20,12 +20,6 @@ public:
             m_protocol_head(p.m_protocol_head),
             m_message(p.m_message)
     {}
-    RpcRequest& operator=(const RpcRequest& p)
-    {
-        m_protocol_head = p.m_protocol_head;
-        m_message = m_message;
-        m_prototype = m_prototype;
-    }
 
 
     RpcRequest()
@@ -36,7 +30,12 @@ public:
             :m_prototype(prototype),
             m_message(req)
     {}
-
+    RpcRequest& operator=(const RpcRequest& p)
+    {
+        m_protocol_head = p.m_protocol_head;
+        m_message = m_message;
+        m_prototype = m_prototype;
+    }
 
 
     // RpcRequest(MessagePtr& rsp):m_prototype(PType),BaseProtocol(rsp){}
@@ -55,9 +54,9 @@ public:
      */
     bool ToByteArray(std::string& bytearray)
     {
-        bytearray.resize(sizeof(uint16_t)*4,'0');
+        bytearray.resize(sizeof(ProtocolHeadSize),'0'); // 预留 protocol head
         
-        if(this->Encode(m_message,bytearray))
+        if(this->Encode(m_message,bytearray))   // 追加   
         {
             int msglen = bytearray.size();
             m_protocol_head.m_length = bytearray.size();
@@ -88,6 +87,9 @@ public:
      */
     uint32_t GetProtoID()
     { return m_protocol_head.m_id; }
+
+    void SetProtoID(uint32_t id)
+    { m_protocol_head.m_id = id; }
 
     /**
      * @brief 获取协议类型

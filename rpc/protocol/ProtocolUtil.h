@@ -63,15 +63,16 @@ public:
     /**
      * @brief 传入预留16字节的字符串，将自动填充数据长度+服务id+uid
      *
-     * @param type 服务类型
      * @param service_id 服务id
      * @param uid   包id
      * @param bytes 要填充的buffer
      */
-    static void GenerateMsg(int type, uint32_t service_id, uint64_t uid, std::string &bytes)
+    static void GenerateMsg(uint16_t service_id, uint32_t uid, std::string &bytes)
     {
         using namespace yrpc::util::protoutil;
-        
+        yrpc::detail::protocol::ProtocolHead head;
+        head.m_id = uid;
+        head.m_type = service_id;
         char *p = bytes.data();
         type = type<<16;    //推到高位
         type += (uint16_t)bytes.size();

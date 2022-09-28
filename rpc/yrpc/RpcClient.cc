@@ -3,6 +3,7 @@
 
 using namespace yrpc::rpc;
 
+
 RpcClient::RpcClient(std::string ip,int port,std::string logpath,int stack_size,int maxqueue)
     :servaddr_(ip,port),
     close_(false),

@@ -22,8 +22,7 @@ bool RpcClientSession::RpcAsyncCall(std::shared_ptr<google::protobuf::Message> p
         yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> lock(m_regiseer_lock);
         m_regiseredmap.insert(Entry(id, obj));
     }
-    if (OutLength() >= 4096)    // 4kb
-        m_handler_cond.Notify();
+    m_handler_cond.Notify();
     // m_timequeue.AddTask(yrpc::util::clock::nowAfter<yrpc::util::clock::ms>(yrpc::util::clock::ms(2000)), id); // 2s后超时    // 超时队列
     return true;
 }

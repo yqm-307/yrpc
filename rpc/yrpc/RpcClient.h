@@ -22,7 +22,6 @@ namespace yrpc::rpc
 /**
  * @brief RpcClient 是调用方最重要的类，通过该类才可以发起调用
  */
-template<class Req,class Rsp>
 class RpcClient
 {
 public:
@@ -66,8 +65,7 @@ public:
     bool async_call(std::string name,std::shared_ptr<google::protobuf::Message> send,std::function<void(RspPtr<google::protobuf::Message>)> f);
 
     // 提交调用
-    bool Updata();
-
+    // bool Updata();
 private:
     static void run(void*);
     void NewConnection(yrpc::detail::ynet::ConnectionPtr new_conn);
@@ -76,14 +74,42 @@ private:
     yrpc::coroutine::poller::Epoller* scheduler_;   //协程调度器
     yrpc::detail::ynet::YAddress servaddr_;         //服务端地址
     yrpc::detail::ynet::Connector connector_;       // 
+    yrpc::util::buffer::Buffer buffer_;             //协议流
+    std::shared_ptr<yrpc::rpc::detail::RpcClientSession> session_;
     std::thread* thread_;                           //thread
     std::mutex lock_;
     std::atomic_bool close_;
-    std::shared_ptr<yrpc::rpc::detail::RpcClientSession> session_;
-    static const char[] InitLogName{"client.log"};
+    static const char InitLogName[];
 };
 
+const char RpcClient::InitLogName[] = "client.log";
 
+
+
+
+//////////////////////////////////////////////////////////
+////////                                //////////////////
+////////     template definition        //////////////////
+////////                                //////////////////
+//////////////////////////////////////////////////////////
+
+
+// template<class Req,class Rsp>
+// RpcClient<Req,Rsp>::RpcClient(std::string ip,int port,std::string logpath=InitLogName,int stack_size,int maxqueue)
+// {
+//     assert(scheduler_!=nullptr);
+//     thread_ = new std::thread(RpcClient::run,this);
+//     assert(thread_);
+//     connector_.setOnConnect([this](yrpc::detail::ynet::ConnectionPtr conn,void*){NewConnection(conn);});
+// }
+
+// template<class Req,class Rsp>
+// RpcClient<Req,Rsp>::RpcClient(yrpc::detail::ynet::YAddress servaddr_,std::string logpath=InitLogName,int stack_size,int maxqueue)
+// {
+//     assert(scheduler_!=nullptr);
+//     thread_ = new std::thread(RpcClient::run,this);
+//     assert(thread_);
+// }
 
 
 

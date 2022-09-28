@@ -132,15 +132,14 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_AddAndStr_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\017AddAndStr.proto\"4\n\006AddReq\022\016\n\001a\030\001 \001(\005H\000"
-  "\210\001\001\022\016\n\001b\030\002 \001(\005H\001\210\001\001B\004\n\002_aB\004\n\002_b\"(\n\006AddRs"
-  "p\022\023\n\006result\030\001 \001(\005H\000\210\001\001B\t\n\007_result\"#\n\007Ech"
-  "oReq\022\020\n\003str\030\001 \001(\tH\000\210\001\001B\006\n\004_str\"#\n\007EchoRs"
-  "p\022\020\n\003str\030\001 \001(\tH\000\210\001\001B\006\n\004_strB\003\200\001\001b\006proto3"
+  "\n\017AddAndStr.proto\"\036\n\006AddReq\022\t\n\001a\030\002 \001(\005\022\t"
+  "\n\001b\030\003 \001(\005\"\030\n\006AddRsp\022\016\n\006result\030\002 \001(\005\"\026\n\007E"
+  "choReq\022\013\n\003str\030\002 \001(\t\"\026\n\007EchoRsp\022\013\n\003str\030\002 "
+  "\001(\tB\003\200\001\001"
   ;
 static ::_pbi::once_flag descriptor_table_AddAndStr_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_AddAndStr_2eproto = {
-    false, false, 200, descriptor_table_protodef_AddAndStr_2eproto,
+    false, false, 128, descriptor_table_protodef_AddAndStr_2eproto,
     "AddAndStr.proto",
     &descriptor_table_AddAndStr_2eproto_once, nullptr, 0, 4,
     schemas, file_default_instances, TableStruct_AddAndStr_2eproto::offsets,
@@ -241,18 +240,18 @@ const char* AddReq::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional int32 a = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+      // optional int32 a = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _Internal::set_has_a(&has_bits);
           _impl_.a_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // optional int32 b = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+      // optional int32 b = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
           _Internal::set_has_b(&has_bits);
           _impl_.b_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
@@ -289,16 +288,17 @@ uint8_t* AddReq::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional int32 a = 1;
-  if (_internal_has_a()) {
+  cached_has_bits = _impl_._has_bits_[0];
+  // optional int32 a = 2;
+  if (cached_has_bits & 0x00000001u) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_a(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_a(), target);
   }
 
-  // optional int32 b = 2;
-  if (_internal_has_b()) {
+  // optional int32 b = 3;
+  if (cached_has_bits & 0x00000002u) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_b(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_b(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -319,12 +319,12 @@ size_t AddReq::ByteSizeLong() const {
 
   cached_has_bits = _impl_._has_bits_[0];
   if (cached_has_bits & 0x00000003u) {
-    // optional int32 a = 1;
+    // optional int32 a = 2;
     if (cached_has_bits & 0x00000001u) {
       total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_a());
     }
 
-    // optional int32 b = 2;
+    // optional int32 b = 3;
     if (cached_has_bits & 0x00000002u) {
       total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_b());
     }
@@ -465,9 +465,9 @@ const char* AddRsp::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional int32 result = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+      // optional int32 result = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _Internal::set_has_result(&has_bits);
           _impl_.result_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
@@ -504,10 +504,11 @@ uint8_t* AddRsp::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional int32 result = 1;
-  if (_internal_has_result()) {
+  cached_has_bits = _impl_._has_bits_[0];
+  // optional int32 result = 2;
+  if (cached_has_bits & 0x00000001u) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_result(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_result(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -526,7 +527,7 @@ size_t AddRsp::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // optional int32 result = 1;
+  // optional int32 result = 2;
   cached_has_bits = _impl_._has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_result());
@@ -670,13 +671,15 @@ const char* EchoReq::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) 
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional string str = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+      // optional string str = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_str();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "EchoReq.str"));
+          #ifndef NDEBUG
+          ::_pbi::VerifyUTF8(str, "EchoReq.str");
+          #endif  // !NDEBUG
         } else
           goto handle_unusual;
         continue;
@@ -710,14 +713,15 @@ uint8_t* EchoReq::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional string str = 1;
-  if (_internal_has_str()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+  cached_has_bits = _impl_._has_bits_[0];
+  // optional string str = 2;
+  if (cached_has_bits & 0x00000001u) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::VerifyUTF8StringNamedField(
       this->_internal_str().data(), static_cast<int>(this->_internal_str().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SERIALIZE,
       "EchoReq.str");
     target = stream->WriteStringMaybeAliased(
-        1, this->_internal_str(), target);
+        2, this->_internal_str(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -736,7 +740,7 @@ size_t EchoReq::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // optional string str = 1;
+  // optional string str = 2;
   cached_has_bits = _impl_._has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
     total_size += 1 +
@@ -887,13 +891,15 @@ const char* EchoRsp::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) 
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional string str = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+      // optional string str = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_str();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "EchoRsp.str"));
+          #ifndef NDEBUG
+          ::_pbi::VerifyUTF8(str, "EchoRsp.str");
+          #endif  // !NDEBUG
         } else
           goto handle_unusual;
         continue;
@@ -927,14 +933,15 @@ uint8_t* EchoRsp::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional string str = 1;
-  if (_internal_has_str()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+  cached_has_bits = _impl_._has_bits_[0];
+  // optional string str = 2;
+  if (cached_has_bits & 0x00000001u) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::VerifyUTF8StringNamedField(
       this->_internal_str().data(), static_cast<int>(this->_internal_str().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SERIALIZE,
       "EchoRsp.str");
     target = stream->WriteStringMaybeAliased(
-        1, this->_internal_str(), target);
+        2, this->_internal_str(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -953,7 +960,7 @@ size_t EchoRsp::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // optional string str = 1;
+  // optional string str = 2;
   cached_has_bits = _impl_._has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
     total_size += 1 +

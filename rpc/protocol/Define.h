@@ -23,9 +23,12 @@ namespace yrpc::detail::protocol
 {
 
 // yrpc 错误码
-enum YRPC_CS_ErrCode
+enum YRPC_ErrCode
 {
-    type_YRPC_CS_Done = 0,
+    CALL_FATAL_SERVICE_ID_IS_BAD=0,     //服务不存在或服务id错误
+    CALL_FATAL_SERVICE_MSG_IS_BAD=1,    //protobuf message 错误
+    CALL_FATAL_SERVICE_TIMEOUT=2,       //service call 超时
+    CALL_FATAL_SERVER_BUSY=3            //服务端拒绝调用，服务端繁忙
 };
 
 /**
@@ -34,12 +37,14 @@ enum YRPC_CS_ErrCode
  */
 enum YRPC_PROTOCOL
 {
-    type_YRPC_PROTOCOL_Done = 0,
-    type_C2S_HEARTBEAT_REQ = 10000,
-    type_S2C_HEARTBEAT_RSP = 10001,
-    type_C2S_RPC_CALL_REQ = 10010,
-    type_S2C_RPC_CALL_RSP = 10011,
+    type_YRPC_PROTOCOL_Done     = 0,
+    type_C2S_HEARTBEAT_REQ      = 10000,
+    type_S2C_HEARTBEAT_RSP      = 10001,
+    type_C2S_RPC_CALL_REQ       = 10010,
+    type_S2C_RPC_CALL_RSP       = 10011,
+    type_S2C_RPC_ERROR          = 10012,
 };
+
 
 // std::unordered_map<int,YRPC_PROTOCOL>
 
@@ -117,13 +122,13 @@ protected:
  * 
  * 
  *  |               |               |                       |                     |
- *  |  type(16bit)  | length(16bit) | protocol id(32bit)    | protobuf bytes(data)|    
+ *  | length(16bit) |  type(16bit)  | protocol id(32bit)    | protobuf bytes(data)|    
  *  |               |               |                       |                     |
- *   协议类型 2 字节 , 范围 1-65535
  *   包长度 2 字节  ,  范围 1-65535 
+ *   协议类型 2 字节 , 范围 1-65535
  *   协议id 4 字节  ,  范围 1-42E
- * 
  */
+#define ProtocolHeadSize (sizeof(uint16_t)+sizeof(uint16_t)+sizeof(uint32_t))
 struct ProtocolHead
 {
     ProtocolHead():m_type(0),m_length(0),m_id(yrpc::util::id::GenerateID::GetIDuint32()){}
@@ -143,9 +148,9 @@ struct ProtocolHead
      */
     bool ToByteArray(char* start)
     {
-        memcpy(start,(void*)&m_type,sizeof(uint16_t));
-        memcpy(start+sizeof(uint16_t),(void*)&m_length,sizeof(uint16_t));
-        memcpy(start+2*sizeof(uint16_t),(void*)&m_id,sizeof(uint32_t));
+        memcpy(start,(void*)&m_type,sizeof(uint16_t));  // 2 byte
+        memcpy(start+sizeof(uint16_t),(void*)&m_length,sizeof(uint16_t)); // 2 byte
+        memcpy(start+2*sizeof(uint16_t),(void*)&m_id,sizeof(uint32_t));     // 4 byte
         return true;
     }
 

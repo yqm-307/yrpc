@@ -57,6 +57,8 @@ public:
      * @return uint32_t 返回 service id，service id 等于 0 说明错误
      */
     uint32_t insert(std::string name, ServiceFunc service ,CodecFunc code);
+
+    uint32_t insert(std::string name, uint32_t id, ServiceFunc service ,CodecFunc code);
     
 
     /**

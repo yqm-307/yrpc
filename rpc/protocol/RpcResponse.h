@@ -13,7 +13,7 @@ class RpcResponse: public Base_Msg<google::protobuf::Message>
 {
 public:
     typedef google::protobuf::Message ProtobufRsp;
-    RpcResponse(YRPC_PROTOCOL type,std::string& bytes):m_bytes(bytes),m_prototype(type) {}
+    RpcResponse(YRPC_PROTOCOL type,std::string_view bytes):m_bytes(bytes),m_prototype(type) {}
     RpcResponse(const RpcResponse& p)
             :m_prototype(p.m_prototype),
             m_protocol_head(p.m_protocol_head),

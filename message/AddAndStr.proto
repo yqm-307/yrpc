@@ -1,27 +1,27 @@
 
-syntax = "proto3";
+syntax = "proto2";
 
 option cc_generic_services = true;
 
 message AddReq
 {
-    optional int32 a=1;
-    optional int32 b=2;
+    optional int32 a=2;
+    optional int32 b=3;
 }
 
 message AddRsp
 {
-    optional int32 result=1;
+    optional int32 result=2;
 }
 
 message EchoReq
 {
-    optional string str=1;
+    optional string str=2;
 }
 
 message EchoRsp
 {
-    optional string str=1;
+    optional string str=2;
 }
 
 
