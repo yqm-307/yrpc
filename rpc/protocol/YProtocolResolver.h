@@ -1,25 +1,32 @@
 #pragma once
 #include "Define.h"
-
-
+#include "Codec.h"
 namespace yrpc::detail::protocol
 {
 
 
 
 
+// class YProtocolResolver;
 
-class RpcResponse: public Base_Msg<google::protobuf::Message>
+/**
+ * @brief 非常好用的 yrpc protocol 协议分解工具
+ * 要点:
+ *  1、提供分解协议功能
+ *  2、初始化传入整个 yrpc protocol 原始比特流即可
+ *  3、使用智能指针，一键解析出message
+ */
+class YProtocolResolver: public Base_Msg<google::protobuf::Message>
 {
 public:
     typedef google::protobuf::Message ProtobufRsp;
-    RpcResponse(YRPC_PROTOCOL type,std::string_view bytes):m_bytes(bytes),m_prototype(type) {}
-    RpcResponse(const RpcResponse& p)
+    YProtocolResolver(YRPC_PROTOCOL type,std::string_view bytes):m_bytes(bytes),m_prototype(type) {}
+    YProtocolResolver(const YProtocolResolver& p)
             :m_prototype(p.m_prototype),
             m_protocol_head(p.m_protocol_head),
             m_message(p.m_message)
     {}
-    virtual ~RpcResponse(){}
+    virtual ~YProtocolResolver(){}
 
     
 
@@ -36,6 +43,7 @@ public:
         //拆解head
         m_protocol_head.SetByteArray(m_bytes.data());
         std::string_view proto_bytes(m_bytes.data(),m_bytes.size()-sizeof(uint16_t)*3);
+        
         return yrpc::detail::Codec::ParseToMessage(message,proto_bytes);
     }
 

@@ -78,11 +78,11 @@ private:
     void input_routinue(const char* buffer,size_t len);
     /* 发送协程，只要 output buffer 中数据达到一定量就唤醒该循环，send 数据 */
     void output_routinue();
-    void Dispatch(const yrpc::detail::protocol::RpcResponse&);
+    void Dispatch(const yrpc::detail::protocol::YProtocolResolver&);
     
 private:
-    void S2C_RPC_CALL_RSP_Handler(const yrpc::detail::protocol::RpcResponse&);
-    void S2C_HEARTBEAT_RSP_Handler(const yrpc::detail::protocol::RpcResponse&);
+    void S2C_RPC_CALL_RSP_Handler(const yrpc::detail::protocol::YProtocolResolver&);
+    void S2C_HEARTBEAT_RSP_Handler(const yrpc::detail::protocol::YProtocolResolver&);
 
 private:
 

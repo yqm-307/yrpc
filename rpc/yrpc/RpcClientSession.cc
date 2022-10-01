@@ -8,7 +8,7 @@ bool RpcClientSession::RpcAsyncCall(std::shared_ptr<google::protobuf::Message> p
         return false;
 
     // 临时的，内存自动释放，可以考虑改成可复用的，毕竟小内存频繁使用，可能导致内碎片增多
-    auto req = yrpc::detail::protocol::RpcRequest::Create(yrpc::detail::protocol::type_C2S_RPC_CALL_REQ, proto.get()); 
+    auto req = yrpc::detail::protocol::YProtocolGenerater::Create(yrpc::detail::protocol::type_C2S_RPC_CALL_REQ, proto.get()); 
     ProtoID id = req->GetProtoID();
     if (id == 0)
         return false;
@@ -32,7 +32,7 @@ bool RpcClientSession::RpcSyncCall(Future &future)
     if (m_now_tasknum >= m_max_task)
         return false;
 
-    auto req = yrpc::detail::protocol::RpcRequest::Create(yrpc::detail::protocol::type_C2S_RPC_CALL_REQ, future.m_send.get());
+    auto req = yrpc::detail::protocol::YProtocolGenerater::Create(yrpc::detail::protocol::type_C2S_RPC_CALL_REQ, future.m_send.get());
     ProtoID id = req->GetProtoID();
     if (id == 0)
         return false;
@@ -94,7 +94,7 @@ void RpcClientSession::Handler()
                 {
                     yrpc::detail::protocol::YRPC_PROTOCOL type;
                     type = (yrpc::detail::protocol::YRPC_PROTOCOL)yrpc::util::protoutil::BytesToType<uint16_t>(protobyte.c_str());
-                    yrpc::detail::protocol::RpcResponse rsp(type, protobyte);
+                    yrpc::detail::protocol::YProtocolResolver rsp(type, protobyte);
                     Dispatch(rsp);
                 }
             }
@@ -105,7 +105,7 @@ void RpcClientSession::Handler()
 }
 
 
-void RpcClientSession::Dispatch(const yrpc::detail::protocol::RpcResponse &rsp)
+void RpcClientSession::Dispatch(const yrpc::detail::protocol::YProtocolResolver &rsp)
 {
 #define doif(ProtoType/*YRPC_PROTOCOL*/) case type_##ProtoType: {ProtoType##_Handler ( rsp );} break 
     using namespace yrpc::detail::protocol;
@@ -124,7 +124,7 @@ void RpcClientSession::Dispatch(const yrpc::detail::protocol::RpcResponse &rsp)
 
 
 /* todo : 完善 */
-void RpcClientSession::S2C_RPC_CALL_RSP_Handler(const yrpc::detail::protocol::RpcResponse&rsp)
+void RpcClientSession::S2C_RPC_CALL_RSP_Handler(const yrpc::detail::protocol::YProtocolResolver&rsp)
 {
     ProtoID id = rsp.GetProtoID();
 
@@ -152,7 +152,7 @@ void RpcClientSession::S2C_RPC_CALL_RSP_Handler(const yrpc::detail::protocol::Rp
     m_regiseredmap.erase(id);   // 删除
 }
 
-void RpcClientSession::S2C_HEARTBEAT_RSP_Handler(const yrpc::detail::protocol::RpcResponse&rsp)
+void RpcClientSession::S2C_HEARTBEAT_RSP_Handler(const yrpc::detail::protocol::YProtocolResolver&rsp)
 {
     // DEBUG("todo :%s ",__FUNCTION__);
     ProtoID id = rsp.GetProtoID();

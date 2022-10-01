@@ -17,8 +17,8 @@
 #include "../network/Connector.h"       // tcp connection
 #include "../Util/IDGenerate.h"         // id generate
 #include "../network/SessionBuffer.h"   // buffer
-#include "../protocol/RpcRequest.h"
-#include "../protocol/RpcResponse.h"
+#include "../protocol/YProtocolGenerater.h"
+#include "../protocol/YProtocolResolver.h"
 
 namespace yrpc::rpc::detail
 {

@@ -8,29 +8,36 @@ namespace yrpc::detail::protocol
 
 
 
-class RpcRequest: public Base_Msg<google::protobuf::Message>
+/**
+ * @brief 非常好用的针对yrpc protocol 的协议序列化工具
+ * 要点: 
+ *  1、只需要填充 prototype，协议头自动填充。如果不自定义协议头，则会自动生成uid和
+ *  2、自动填充协议头
+ *  3、一键序列化
+ */
+class YProtocolGenerater: public Base_Msg<google::protobuf::Message>
 {
 public:
     typedef Base_Msg<google::protobuf::Message> BaseProtocol;
-    typedef typename std::shared_ptr<RpcRequest> Ptr;
+    typedef typename std::shared_ptr<YProtocolGenerater> Ptr;
     
-    virtual ~RpcRequest(){}    
-    RpcRequest(const RpcRequest& p)
+    virtual ~YProtocolGenerater(){}    
+    YProtocolGenerater(const YProtocolGenerater& p)
             :m_prototype(p.m_prototype),
             m_protocol_head(p.m_protocol_head),
             m_message(p.m_message)
     {}
 
 
-    RpcRequest()
+    YProtocolGenerater()
             :m_message(nullptr)
     {}
 
-    RpcRequest(google::protobuf::Message* req,YRPC_PROTOCOL prototype)
+    YProtocolGenerater(google::protobuf::Message* req,YRPC_PROTOCOL prototype)
             :m_prototype(prototype),
             m_message(req)
     {}
-    RpcRequest& operator=(const RpcRequest& p)
+    YProtocolGenerater& operator=(const YProtocolGenerater& p)
     {
         m_protocol_head = p.m_protocol_head;
         m_message = m_message;
@@ -38,7 +45,7 @@ public:
     }
 
 
-    // RpcRequest(MessagePtr& rsp):m_prototype(PType),BaseProtocol(rsp){}
+    // YProtocolGenerater(MessagePtr& rsp):m_prototype(PType),BaseProtocol(rsp){}
     
 
 
@@ -46,7 +53,7 @@ public:
 
 
     /**
-     * @brief RpcRequest 序列化为字节流，并以string形式返回
+     * @brief YProtocolGenerater 序列化为字节流，并以string形式返回
      * 
      * @param std::string& bytearray 
      * @return true 
@@ -58,9 +65,9 @@ public:
         
         if(this->Encode(m_message,bytearray))   // 追加   
         {
-            int msglen = bytearray.size();
-            m_protocol_head.m_length = bytearray.size();
-            m_protocol_head.ToByteArray(bytearray.data());
+            // int msglen = bytearray.size();
+            m_protocol_head.m_length = bytearray.size();    // 协议长
+            m_protocol_head.ToByteArray(bytearray.data());  
             // m_protocol_head.m_type = ;
             return true;
         }
@@ -108,7 +115,7 @@ public:
      */
     static Ptr Create(YRPC_PROTOCOL type,google::protobuf::Message* proto = nullptr)
     {
-        return std::make_shared<RpcRequest>(proto,type);
+        return std::make_shared<YProtocolGenerater>(proto,type);
     }
 
 protected:

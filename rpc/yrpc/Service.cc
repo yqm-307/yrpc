@@ -11,7 +11,7 @@ using namespace yrpc::err;
 
 std::string CallCenter::Service(const std::string_view& bytes)
 {
-    yrpc::detail::protocol::RpcResponse rsp(yrpc::detail::protocol::type_S2C_RPC_CALL_RSP,bytes); 
+    yrpc::detail::protocol::YProtocolResolver rsp(yrpc::detail::protocol::type_S2C_RPC_CALL_RSP,bytes);   // 解析bytes
     uint32_t uid = rsp.GetProtoID();
     uint16_t id = rsp.GetProtoType();
 
@@ -48,7 +48,7 @@ std::string CallCenter::Service(const std::string_view& bytes)
     handles->second(false,res,rlt); //将res解析为字节流到rlt中
     
     sendbyte = std::any_cast<std::string>(rlt);
-    yrpc::detail::YRPCProtocol::GenerateMsg(id,uid,sendbyte); 
+    yrpc::detail::GenerateMsg(id,uid,sendbyte); 
     delete ret; //释放资源
 
     return std::any_cast<std::string>(sendbyte);
@@ -71,7 +71,7 @@ int CallCenter::ErrCodeToByteArray(uint32_t id,uint32_t uid,int err,std::string&
     S2C_RPC_ERROR pck;
     pck.set_errnocode(err);
     pck.set_info(info);
-    yrpc::detail::protocol::RpcRequest req(&pck,yrpc::detail::protocol::type_S2C_RPC_ERROR);
+    yrpc::detail::protocol::YProtocolGenerater req(&pck,yrpc::detail::protocol::type_S2C_RPC_ERROR);
     req.SetProtoID(uid);
     req.ToByteArray(bytearray);
     

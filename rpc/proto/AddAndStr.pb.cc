@@ -158,6 +158,8 @@ PROTOBUF_ATTRIBUTE_INIT_PRIORITY2 static ::_pbi::AddDescriptorsRunner dynamic_in
 class AddReq::_Internal {
  public:
   using HasBits = decltype(std::declval<AddReq>()._impl_._has_bits_);
+  static constexpr int32_t kHasBitsOffset =
+    8 * PROTOBUF_FIELD_OFFSET(AddReq, _impl_._has_bits_);
   static void set_has_a(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -395,6 +397,8 @@ void AddReq::InternalSwap(AddReq* other) {
 class AddRsp::_Internal {
  public:
   using HasBits = decltype(std::declval<AddRsp>()._impl_._has_bits_);
+  static constexpr int32_t kHasBitsOffset =
+    8 * PROTOBUF_FIELD_OFFSET(AddRsp, _impl_._has_bits_);
   static void set_has_result(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -586,6 +590,8 @@ void AddRsp::InternalSwap(AddRsp* other) {
 class EchoReq::_Internal {
  public:
   using HasBits = decltype(std::declval<EchoReq>()._impl_._has_bits_);
+  static constexpr int32_t kHasBitsOffset =
+    8 * PROTOBUF_FIELD_OFFSET(EchoReq, _impl_._has_bits_);
   static void set_has_str(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -806,6 +812,8 @@ void EchoReq::InternalSwap(EchoReq* other) {
 class EchoRsp::_Internal {
  public:
   using HasBits = decltype(std::declval<EchoRsp>()._impl_._has_bits_);
+  static constexpr int32_t kHasBitsOffset =
+    8 * PROTOBUF_FIELD_OFFSET(EchoRsp, _impl_._has_bits_);
   static void set_has_str(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }

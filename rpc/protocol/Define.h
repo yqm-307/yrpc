@@ -9,7 +9,7 @@
  * 
  */
 #pragma once
-#include "./ProtocolUtil.h"
+// #include "./ProtocolUtil.h"
 #include "../Util/logger.h"
 #include "../Util/IDGenerate.h"
 #include "../proto/c2s.pb.h"

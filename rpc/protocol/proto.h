@@ -66,7 +66,7 @@ std::any ParseMessage(const Message& message,const Reflection* ref,const FieldDe
 
 
 /**
- * @brief 将字节流转化为 T 类型变量
+ * @brief 将字节流转化为 T 类型变量(不安全操作，隐患:data随机内存访问)
  * 
  * @tparam T 
  * @param data 字节指针
@@ -82,7 +82,7 @@ T BytesToType(const char* data)
 
 
 /**
- * @brief 将data值，逐字节拷贝到src中
+ * @brief 将data值，逐字节拷贝到src中(不安全操作，隐患:src导致随机内存访问)
  * 
  * @tparam T 
  * @param data 

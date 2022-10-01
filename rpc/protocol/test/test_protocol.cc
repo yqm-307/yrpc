@@ -1,5 +1,5 @@
-#include "../RpcRequest.h"
-#include "../RpcResponse.h"
+#include "../YProtocolGenerater.h"
+#include "../YProtocolResolver.h"
 
 
 using namespace yrpc::detail::protocol;

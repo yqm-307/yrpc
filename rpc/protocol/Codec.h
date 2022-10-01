@@ -30,9 +30,10 @@ class YRPCProtocol;
 */
 class Codec
 {
-public:
     Codec(){}
     virtual ~Codec(){}
+public:
+
 
     /**
      * @brief 将 bytes 转化为 一个 参数对象，并以智能指针的形式传出

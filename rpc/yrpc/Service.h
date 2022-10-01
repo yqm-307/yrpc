@@ -14,11 +14,11 @@ public:
     CallCenter(){}
     ~CallCenter(){}
 
+
     /**
-     * @brief 核心函数，传入一个以定义的协议，通过已注册的协议处理程序处理协议，并将结果序列化并返回
-     * 
-     * @param bytes recv 协议的原始字节流数据 
-     * @return std::string 处理后协议响应的字节流数据
+     * @brief  yrpc实现长连接、session多协议复用功能的 core 函数，依靠Service函数实现协议服务端协议解析和协议分发
+     * @param std::string_view(const)   入参 bytes 是 yrpc protocol 原始比特流
+     * @return std::string 
      */
     std::string Service(const std::string_view& bytes);
 
