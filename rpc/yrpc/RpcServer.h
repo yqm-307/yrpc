@@ -9,6 +9,7 @@ class RpcServer
 {
 typedef yrpc::detail::ServiceFunc ServiceFunc;
 typedef yrpc::detail::CodecFunc CodecFunc;
+typedef std::function<void()> WorkFunc;
 template<class Req>
 using ReqPtr = std::shared_ptr<Req>;
 template<class Rsp>
@@ -62,14 +63,20 @@ private:
     int connect_timeout_ms_;
     const int thread_num_;
     
-    std::vector<yrpc::coroutine::poller::Epoller*> sches_;
     yrpc::coroutine::poller::Epoller* scheduler_;
     detail::ServerSingle* MainServer_;
-    std::vector<detail::ServerSingle*> SubServers_;
-    std::vector<std::thread*> Threads_;
-    
-    //每个服务 3个用户定义函数：1、连接时回调（提供缺省的）2、service handle（必须由用户定义）3、编、解码 handle
+
+    std::vector<yrpc::coroutine::poller::Epoller*> sches_;  // 
+    std::vector<detail::ServerSingle*> SubServers_; // 子服务器
+    std::vector<std::thread*> Threads_;     // 
+
+    inline static yrpc::util::threadpool::ThreadPool<WorkFunc>* func = nullptr; 
 };
+
+// auto RpcServer::func = nullptr;   
+
+
+
 
 
 
