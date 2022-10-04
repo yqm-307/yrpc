@@ -10,8 +10,12 @@
  */
 #pragma once
 // #include "./ProtocolUtil.h"
-#include "../Util/logger.h"
-#include "../Util/IDGenerate.h"
+#include "../Util/all.h"
+// #include "../protocol/all.h"
+#include "Codec.h"
+#include "./all.h"
+// #include "../Util/logger.h"
+// #include "../Util/IDGenerate.h"
 #include "../proto/c2s.pb.h"
 #include "../proto/s2c.pb.h"
 #include <assert.h>

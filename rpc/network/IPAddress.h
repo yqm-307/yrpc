@@ -58,6 +58,13 @@ public:
         return  ((this->_ip==oth._ip) && (this->_port == oth._port));
     }
 
+    bool operator!=(const YAddress& oth)
+    {
+        return !(*this == oth);
+    }
+    
+
+
 private:
     bool is_null;
 };

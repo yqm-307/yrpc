@@ -11,10 +11,11 @@
 #pragma once
 
 #include "RpcFuture.h"
+#include "../protocol/all.h"
 
 namespace yrpc::rpc::detail
 {
-
+// class yrpc::detail::protocol::YProtocolResolver;
 
 class RpcClientSession final : public Base_RpcSession , std::enable_shared_from_this<RpcClientSession>
 {

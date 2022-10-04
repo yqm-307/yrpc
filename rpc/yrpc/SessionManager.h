@@ -5,14 +5,14 @@ namespace yrpc::rpc::detail
 {
 
 /**
- * @brief session 管理器
+ * @brief session 管理器，客户端最重要的管理模块
  * 
  */
 class SessionManager : yrpc::util::noncopyable::noncopyable
 {
     typedef int SessionID;
     // typedef std::map<SessionID,RpcClientSession*> SessionMap;       // session id <==> session
-    typedef std::map<yrpc::detail::ynet::YAddress,RpcClientSession*> SessionMap;  // addr <==> session
+    typedef std::unordered_map<yrpc::detail::ynet::YAddress,RpcClientSession*> SessionMap;  // addr <==> session
 public:
     SessionManager* GetInstance();
 

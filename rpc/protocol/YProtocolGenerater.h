@@ -1,6 +1,6 @@
 #pragma once
 #include "Define.h"
-#include "../Util/IDGenerate.h"
+// #include "../Util/IDGenerate.h"
 #include <memory>
 
 namespace yrpc::detail::protocol
@@ -61,7 +61,7 @@ public:
      */
     bool ToByteArray(std::string& bytearray)
     {
-        bytearray.resize(sizeof(ProtocolHeadSize),'0'); // 预留 protocol head
+        bytearray.resize(ProtocolHeadSize,'0'); // 预留 protocol head
         
         if(this->Encode(m_message,bytearray))   // 追加   
         {

@@ -5,6 +5,12 @@ namespace yrpc::rpc
 {
 
 
+/**
+ * @brief RpcServer 是rpc服务端启动函数，主要负责注册服务和初始化服务器配置
+ * 1、注册服务: register_service，有两个重载，一个是自动生成id，一个是自己配置服务id
+ * 2、ThreadPool配置: 是否设置线程池异步执行任务，如果不设置，默认为io线程内执行。
+ * 3、
+ */
 class RpcServer
 {
 typedef yrpc::detail::ServiceFunc ServiceFunc;
@@ -16,6 +22,7 @@ template<class Rsp>
 using RspPtr = std::shared_ptr<Rsp>;
 
 public:
+    typedef yrpc::util::threadpool::ThreadPool<WorkFunc> ThreadPool;
     RpcServer(int port,size_t threadnum,std::string logpath = "server.log",int socket_timeout_ms=5000,int connect_timeout_ms=3000,int stack_size=64*1024,int maxqueue=65535);
     RpcServer()=delete;
     ~RpcServer();
@@ -47,9 +54,13 @@ public:
 
 
     /**
-     * @brief loop开始
+     * @brief server eventloop 开始
      */
     void start();
+
+    int SetThreadPool(yrpc::util::threadpool::ThreadPool<WorkFunc>*);
+
+    const yrpc::util::threadpool::ThreadPool<WorkFunc>* GetThreadPool();
 
 protected:
 
@@ -70,7 +81,7 @@ private:
     std::vector<detail::ServerSingle*> SubServers_; // 子服务器
     std::vector<std::thread*> Threads_;     // 
 
-    inline static yrpc::util::threadpool::ThreadPool<WorkFunc>* func = nullptr; 
+    yrpc::util::threadpool::ThreadPool<WorkFunc>* t_pool_ = nullptr; 
 };
 
 // auto RpcServer::func = nullptr;   

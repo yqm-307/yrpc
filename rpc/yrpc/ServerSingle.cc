@@ -39,12 +39,13 @@ typedef std::shared_ptr<SCallObj> CallPtr;
 
 
 ServerSingle::ServerSingle(yrpc::coroutine::poller::Epoller* scheduler,int port,
-                            int socket_timeout_ms,int connect_timeout_ms,int stack_size)
+                            int socket_timeout_ms,int connect_timeout_ms,yrpc::util::threadpool::ThreadPool<WorkFunc>* threadpool,int stack_size)
     :connect_timeout_ms_(connect_timeout_ms),
     socket_timeout_ms_(socket_timeout_ms),
     scheduler_(scheduler),
     acceptor_(scheduler_,port,socket_timeout_ms_,connect_timeout_ms_),
-    closed_(false)
+    closed_(false),
+    t_pool_(threadpool)
 {
     assert(scheduler_!=nullptr);
     //注册onconnect回调
@@ -122,25 +123,29 @@ void ServerSingle::OnConnHandle(const yrpc::detail::ynet::ConnectionPtr&conn,voi
                 CallPtr call = std::make_shared<SCallObj>(scheduler_);   //创建callobj
                 call->Set_Req_Bytes(data);
 
-                std::string tmp = caller_.Service(data);
-                int n = conn->send(tmp.data(),tmp.size());
-                // DEBUG("发送L %ld\n",n);
+                if(t_pool_ != nullptr)
+                {
+                    scheduler_->AddTask([call, &conn](void *args)
+                                        {
+                        auto ptr = (yrpc::util::buffer::Buffer*)args;
+                        call->Wait();   //等待 Service 结束
+                        static uint64_t nbyte=0;
+                        int n = conn->send(call->GetBytes().c_str(),call->GetBytes().size());
+                        //DEBUG("总发送: %ld\n",nbyte+=n); 
+                    },&bytes_);
 
-                // scheduler_->AddTask([call, &conn](void *args)
-                // {
-                //     auto ptr = (yrpc::util::buffer::Buffer*)args;
-                //     call->Wait();   //等待 Service 结束
-                //     static uint64_t nbyte=0;
-                //     int n = conn->send(call->GetBytes().c_str(),call->GetBytes().size());
-                //     //DEBUG("总发送: %ld\n",nbyte+=n);
-                // },&bytes_);
-
-
-                // t_pool_.AddTask([this, call]()
-                // {
-                //     call->GetBytes() = caller_.Service(call->GetReq());
-                //     call->Notify(); 
-                // });
+                    t_pool_->AddTask([this, call]()
+                    {
+                        call->GetBytes() = caller_.Service(call->GetReq());
+                        call->Notify(); 
+                    });
+                }
+                else
+                {
+                    std::string tmp = caller_.Service(data);
+                    int n = conn->send(tmp.data(), tmp.size());
+                    // DEBUG("发送L %ld\n",n);
+                }
             }
             else
                 break;

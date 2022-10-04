@@ -48,7 +48,7 @@ std::string CallCenter::Service(const std::string_view& bytes)
     handles->second(false,res,rlt); //将res解析为字节流到rlt中
     
     sendbyte = std::any_cast<std::string>(rlt);
-    yrpc::detail::GenerateMsg(id,uid,sendbyte); 
+    // yrpc::detail::GenerateMsg(id,uid,sendbyte); 
     delete ret; //释放资源
 
     return std::any_cast<std::string>(sendbyte);

@@ -30,8 +30,8 @@ class YRPCProtocol;
 */
 class Codec
 {
-    Codec(){}
-    virtual ~Codec(){}
+    // Codec(){}
+    // virtual ~Codec(){}
 public:
 
 
