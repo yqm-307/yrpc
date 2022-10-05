@@ -4,8 +4,7 @@
 
 namespace yrpc::detail::protocol
 {
-
-
+// template<class ProtobufMsg> class Base_Msg;
 /**
  * @brief 非常好用的 yrpc protocol 协议分解工具
  * 要点:
