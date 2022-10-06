@@ -17,6 +17,7 @@ namespace yrpc::detail::protocol
  */
 class YProtocolGenerater: public Base_Msg<google::protobuf::Message>
 {
+    typedef yrpc::detail::protocol::define::YRPC_PROTOCOL YRPC_PROTOCOL;
 public:
     typedef Base_Msg<google::protobuf::Message> BaseProtocol;
     typedef typename std::shared_ptr<YProtocolGenerater> Ptr;

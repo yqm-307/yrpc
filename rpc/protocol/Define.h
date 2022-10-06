@@ -16,36 +16,40 @@
 #include <assert.h>
 #include <unordered_map>
 
-// C2S_HEARTBEAT_REQ p;
+namespace yrpc::detail::protocol::define
+{
+
+    // yrpc 错误码
+    enum YRPC_ErrCode
+    {
+        CALL_FATAL_OTHRE = 0,                   // 未知错误
+        CALL_FATAL_SERVICE_ID_IS_BAD    = 1,    //服务不存在或服务id错误
+        CALL_FATAL_SERVICE_MSG_IS_BAD   = 2,    // protobuf message 错误
+        CALL_FATAL_SERVICE_TIMEOUT      = 3,    // service call 超时
+        CALL_FATAL_SERVER_BUSY          = 4     //服务端拒绝调用，服务端繁忙
+
+    };
+
+    /**
+     * @brief yrpc 内部自定义protobuf类型集合
+     *
+     */
+    enum YRPC_PROTOCOL
+    {
+        type_YRPC_PROTOCOL_Done = 0,
+        type_C2S_HEARTBEAT_REQ = 10000,
+        type_S2C_HEARTBEAT_RSP = 10001,
+        type_C2S_RPC_CALL_REQ = 10010,
+        type_S2C_RPC_CALL_RSP = 10011,
+        type_S2C_RPC_ERROR = 10012,
+    };
+
+}
 
 namespace yrpc::detail::protocol
 {
 
-// yrpc 错误码
-enum YRPC_ErrCode
-{
-    CALL_FATAL_SERVICE_ID_IS_BAD=0,     //服务不存在或服务id错误
-    CALL_FATAL_SERVICE_MSG_IS_BAD=1,    //protobuf message 错误
-    CALL_FATAL_SERVICE_TIMEOUT=2,       //service call 超时
-    CALL_FATAL_SERVER_BUSY=3            //服务端拒绝调用，服务端繁忙
-};
 
-/**
- * @brief yrpc 内部自定义protobuf类型集合
- * 
- */
-enum YRPC_PROTOCOL
-{
-    type_YRPC_PROTOCOL_Done     = 0,
-    type_C2S_HEARTBEAT_REQ      = 10000,
-    type_S2C_HEARTBEAT_RSP      = 10001,
-    type_C2S_RPC_CALL_REQ       = 10010,
-    type_S2C_RPC_CALL_RSP       = 10011,
-    type_S2C_RPC_ERROR          = 10012,
-};
-
-
-// std::unordered_map<int,YRPC_PROTOCOL>
 
 
 

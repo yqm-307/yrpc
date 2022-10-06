@@ -20,21 +20,31 @@ class SessionManager : yrpc::util::noncopyable::noncopyable
 public:
     SessionManager* GetInstance();
 
-    int Make_Session(); // 创建一个session
+    int CreateNewSession(); // 创建一个session
 
-    int Submit_Call(const yrpc::util::buffer::Buffer& buff,SessionID session_id);  // 提交协议流 
+    int Submit(const yrpc::util::buffer::Buffer& buff,SessionID session_id);  // 提交协议流 
 
+    // session is alive
+    bool SessionIsAlive(SessionID session);
+
+    // rpc client 注册到session manager
+    int RpcClientRegister();
+
+    
+    
 private:
     SessionManager();  
 
     SessionID GetSessionID();
 
 private:
-    SessionMap m_client_sessions;   // 客户端session
-    ServAddrList m_serv_list;       // 服务器列表
+    SessionMap m_client_sessions;   // session map
+    ServAddrList m_serv_list;       // 服务器列表，通过框架RpcClient主动连接，注册在这里
     // yrpc::coroutine::poller::Epoller* scheduler_;    //协程调度器
-    yrpc::detail::ynet::YAddress servaddr_;             //服务端地址
-    yrpc::detail::ynet::Connector connector_;           //
+    // yrpc::detail::ynet::YAddress servaddr_;             //服务端地址
+    const int port;
+    
+    // yrpc::detail::ynet::Connector connector_;        //
 
 };
 

@@ -1,8 +1,9 @@
 //
 #pragma once
+#include "../msg/ProtocolFactory.h"
 #include "../Util/Locker.h"
 #include "RpcBaseSession.h"
-#include "../msg/ProtocolFactory.h"
+#include "Define.h"
 #include <memory>
 #include <functional>
 #include <condition_variable>
@@ -16,8 +17,7 @@ namespace yrpc::rpc::detail
 
 
 class RpcClientSession;
-typedef std::shared_ptr<google::protobuf::Message> MessagePtr;
-typedef std::function<void(MessagePtr)> RpcCallback;
+
 
 class Future
 {
@@ -65,7 +65,7 @@ protected:
     {
         if(m_func == nullptr)
             return false;
-        m_func(m_recv);
+        m_func(m_recv,m_code);
         return true;
     }   
     void SetResult(MessagePtr result)
@@ -79,7 +79,7 @@ protected:
         }
         else
         {
-            m_func(result);
+            m_func(result,m_code);
         }
     }
 
@@ -87,6 +87,7 @@ private:
     MessagePtr m_send;
     MessagePtr m_recv;
     RpcCallback /*void(std::shared_ptr<google::protobuf::message*>)*/  m_func;
+    yrpc::err::errcode m_code;
     // std::shared_ptr<RpcClientSession> m_session;
     yrpc::util::lock::Mutex m_mutex;
     yrpc::util::lock::Sem_t m_sem;

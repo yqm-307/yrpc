@@ -11,7 +11,7 @@ using namespace yrpc::err;
 
 std::string CallCenter::Service(const std::string_view& bytes)
 {
-    yrpc::detail::protocol::YProtocolResolver rsp(yrpc::detail::protocol::type_S2C_RPC_CALL_RSP,bytes);   // 解析bytes
+    yrpc::detail::protocol::YProtocolResolver rsp(yrpc::detail::protocol::define::type_S2C_RPC_CALL_RSP,bytes);   // 解析bytes
     uint32_t uid = rsp.GetProtoID();
     uint16_t id = rsp.GetProtoType();
 
@@ -24,7 +24,7 @@ std::string CallCenter::Service(const std::string_view& bytes)
     {    
         ERROR("CallCenter::Service() error ! Service id is bad!");
         std::string bytes{""};
-        ErrCodeToByteArray(id,uid,yrpc::detail::protocol::CALL_FATAL_SERVICE_ID_IS_BAD,bytes,yrpc::util::logger::format("Service id is %d !",id));
+        ErrCodeToByteArray(id,uid,yrpc::detail::protocol::define::CALL_FATAL_SERVICE_ID_IS_BAD,bytes,yrpc::util::logger::format("Service id is %d !",id));
         return bytes;
     }
     
@@ -71,7 +71,7 @@ int CallCenter::ErrCodeToByteArray(uint32_t id,uint32_t uid,int err,std::string&
     S2C_RPC_ERROR pck;
     pck.set_errnocode(err);
     pck.set_info(info);
-    yrpc::detail::protocol::YProtocolGenerater req(&pck,yrpc::detail::protocol::type_S2C_RPC_ERROR);
+    yrpc::detail::protocol::YProtocolGenerater req(&pck,yrpc::detail::protocol::define::type_S2C_RPC_ERROR);
     req.SetProtoID(uid);
     req.ToByteArray(bytearray);
     

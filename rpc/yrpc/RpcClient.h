@@ -57,12 +57,11 @@ public:
     // template<class SendType,class RecvType>
     // bool async_call_long(std::string name,ReqPtr<SendType> send,std::function<void(RecvType&)> f);
 
-
-    
     // template<class SendType,class RecvType>
     // ResultPtr<SendType,RecvType> result_long(std::string name,ReqPtr<SendType> send);
 
-    bool async_call(std::string name,std::shared_ptr<google::protobuf::Message> send,std::function<void(RspPtr<google::protobuf::Message>)> f);
+
+    bool async_call(std::string name,std::shared_ptr<google::protobuf::Message> send,yrpc::rpc::detail::RpcCallback f);
 
     // 提交调用
     // bool Updata();

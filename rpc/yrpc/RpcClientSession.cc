@@ -8,7 +8,7 @@ bool RpcClientSession::RpcAsyncCall(std::shared_ptr<google::protobuf::Message> p
         return false;
 
     // 临时的，内存自动释放，可以考虑改成可复用的，毕竟小内存频繁使用，可能导致内碎片增多
-    auto req = yrpc::detail::protocol::YProtocolGenerater::Create(yrpc::detail::protocol::type_C2S_RPC_CALL_REQ, proto.get()); 
+    auto req = yrpc::detail::protocol::YProtocolGenerater::Create(yrpc::detail::protocol::define::type_C2S_RPC_CALL_REQ, proto.get()); 
     ProtoID id = req->GetProtoID();
     if (id == 0)
         return false;
@@ -32,7 +32,7 @@ bool RpcClientSession::RpcSyncCall(Future &future)
     if (m_now_tasknum >= m_max_task)
         return false;
 
-    auto req = yrpc::detail::protocol::YProtocolGenerater::Create(yrpc::detail::protocol::type_C2S_RPC_CALL_REQ, future.m_send.get());
+    auto req = yrpc::detail::protocol::YProtocolGenerater::Create(yrpc::detail::protocol::define::type_C2S_RPC_CALL_REQ, future.m_send.get());
     ProtoID id = req->GetProtoID();
     if (id == 0)
         return false;
@@ -92,8 +92,8 @@ void RpcClientSession::Handler()
                 std::string protobyte{};
                 while (GetAProtocol(protobyte))
                 {
-                    yrpc::detail::protocol::YRPC_PROTOCOL type;
-                    type = (yrpc::detail::protocol::YRPC_PROTOCOL)yrpc::util::protoutil::BytesToType<uint16_t>(protobyte.c_str());
+                    yrpc::detail::protocol::define::YRPC_PROTOCOL type;
+                    type = (yrpc::detail::protocol::define::YRPC_PROTOCOL)yrpc::util::protoutil::BytesToType<uint16_t>(protobyte.c_str());
                     yrpc::detail::protocol::YProtocolResolver rsp(type, protobyte);
                     Dispatch(rsp);
                 }
@@ -108,7 +108,7 @@ void RpcClientSession::Handler()
 void RpcClientSession::Dispatch(const yrpc::detail::protocol::YProtocolResolver &rsp)
 {
 #define doif(ProtoType/*YRPC_PROTOCOL*/) case type_##ProtoType: {ProtoType##_Handler ( rsp );} break 
-    using namespace yrpc::detail::protocol;
+    using namespace yrpc::detail::protocol::define;
     auto type = rsp.GetProtoType();
 
     switch (type)

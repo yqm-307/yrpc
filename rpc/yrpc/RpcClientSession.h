@@ -21,6 +21,7 @@ class RpcClientSession final : public Base_RpcSession , std::enable_shared_from_
     typedef uint32_t ProtoID; 
     typedef std::pair<ProtoID,Future*> Entry;
     typedef std::queue<Entry> RegisterQueue;
+    typedef yrpc::detail::protocol::define::YRPC_PROTOCOL YRPC_PROTOCOL;
     typedef std::unordered_map<ProtoID,Future*> RegisteredMap;   // 已注册任务
     typedef std::unordered_map<ProtoID,Future*> FinishedMap;     // 已回复任务
     typedef std::priority_queue<uint32_t>  TimeQueue;            // 超时队列

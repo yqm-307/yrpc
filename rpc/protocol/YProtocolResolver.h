@@ -14,6 +14,7 @@ namespace yrpc::detail::protocol
  */
 class YProtocolResolver: public Base_Msg<google::protobuf::Message>
 {
+    typedef yrpc::detail::protocol::define::YRPC_PROTOCOL YRPC_PROTOCOL;
 public:
     typedef google::protobuf::Message ProtobufRsp;
     YProtocolResolver(YRPC_PROTOCOL type,std::string_view bytes):m_bytes(bytes),m_prototype(type) {}
