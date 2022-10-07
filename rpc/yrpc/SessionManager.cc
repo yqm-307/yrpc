@@ -4,9 +4,10 @@ using namespace yrpc::rpc::detail;
 
 
 SessionManager::SessionManager()
-    :port(7912)
+    :port(7912),
+    scheduler_(new yrpc::coroutine::poller::Epoller(64*1024,65535,"client.log",true))
 {
-
+    
 }
 
 

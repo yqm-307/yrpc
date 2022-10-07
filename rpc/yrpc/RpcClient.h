@@ -15,6 +15,7 @@
 #include "./RpcSession.h"
 #include "./CallResult.h"
 #include "./RpcClientSession.h"
+#include "./SessionManager.h"
 
 namespace yrpc::rpc
 {
@@ -24,6 +25,8 @@ namespace yrpc::rpc
  */
 class RpcClient
 {
+    typedef detail::SessionManager SessionManager;
+    typedef detail::SessionManager::SessionID SessionID;
 public:
 
     /* Result 的 指针类型 */
@@ -70,15 +73,18 @@ private:
     void NewConnection(yrpc::detail::ynet::ConnectionPtr new_conn);
 
 private:
-    yrpc::coroutine::poller::Epoller* scheduler_;   //协程调度器
-    yrpc::detail::ynet::YAddress servaddr_;         //服务端地址
-    yrpc::detail::ynet::Connector connector_;       // 
-    yrpc::util::buffer::Buffer buffer_;             //协议流
+    SessionID m_session; // session
+    // yrpc::coroutine::poller::Epoller* scheduler_;   //协程调度器
+    yrpc::detail::ynet::YAddress servaddr_;         //  服务端地址
+    yrpc::detail::ynet::Connector connector_;       //  
+    yrpc::util::buffer::Buffer buffer_;             //  协议流
     std::shared_ptr<yrpc::rpc::detail::RpcClientSession> session_;
     std::thread* thread_;                           //thread
     std::mutex lock_;
     std::atomic_bool close_;
     static const char InitLogName[];
+
+
 };
 
 const char RpcClient::InitLogName[] = "client.log";

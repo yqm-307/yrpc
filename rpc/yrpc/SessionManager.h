@@ -13,12 +13,15 @@ namespace yrpc::rpc::detail
  */
 class SessionManager : yrpc::util::noncopyable::noncopyable
 {
+public:
     typedef uint32_t SessionID;
+private:
     // typedef std::map<SessionID,RpcClientSession*> SessionMap;       // session id <==> session
     typedef std::unordered_map<SessionID,RpcClientSession*> SessionMap;  // servid <==> session
     typedef std::vector<yrpc::detail::ynet::YAddress> ServAddrList;     // 服务器列表
+
 public:
-    SessionManager* GetInstance();
+    static SessionManager* GetInstance();
 
     int CreateNewSession(); // 创建一个session
 
@@ -26,6 +29,8 @@ public:
 
     // session is alive
     bool SessionIsAlive(SessionID session);
+
+    bool SessionIsAlive(yrpc::detail::ynet::YAddress addr);
 
     // rpc client 注册到session manager
     int RpcClientRegister();
@@ -40,7 +45,7 @@ private:
 private:
     SessionMap m_client_sessions;   // session map
     ServAddrList m_serv_list;       // 服务器列表，通过框架RpcClient主动连接，注册在这里
-    // yrpc::coroutine::poller::Epoller* scheduler_;    //协程调度器
+    yrpc::coroutine::poller::Epoller* scheduler_;    //协程调度器
     // yrpc::detail::ynet::YAddress servaddr_;             //服务端地址
     const int port;
     

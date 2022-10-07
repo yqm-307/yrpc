@@ -66,13 +66,16 @@ void RpcClient::NewConnection(yrpc::detail::ynet::ConnectionPtr new_conn)
 
 bool RpcClient::async_call(std::string name,std::shared_ptr<google::protobuf::Message> send,yrpc::rpc::detail::RpcCallback f)
 {
-    if(!session_ || !session_->IsConnected())
-    {
-        ERROR("RpcClient::async_call error , info: clinet session bad!");
-        return false; 
-    }
-    if(session_->RpcAsyncCall(send,std::move(f)))
-        return true;
-    else
-        return false;
+
+    SessionManager::GetInstance()->SessionIsAlive();
+
+    // if(!session_ || !session_->IsConnected())
+    // {
+    //     ERROR("RpcClient::async_call error , info: clinet session bad!");
+    //     return false; 
+    // }
+    // if(session_->RpcAsyncCall(send,std::move(f)))
+    //     return true;
+    // else
+    //     return false;
 }
