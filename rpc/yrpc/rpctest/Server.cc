@@ -5,7 +5,6 @@ using namespace yrpc;
 using namespace yrpc::util;
 
 
-
 google::protobuf::Message* AddHandle(std::any args)
 {
     auto ptr = std::any_cast<std::shared_ptr<AddReq>>(args);

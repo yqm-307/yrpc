@@ -58,6 +58,8 @@ public:
      */
     size_t recv(char* buffer,size_t buflen);
 
+    size_t recv(Buffer& data);
+
     /*关闭连接，但是等待本次传输完成*/
     void Close();
     /*强制关闭连接，释放资源*/

@@ -78,6 +78,20 @@ size_t Connection::recv(char* buffer,size_t buflen)
     return n;
 }
 
+size_t Connection::recv(Buffer& data)
+{
+    const int RECV_BUF_SIZE{4096};
+    int n = 0;
+    char buff[RECV_BUF_SIZE];
+    
+    if(0 > (n = recv(buff,RECV_BUF_SIZE)))    
+        return -1;
+    data.WriteString(buff,n);
+    return n;
+}
+
+
+
 void Connection::Close()
 {
     conn_status_ = disconnect;
