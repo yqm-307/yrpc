@@ -6,18 +6,24 @@
 namespace yrpc::util::buffer
 {
 
-
-const int Buffer::headSize=0;  // 4 + 4 + 16
-const int Buffer::initSize=4096;
+const int HeaderBytes=0;        // 预留位置
+const int Buffer::headSize=0;   // 
+const int Buffer::initSize=4096;// 初始长度
 
 
 Buffer::Buffer(size_t size)
     :bytes(size + headSize),
     _readIndex(headSize),
     _writeIndex(headSize),
-    reservedBytes(8)
-{
-}
+    reservedBytes(HeaderBytes)
+{}
+
+Buffer::Buffer(const Buffer& rval)
+    :bytes(rval.bytes),
+    reservedBytes(HeaderBytes),
+    _readIndex(rval._readIndex),
+    _writeIndex(rval._writeIndex)
+{}
 
 
 //可读 = 已写 - 已读
@@ -228,6 +234,10 @@ int64_t Buffer::readfd(int fd, int& savedErrno)
 
 
 
+const char* Buffer::peek() const
+{
+    return peek();
+}
 char* Buffer::peek()
 {
     return begin()+_readIndex;

@@ -18,7 +18,7 @@ public:
 private:
     // typedef std::map<SessionID,RpcClientSession*> SessionMap;       // session id <==> session
     typedef std::unordered_map<SessionID,RpcClientSession*> SessionMap;  // servid <==> session
-    typedef std::vector<yrpc::detail::ynet::YAddress> ServAddrList;     // 服务器列表
+    typedef std::vector<yrpc::detail::net::YAddress> ServAddrList;     // 服务器列表
 
 public:
     static SessionManager* GetInstance();
@@ -30,7 +30,7 @@ public:
     // session is alive
     bool SessionIsAlive(SessionID session);
 
-    bool SessionIsAlive(yrpc::detail::ynet::YAddress addr);
+    bool SessionIsAlive(yrpc::detail::net::YAddress addr);
 
     // rpc client 注册到session manager
     int RpcClientRegister();
@@ -46,10 +46,10 @@ private:
     SessionMap m_client_sessions;   // session map
     ServAddrList m_serv_list;       // 服务器列表，通过框架RpcClient主动连接，注册在这里
     yrpc::coroutine::poller::Epoller* scheduler_;    //协程调度器
-    // yrpc::detail::ynet::YAddress servaddr_;             //服务端地址
+    // yrpc::detail::net::YAddress servaddr_;             //服务端地址
     const int port;
     
-    // yrpc::detail::ynet::Connector connector_;        //
+    // yrpc::detail::net::Connector connector_;        //
 
 };
 

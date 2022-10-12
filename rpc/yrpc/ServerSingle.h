@@ -19,7 +19,7 @@ public:
     ServerSingle(yrpc::coroutine::poller::Epoller* sche, int port,int socket_timeout_ms,int connect_timeout_ms,yrpc::util::threadpool::ThreadPool<WorkFunc>* threadpool=nullptr,int stack_size=64*1024);
     ~ServerSingle();
 
-    void setOnConnect(yrpc::detail::ynet::OnConnectHandle func);
+    void setOnConnect(yrpc::detail::net::OnConnectHandle func);
 
     //服务器退出前循环
     void run();
@@ -30,17 +30,17 @@ public:
     void close();
 
 private:
-    void OnSendHandle(const yrpc::detail::ynet::ConnectionPtr&conn,void*);
-    void OnConnHandle(const yrpc::detail::ynet::ConnectionPtr&conn,void*);
+    void OnSendHandle(const yrpc::detail::net::ConnectionPtr&conn,void*);
+    void OnConnHandle(const yrpc::detail::net::ConnectionPtr&conn,void*);
 private:
     int socket_timeout_ms_;
     int connect_timeout_ms_;
     yrpc::coroutine::poller::Epoller* scheduler_;
     yrpc::util::threadpool::ThreadPool<WorkFunc>* t_pool_ = nullptr; 
 
-    yrpc::detail::ynet::Acceptor acceptor_;
-    yrpc::detail::ynet::OnConnectHandle onconnectcb_;
-    yrpc::detail::ynet::OnRecvHandle onrecvcb_;
+    yrpc::detail::net::Acceptor acceptor_;
+    yrpc::detail::net::OnConnectHandle onconnectcb_;
+    yrpc::detail::net::OnRecvHandle onrecvcb_;
     yrpc::rpc::detail::CallCenter caller_;
     volatile bool closed_;
 };

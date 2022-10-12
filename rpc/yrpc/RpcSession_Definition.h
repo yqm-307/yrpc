@@ -2,7 +2,7 @@
 
 
 // template <class SendType, class RecvType>
-// RpcSession<SendType, RecvType>::RpcSession(yrpc::coroutine::poller::Epoller *sche, std::string name, yrpc::detail::ynet::YAddress addr, int timeout)
+// RpcSession<SendType, RecvType>::RpcSession(yrpc::coroutine::poller::Epoller *sche, std::string name, yrpc::detail::net::YAddress addr, int timeout)
 //     : scheduler_(sche),
 //       connector_(sche, addr),
 //       name_(name),
@@ -13,7 +13,7 @@
 //         FATAL("Future::Future() error , sys_call pipe() fatal!");
 
 //     //建立连接
-//     connector_.setOnConnect([this](const yrpc::detail::ynet::ConnectionPtr &conn, void *sendpkg)
+//     connector_.setOnConnect([this](const yrpc::detail::net::ConnectionPtr &conn, void *sendpkg)
 //                             { OnConnHandle(conn); });
 //     connector_.setClosed([this]()
 //                          { this->cond_t_.Notify(); });
@@ -130,7 +130,7 @@
 
 
 // template <class SendType, class RecvType>
-// void RpcSession<SendType, RecvType>::OnConnHandle(const yrpc::detail::ynet::ConnectionPtr &conn)
+// void RpcSession<SendType, RecvType>::OnConnHandle(const yrpc::detail::net::ConnectionPtr &conn)
 // {
 //     using namespace yrpc::util::clock;
 //     connected_ = true;
@@ -178,7 +178,7 @@
 
 
 // template <class SendType, class RecvType>
-// void RpcSession<SendType, RecvType>::OnRecvHandle(const yrpc::detail::ynet::ConnectionPtr &conn)
+// void RpcSession<SendType, RecvType>::OnRecvHandle(const yrpc::detail::net::ConnectionPtr &conn)
 // {
 //     using namespace yrpc::util::clock;
 

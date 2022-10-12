@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 #include <functional>
 
-namespace yrpc::detail::ynet
+namespace yrpc::detail::net
 {
 
 

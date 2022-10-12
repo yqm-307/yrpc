@@ -1,6 +1,6 @@
 #include "../network/SessionBuffer.h"
 
-using namespace yrpc::detail::ynet;
+using namespace yrpc::detail::net;
 
 std::string SessionBuffer::GetAReq()
 {

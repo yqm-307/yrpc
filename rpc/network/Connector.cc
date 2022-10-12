@@ -1,6 +1,6 @@
 #include "Connector.h"
 
-using namespace yrpc::detail::ynet;
+using namespace yrpc::detail::net;
 
 
 Connector::Connector(yrpc::coroutine::poller::Epoller* loop,YAddress servaddr,int socket_ms,int conn_ms)

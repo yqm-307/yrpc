@@ -2,7 +2,7 @@
 #pragma once
 
 
-namespace yrpc::ynet
+namespace yrpc::detail::net
 {
 
 class TcpServer

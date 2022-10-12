@@ -14,7 +14,7 @@ RpcClient::RpcClient(std::string ip,int port,std::string logpath,int stack_size,
     assert(scheduler_!=nullptr);
     thread_ = new std::thread(RpcClient::run,this);
     assert(thread_);
-    connector_.setOnConnect([this](yrpc::detail::ynet::ConnectionPtr conn,void*){NewConnection(conn);});
+    connector_.setOnConnect([this](yrpc::detail::net::ConnectionPtr conn,void*){NewConnection(conn);});
 }
 
 RpcClient::~RpcClient()
@@ -52,7 +52,7 @@ bool RpcClient::isclose()
     return close_.load();
 }
 
-void RpcClient::NewConnection(yrpc::detail::ynet::ConnectionPtr new_conn)
+void RpcClient::NewConnection(yrpc::detail::net::ConnectionPtr new_conn)
 {
     if (!new_conn->IsClosed())
     {

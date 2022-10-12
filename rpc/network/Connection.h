@@ -14,7 +14,7 @@
 #include "../YRoutine/Hook.h"
 
 
-namespace yrpc::detail::ynet
+namespace yrpc::detail::net
 {
 typedef yrpc::coroutine::poller::RoutineSocket RoutineSocket;
 
@@ -28,10 +28,12 @@ enum CONN_STATUS
 
 class Connection:std::enable_shared_from_this<Connection>
 {
+    typedef std::shared_ptr<Connection> ConnectionPtr;
+    typedef yrpc::util::buffer::Buffer Buffer;
 public:
+
     Connection(yrpc::coroutine::poller::Epoller* scheduler,RoutineSocket* sockfd,const YAddress& cli);
     ~Connection();
-    typedef std::shared_ptr<Connection> ConnectionPtr;
 
     ConnectionPtr GetPtr()
     { return this->shared_from_this(); }
@@ -44,6 +46,8 @@ public:
      * @return size_t 发送成功字节，正常发送会yield直到发送完毕，但是如果socket异常可能发送失败
      */
     size_t send(const char* data,size_t len);
+
+    size_t send(const Buffer& data);
     
     /**
      * @brief 接受数据到接受缓冲区 
@@ -64,9 +68,7 @@ public:
     void setOnCloseCallback(ConnCloseHandle cb)
     { closecb_ = cb; }
     void update()
-    {
-        schedule_->AddTask([this](void*){recvhandler();},nullptr);
-    }
+    { schedule_->AddTask([this](void*){recvhandler();},nullptr); }
 
     /*当前套接字是否超时，默认超时时间5s*/
     bool IsTimeOut()

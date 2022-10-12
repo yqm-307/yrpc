@@ -50,7 +50,7 @@ ServerSingle::ServerSingle(yrpc::coroutine::poller::Epoller* scheduler,int port,
     assert(scheduler_!=nullptr);
     //注册onconnect回调
     //启动监听套接字
-    acceptor_.setOnConnect(std::bind(&ServerSingle::OnConnHandle,this,yrpc::detail::ynet::_1,yrpc::detail::ynet::_2));
+    acceptor_.setOnConnect(std::bind(&ServerSingle::OnConnHandle,this,yrpc::detail::net::_1,yrpc::detail::net::_2));
     
 }
 
@@ -68,13 +68,13 @@ void ServerSingle::close()
     closed_ == true;
 }
 
-void ServerSingle::OnSendHandle(const yrpc::detail::ynet::ConnectionPtr&conn,void*args)
+void ServerSingle::OnSendHandle(const yrpc::detail::net::ConnectionPtr&conn,void*args)
 {
  
 }
 
 
-void ServerSingle::OnConnHandle(const yrpc::detail::ynet::ConnectionPtr&conn,void*)
+void ServerSingle::OnConnHandle(const yrpc::detail::net::ConnectionPtr&conn,void*)
 {
     using namespace yrpc::util::clock;
     //协程局部变量
@@ -84,7 +84,7 @@ void ServerSingle::OnConnHandle(const yrpc::detail::ynet::ConnectionPtr&conn,voi
     yrpc::socket::Epoll_Cond_t cond;
     std::atomic_bool task_is_done_{false};
     char *buf = (char *)malloc(4096 * 2); //一条连接独占4kb缓冲
-    yrpc::detail::ynet::SessionBuffer package;
+    yrpc::detail::net::SessionBuffer package;
 
     // scheduler_->AddTask([this,conn](void*args){
     //     this->OnSendHandle(conn,args);

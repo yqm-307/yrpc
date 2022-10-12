@@ -50,7 +50,7 @@ public:
      * @param maxqueue      协程数上限
      */
     RpcClient(std::string ip,int port,std::string logpath=InitLogName,int stack_size=128*1024,int maxqueue=65535);
-    RpcClient(yrpc::detail::ynet::YAddress servaddr_,std::string logpath=InitLogName,int stack_size=128*1024,int maxqueue=65535);
+    RpcClient(yrpc::detail::net::YAddress servaddr_,std::string logpath=InitLogName,int stack_size=128*1024,int maxqueue=65535);
     ~RpcClient();   //todo,退出不安全，在Client关闭时，应该先让所有请求都返回或者直接失败
     
     void close();
@@ -70,13 +70,13 @@ public:
     // bool Updata();
 private:
     static void run(void*);
-    void NewConnection(yrpc::detail::ynet::ConnectionPtr new_conn);
+    void NewConnection(yrpc::detail::net::ConnectionPtr new_conn);
 
 private:
     SessionID m_session; // session
     // yrpc::coroutine::poller::Epoller* scheduler_;   //协程调度器
-    yrpc::detail::ynet::YAddress servaddr_;         //  服务端地址
-    yrpc::detail::ynet::Connector connector_;       //  
+    yrpc::detail::net::YAddress servaddr_;         //  服务端地址
+    yrpc::detail::net::Connector connector_;       //  
     yrpc::util::buffer::Buffer buffer_;             //  协议流
     std::shared_ptr<yrpc::rpc::detail::RpcClientSession> session_;
     std::thread* thread_;                           //thread
@@ -105,11 +105,11 @@ const char RpcClient::InitLogName[] = "client.log";
 //     assert(scheduler_!=nullptr);
 //     thread_ = new std::thread(RpcClient::run,this);
 //     assert(thread_);
-//     connector_.setOnConnect([this](yrpc::detail::ynet::ConnectionPtr conn,void*){NewConnection(conn);});
+//     connector_.setOnConnect([this](yrpc::detail::net::ConnectionPtr conn,void*){NewConnection(conn);});
 // }
 
 // template<class Req,class Rsp>
-// RpcClient<Req,Rsp>::RpcClient(yrpc::detail::ynet::YAddress servaddr_,std::string logpath=InitLogName,int stack_size,int maxqueue)
+// RpcClient<Req,Rsp>::RpcClient(yrpc::detail::net::YAddress servaddr_,std::string logpath=InitLogName,int stack_size,int maxqueue)
 // {
 //     assert(scheduler_!=nullptr);
 //     thread_ = new std::thread(RpcClient::run,this);
@@ -147,11 +147,11 @@ const char RpcClient::InitLogName[] = "client.log";
 // RpcClient::ResultPtr<Req,Rsp> RpcClient::result_long(std::string name,ReqPtr<Req> send)
 // {
 //     ResultPtr<Req,Rsp> result_long = std::make_shared<Result<Req,Rsp>>();
-//     static detail::RpcSession<Req,Rsp>* connmanager = new detail::RpcSession<Req,Rsp>(scheduler_,name,servaddr_);
+//     static detail::RpcSession<Req,Rsp>* connmanager = new detail::RpcSession<Req,Rsp>(scheduler_,name,servaddr_);    // 创建session
 
 //     {
 //         std::lock_guard<std::mutex> lock(lock_);
-        
+            // 添加一个协程，这个协程就是注册call请求到Session,session会自动发送数据
 //         scheduler_->AddTask([&result_long,this,&send](void*args){
 //             detail::RpcSession<Req,Rsp>* future = (detail::RpcSession<Req,Rsp>*)args;
 //             RspPtr<Rsp> ret = nullptr;

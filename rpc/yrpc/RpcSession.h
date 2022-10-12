@@ -123,7 +123,7 @@
 //     typedef std::shared_ptr<SendType> SendPtr;
 //     typedef std::shared_ptr<CallObj<SendType,RecvType>> CallPtr; 
 
-//     RpcSession(yrpc::coroutine::poller::Epoller* sche,std::string name,yrpc::detail::ynet::YAddress addr,int timeout = -1);
+//     RpcSession(yrpc::coroutine::poller::Epoller* sche,std::string name,yrpc::detail::net::YAddress addr,int timeout = -1);
 //     ~RpcSession(){}
     
 
@@ -174,10 +174,10 @@
 //      *  函数会以协程启动在RpcClient开启的线程中，其实是sche在RpcClient中run。所以其他地方注册协程也会在run所循环的线程中
 //      * @param conn 连接
 //      */
-//     void OnConnHandle(const yrpc::detail::ynet::ConnectionPtr& conn);
+//     void OnConnHandle(const yrpc::detail::net::ConnectionPtr& conn);
 
 //     //协程中处理本次连接的响应数据
-//     void OnRecvHandle(const yrpc::detail::ynet::ConnectionPtr &conn);
+//     void OnRecvHandle(const yrpc::detail::net::ConnectionPtr &conn);
 
 //     //任务解析和消息回调,处理PkgManager数据
 //     void MsgParseHandle();
@@ -203,10 +203,10 @@
 
 //     yrpc::coroutine::poller::Epoller* scheduler_;
 //     yrpc::socket::Epoll_Cond_t cond_t_;
-//     yrpc::detail::ynet::Connector connector_;
+//     yrpc::detail::net::Connector connector_;
 //     bool connected_;
 //     std::string name_;
-//     yrpc::detail::ynet::SessionBuffer package_;    
+//     yrpc::detail::net::SessionBuffer package_;    
     
 //     yrpc::util::buffer::Buffer output_;     //Call 时解析并加入output buffer
 

@@ -29,7 +29,7 @@ class Base_RpcSession
 {
 public:
 
-    Base_RpcSession(yrpc::detail::ynet::ConnectionPtr conn):m_conn(conn){}
+    Base_RpcSession(yrpc::detail::net::ConnectionPtr conn):m_conn(conn){}
     Base_RpcSession():m_conn(nullptr){}
 
 
@@ -105,11 +105,11 @@ protected:
 
 
 
-    yrpc::detail::ynet::ConnectionPtr m_conn;   // 
+    yrpc::detail::net::ConnectionPtr m_conn;   // 
 private:
-    yrpc::detail::ynet::SessionBuffer m_input_buffer;   // input buffer
+    yrpc::detail::net::SessionBuffer m_input_buffer;   // input buffer
     yrpc::util::lock::Mutex m_lock_in;
-    yrpc::detail::ynet::SessionBuffer m_output_buffer;  // output buffer
+    yrpc::detail::net::SessionBuffer m_output_buffer;  // output buffer
     yrpc::util::lock::Mutex m_lock_out;
 };
 

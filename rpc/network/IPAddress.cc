@@ -6,7 +6,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-using namespace yrpc::detail::ynet;
+using namespace yrpc::detail::net;
 
 
 void InitAddress(sockaddr_in& addr ,int port,std::string ip="",int opt = INADDR_ANY)

@@ -1,6 +1,6 @@
-#include "./connection.h"
+#include "./Connection.h"
 
-namespace yrpc::detail::ynet
+namespace yrpc::detail::net
 {
 
 Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,RoutineSocket* sockfd,const YAddress& cli)
@@ -41,6 +41,12 @@ size_t Connection::send(const char* data,size_t len)
     }
     return n;
 }
+
+size_t Connection::send(const Buffer& data)
+{
+    send(data.peek(),data.ReadableBytes());
+}
+
 
 size_t Connection::recv(char* buffer,size_t buflen)
 {

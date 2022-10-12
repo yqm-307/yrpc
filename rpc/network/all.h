@@ -13,4 +13,4 @@
 
 #include "TcpServer.h"      // tcp 服务器连接
 #include "SessionBuffer.h"  // 连接缓存
-#include "connection.h"     // tcp 连接
+#include "Connection.h"     // tcp 连接

@@ -3,7 +3,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-namespace yrpc::detail::ynet
+namespace yrpc::detail::net
 {
 
 class IPAddress

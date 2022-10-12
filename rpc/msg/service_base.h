@@ -2,7 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <tuple>
-#include "../network/connection.h"
+#include "../network/Connection.h"
 #include "../protocol/Codec.h"
 
 

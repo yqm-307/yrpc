@@ -4,7 +4,7 @@
 #include <memory>
 #include "../Util/Buffers.h"
 
-namespace yrpc::detail::ynet
+namespace yrpc::detail::net
 {
 
 class Connection;

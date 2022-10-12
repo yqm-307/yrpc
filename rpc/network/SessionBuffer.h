@@ -11,7 +11,7 @@
 #include "../Util/Buffers.h"
 #include "../protocol/proto.h"
 
-namespace yrpc::detail::ynet
+namespace yrpc::detail::net
 {
 
 /**

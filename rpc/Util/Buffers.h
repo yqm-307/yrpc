@@ -10,6 +10,8 @@
 namespace yrpc::util::buffer
 {
 
+
+
 class Buffer
 {
 public:
@@ -17,6 +19,8 @@ public:
     static const int initSize;
     Buffer(size_t initsize = initSize);
     ~Buffer(){}
+
+    Buffer(const Buffer& rval);
 
     //常见值的读写
     /* 与buffer交换数据 */
@@ -50,20 +54,22 @@ public:
     void ReadString(char* str,int len);
 
     /* 返回当前读取位置的char* */
+    const char* peek() const;
     char* peek();
     /* 丢弃 n 字节未读数据，如果未读数据小于 n，初始化整个buffer */
     void recycle(size_t n);                 
     /* 返回可读字节数 */
-    size_t ReadableBytes();               
+    size_t ReadableBytes() const;               
     /* 返回buffer当前可写字节数 */
-    size_t WriteableBytes();              
+    size_t WriteableBytes() const;              
     /* 返回当前peek的前置空间 */
-    size_t PrepareBytes();                 
+    size_t PrepareBytes() const;                 
     /* buffer 数据段长度 */
-    size_t DataSize(){return ReadableBytes();}  //buffer 数据段长度
+    size_t DataSize() const {return ReadableBytes();}  //buffer 数据段长度
 
     /* 从sockfd 读取字节流到buffer中 */
     int64_t readfd(int sockfd,int& Errno);  //connector接受数据使用
+    /* 获取当前可读数据首 */
 
 private:   
     bool Read(void* ,int len);                         

@@ -34,7 +34,7 @@ public:
     friend class Future;
     typedef std::shared_ptr<RpcClientSession> Ptr;
     
-    RpcClientSession(yrpc::coroutine::poller::Epoller* context,yrpc::detail::ynet::ConnectionPtr conn)
+    RpcClientSession(yrpc::coroutine::poller::Epoller* context,yrpc::detail::net::ConnectionPtr conn)
             :Base_RpcSession(conn),
             m_io_context(context),
             m_now_tasknum(0)
@@ -89,7 +89,6 @@ private:
 
 
     yrpc::coroutine::poller::Epoller* m_io_context;
-    
     RegisterQueue m_registerqueue;
     yrpc::util::lock::Mutex m_regiseer_lock;
     int max_size;
