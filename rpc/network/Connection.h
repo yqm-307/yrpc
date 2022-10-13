@@ -28,6 +28,7 @@ enum CONN_STATUS
 
 class Connection:std::enable_shared_from_this<Connection>
 {
+public:
     typedef std::shared_ptr<Connection> ConnectionPtr;
     typedef yrpc::util::buffer::Buffer Buffer;
 public:

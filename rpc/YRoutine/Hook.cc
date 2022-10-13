@@ -183,6 +183,11 @@ ssize_t YRRecv(Socket &socket, void *buf, size_t len, const int flags)
                 nbytes = -1;
         }
     }
+    else
+    {
+        socket.last_recv_time = yrpc::util::clock::now<yrpc::util::clock::ms>().time_since_epoch().count();
+    }
+
     return nbytes;
 }
 
@@ -203,6 +208,11 @@ ssize_t YRRead(Socket &socket, void *buf, size_t len)
                 nbytes=-1;
         }
     }
+    else
+    {
+        socket.last_recv_time = yrpc::util::clock::now<yrpc::util::clock::ms>().time_since_epoch().count();
+    }
+
     return nbytes;
 }
 

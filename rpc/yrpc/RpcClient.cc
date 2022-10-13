@@ -7,14 +7,14 @@ using namespace yrpc::rpc;
 RpcClient::RpcClient(std::string ip,int port,std::string logpath,int stack_size,int maxqueue)
     :servaddr_(ip,port),
     close_(false),
-    scheduler_(new yrpc::coroutine::poller::Epoller(stack_size,maxqueue,logpath)),
-    connector_(scheduler_,servaddr_),
+    // scheduler_(new yrpc::coroutine::poller::Epoller(stack_size,maxqueue,logpath)),
+    // connector_(scheduler_,servaddr_),
     session_(nullptr)
 {   
-    assert(scheduler_!=nullptr);
+    // assert(scheduler_!=nullptr);
     thread_ = new std::thread(RpcClient::run,this);
     assert(thread_);
-    connector_.setOnConnect([this](yrpc::detail::net::ConnectionPtr conn,void*){NewConnection(conn);});
+    // connector_.setOnConnect([this](yrpc::detail::net::ConnectionPtr conn,void*){NewConnection(conn);});
 }
 
 RpcClient::~RpcClient()
@@ -34,10 +34,10 @@ RpcClient::~RpcClient()
 
 void RpcClient::run(void* th)
 {
-    RpcClient* tt = (RpcClient*)th;
-    tt->connector_.connect();
-    while(!tt->close_)
-        tt->scheduler_->Loop();
+    // RpcClient* tt = (RpcClient*)th;
+    // tt->connector_.connect();
+    // while(!tt->close_)
+    //     tt->scheduler_->Loop();
 
 }
 
@@ -56,7 +56,7 @@ void RpcClient::NewConnection(yrpc::detail::net::ConnectionPtr new_conn)
 {
     if (!new_conn->IsClosed())
     {
-        session_ = std::make_shared<yrpc::rpc::detail::RpcClientSession>(scheduler_,new_conn);
+        // session_ = std::make_shared<yrpc::rpc::detail::RpcClientSession>(scheduler_,new_conn);
     }
     else{
         ERROR("RpcClient::NewConnection() error , is closed!");
@@ -67,7 +67,7 @@ void RpcClient::NewConnection(yrpc::detail::net::ConnectionPtr new_conn)
 bool RpcClient::async_call(std::string name,std::shared_ptr<google::protobuf::Message> send,yrpc::rpc::detail::RpcCallback f)
 {
 
-    SessionManager::GetInstance()->SessionIsAlive();
+    // SessionManager::GetInstance()->SessionIsAlive();
 
     // if(!session_ || !session_->IsConnected())
     // {

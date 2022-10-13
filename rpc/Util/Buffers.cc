@@ -27,19 +27,19 @@ Buffer::Buffer(const Buffer& rval)
 
 
 //可读 = 已写 - 已读
-size_t Buffer::ReadableBytes()
+size_t Buffer::ReadableBytes() const
 {
     return _writeIndex - _readIndex;
 }
 
 //可写字节数
-size_t Buffer::WriteableBytes()
+size_t Buffer::WriteableBytes() const
 {
     return bytes.size() - _writeIndex;
 }
 
 //前置空闲字节数
-size_t Buffer::PrepareBytes()
+size_t Buffer::PrepareBytes() const
 {
     return _readIndex;
 }

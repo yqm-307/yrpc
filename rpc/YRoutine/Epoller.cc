@@ -181,6 +181,7 @@ RoutineSocket* Epoller::CreateSocket(const int sockfd,const int socket_timeout_m
     socket->epollfd_ = this->epollfd_;
     socket->event_.data.ptr = socket;
     socket->eventtype_ = 0;
+    socket->last_recv_time = 0;
     //socket->
     return socket;
 }

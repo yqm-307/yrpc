@@ -48,6 +48,7 @@ inline Timestamp<timeaccuracy> utcnow()
     return std::chrono::time_point_cast<timeaccuracy>(std::chrono::system_clock::now());
 }
 
+
 template<class timeaccuracy>
 inline Timestamp<timeaccuracy> now()
 {

@@ -24,34 +24,47 @@ class Channel
 public:
     typedef yrpc::util::buffer::Buffer                      Buffer;
     typedef yrpc::detail::shared::errorcode                 errorcode;
-    typedef std::function<void(const errorcode&,Buffer&)>                    RecvCallback;
+    typedef yrpc::detail::net::ConnectionPtr                ConnPtr;
+    typedef std::function<void(const errorcode&,Buffer&)>   RecvCallback;
     typedef std::function<void(const errorcode&,size_t)>    SendCallback;
     typedef std::function<void(const errorcode&)>           CloseCallback;
     typedef std::function<void(const errorcode&)>           ErrorCallback;
 
 public:
     Channel();
-    ~Channel();
+    Channel(ConnPtr new_conn);
+    virtual ~Channel();
 
+    /* close connection */
+    void Close();
+    
+    /* check connection is closed */
+    bool IsClosed();
+    
+    /* check peer is alive */
+    bool IsAlive();
+
+    /* send data to peer */
+    size_t Send(const Buffer& data);
+
+    /* send len byte to peer */
+    size_t Send(const char* data,size_t len);
 
 public:
-    /**
-     * 接收数据实现类似于一个dispatch的效果，解析并转发给服务提供或者服务调用返回，因为本
-    */
     void SetRecvCallback(RecvCallback cb)  
     { m_recvcallback = cb; }
-
     void SetSendCallback(SendCallback cb)
     { m_sendcallback = cb; }
-
     void SetErrorCallback(ErrorCallback cb)
     { m_errorcallback = cb; }
-
     void SetCloseCallback(CloseCallback cb)
     { m_closecallback = cb; }
 
 private:
-    yrpc::detail::net::Connection       m_conn;     // 连接
+    void updata();
+
+private:
+    ConnPtr       m_conn;     // channel hold conn
 
 
     RecvCallback        m_recvcallback;

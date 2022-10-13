@@ -26,7 +26,8 @@
 #include <string>
 #include <vector>
 
-#include "Poller.h"
+// #include "Poller.h"
+#include "Scheduler.h"
 #include "../Util/logger.h"
 #include "../Util/Clock.h"
 #include "../Util/comparator.h"
@@ -48,7 +49,7 @@ enum EpollREventStatus {
     EpollREvent_Close = -2,
 };
 
-typedef struct Socket
+struct RoutineSocket
 {
 typedef int YRoutine_t;
     Epoller* scheduler;
@@ -60,12 +61,15 @@ typedef int YRoutine_t;
     YRoutine_t routine_index_;
     int connect_timeout_ms_;
     int socket_timeout_ms_;
+
+    time_t last_recv_time;     // 最后一次接受数据时间
     /**
      * task生命期和Socket相同，因为socket在Timer中触发超时事件，就要被断开了，此时task同时析构合情合理
      */
-    yrpc::util::clock::YTimer<struct Socket*>::TaskSlot::Ptr timetask_;
+    yrpc::util::clock::YTimer<RoutineSocket*>::TaskSlot::Ptr timetask_;
     void* args;
-}RoutineSocket;
+};
+
 
 typedef yrpc::coroutine::context::YRoutineFunc TaskFunc;
 
@@ -82,8 +86,8 @@ public:
      * 
      * @param stacksize 协程栈大小
      * @param maxqueue  事件监听最大数量  
-     * @param logpath 
-     * @param protect 
+     * @param logpath   日志名
+     * @param protect   是否启用内存保护
      */
     Epoller(size_t stacksize,int maxqueue,std::string logpath = "server.log",bool protect = true);
     ~Epoller();
@@ -224,24 +228,24 @@ private:
 
 
 
-class YRoutine
-{
-public:
-    YRoutine(Epoller* scheduler):epoller_(scheduler){}
-    void operator-(yrpc::coroutine::context::YRoutineFunc && func)
-    {
-        epoller_->AddTask(std::move(func),nullptr);
-    }
-private:
-    Epoller* epoller_;
-};
+// class YRoutine
+// {
+// public:
+//     YRoutine(Epoller* scheduler):epoller_(scheduler){}
+//     void operator-(yrpc::coroutine::context::YRoutineFunc && func)
+//     {
+//         epoller_->AddTask(std::move(func),nullptr);
+//     }
+// private:
+//     Epoller* epoller_;
+// };
 
 
-#define routine_begin yrpc::coroutine::poller::Epoller _uthread_scheduler(64 * 1024, 300);
-#define routine_begin_withargs(stack_size, max_task) yrpc::coroutine::poller::Epoller _uthread_scheduler(stack_size, max_task);
-#define routine_s _uthread_scheduler
-#define routine_t yrpc::coroutine::poller::poller::YRoutine(_uthread_scheduler)-
-#define routine_end _uthread_scheduler.Run();
+// #define routine_begin yrpc::coroutine::poller::Epoller _uthread_scheduler(64 * 1024, 300);
+// #define routine_begin_withargs(stack_size, max_task) yrpc::coroutine::poller::Epoller _uthread_scheduler(stack_size, max_task);
+// #define routine_s _uthread_scheduler
+// #define routine_t yrpc::coroutine::poller::poller::YRoutine(_uthread_scheduler)-
+// #define routine_end _uthread_scheduler.Run();
 
 
 

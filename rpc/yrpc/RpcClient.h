@@ -76,7 +76,7 @@ private:
     SessionID m_session; // session
     // yrpc::coroutine::poller::Epoller* scheduler_;   //协程调度器
     yrpc::detail::net::YAddress servaddr_;         //  服务端地址
-    yrpc::detail::net::Connector connector_;       //  
+    // yrpc::detail::net::Connector connector_;       //  
     yrpc::util::buffer::Buffer buffer_;             //  协议流
     std::shared_ptr<yrpc::rpc::detail::RpcClientSession> session_;
     std::thread* thread_;                           //thread
