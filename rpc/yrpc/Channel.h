@@ -49,6 +49,7 @@ public:
 
     /* send len byte to peer */
     size_t Send(const char* data,size_t len);
+    
 
 public:
     void SetRecvCallback(RecvCallback cb)  
@@ -59,6 +60,12 @@ public:
     { m_errorcallback = cb; }
     void SetCloseCallback(CloseCallback cb)
     { m_closecallback = cb; }
+
+private:
+
+    static void CloseInitFunc(const errorcode&,const ConnPtr);
+    void SendInitFunc(const errorcode&,size_t);
+    static void ErrorInitFunc(const errorcode&,const ConnPtr);
 
 private:
     void updata();
@@ -77,3 +84,4 @@ private:
 
 
 }
+
