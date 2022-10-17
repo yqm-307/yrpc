@@ -64,9 +64,9 @@ public:
 private:
 
     static void CloseInitFunc(const errorcode&,const ConnPtr);
-    void SendInitFunc(const errorcode&,size_t);
+    static void SendInitFunc(const errorcode&,size_t,const ConnPtr);
     static void ErrorInitFunc(const errorcode&,const ConnPtr);
-
+    static void RecvInitFunc(const errorcode&,Buffer&,const ConnPtr);
 private:
     void updata();
 

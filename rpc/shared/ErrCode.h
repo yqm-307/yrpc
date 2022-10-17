@@ -30,6 +30,27 @@ public:
     {}
 
 
+    template<class StrRef>
+    void setinfo(StrRef&& errinfo)
+    { m_err_info = errinfo; }
+
+
+    void setcode(int code)
+    { m_errcode = code; }
+
+
+    void settype(YRPC_ERR_TYPE type)
+    { m_err_type = type; }
+
+    template<class StrRef>
+    void set(StrRef&& err_info,YRPC_ERR_TYPE errtype,int errcode)
+    {
+        m_err_info = err_info;
+        m_err_type = errtype;
+        m_errcode = errcode;
+    }
+
+
     const std::string& what() const
     {
         return m_err_info;
@@ -47,7 +68,6 @@ private:
     int             m_errcode;
 
 };
-
 
 
 }

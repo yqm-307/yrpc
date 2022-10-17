@@ -16,8 +16,14 @@ enum YRPC_ERR_TYPE
 
 enum ERR_NETWORK
 {
+    // err
+    ERR_NETWORK_DEFAULT     = 0,
+    ERR_NETWORK_SEND_FAIL   = 1001,
 
+    // info
+    ERR_NETWORK_SEND_OK     = 2002,
 
+    
 };
 
 }
