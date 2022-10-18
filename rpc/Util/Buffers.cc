@@ -126,37 +126,37 @@ bool Buffer::WriteInt64(int64_t num)
 {
     char buf[8];
     memcpy(buf,&num,8);
-    Write(buf,sizeof(buf));
+    return Write(buf,sizeof(buf));
 }
 bool Buffer::WriteInt32(int32_t num)
 {
     char buf[4];
     memcpy(buf,&num,4);
-    Write(buf,sizeof(buf));
+    return Write(buf,sizeof(buf));
 }
 bool Buffer::WriteInt16(int16_t num)
 {
     char buf[2];
     memcpy(buf,&num,2);
-    Write(buf,sizeof(buf));
+    return Write(buf,sizeof(buf));
 }
 bool Buffer::WriteInt8(int8_t num)
 {
     char buf[1];
     memcpy(buf,&num,1);
-    Write(buf,sizeof(buf));
+    return Write(buf,sizeof(buf));
 }
 bool Buffer::WriteString(std::string str)
 {
     char buf[str.size()];
     memcpy(buf,str.c_str(),str.size());
-    Write(buf,sizeof(buf));
+    return Write(buf,sizeof(buf));
 }
 bool Buffer::WriteString(const char* p , int len)
 {
     char buf[len];
     memcpy(buf,p,len);
-    Write(buf,len);
+    return Write(buf,len);
 }
 
 int64_t Buffer::ReadInt64()

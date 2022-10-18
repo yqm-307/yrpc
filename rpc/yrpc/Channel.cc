@@ -26,14 +26,13 @@ void Channel::SendInitFunc(const errorcode&e,size_t len,const ConnPtr m_conn)
 
 
 
-
 Channel::Channel()
     :m_conn(nullptr)
 {
     this->SetCloseCallback([this](const errorcode& e){Channel::CloseInitFunc(e,this->m_conn);});
     this->SetErrorCallback([this](const errorcode& e){Channel::ErrorInitFunc(e,this->m_conn);});
     this->SetRecvCallback([this](const errorcode& e,Buffer& buff){this->m_recvcallback(e,buff);});
-    this->SetSendCallback();
+    this->SetSendCallback([this](const errorcode& e,size_t len){Channel::SendInitFunc(e,len,this->m_conn);});
 }
 
 Channel::Channel(ConnPtr newconn)
@@ -85,9 +84,7 @@ size_t Channel::Send(const Buffer& data)
             yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
             yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL
         );
-
     m_sendcallback(e,n);
-
     return n;
 }
 
@@ -96,5 +93,20 @@ size_t Channel::Send(const Buffer& data)
 /* send len byte to peer */
 size_t Channel::Send(const char* data,size_t len)
 {
-    return m_conn->send(data,len);
+    int n = m_conn->send(data,len);
+    errorcode e;
+    if(n > 0)
+    {
+        e.set(yrpc::util::logger::format("send %d bytes",n),
+            yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,       // code 类型 :网络
+            yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_OK      // code :发送成功
+        );    
+    }
+    else
+        e.set("send fail",
+            yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
+            yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL
+        );
+    m_sendcallback(e,n);
+    return n;
 }

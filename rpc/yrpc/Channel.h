@@ -73,12 +73,10 @@ private:
 private:
     ConnPtr       m_conn;     // channel hold conn
 
-
     RecvCallback        m_recvcallback;
     SendCallback        m_sendcallback;
     CloseCallback       m_closecallback;
     ErrorCallback       m_errorcallback;
-
 };
 
 

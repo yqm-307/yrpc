@@ -232,3 +232,96 @@
 
 // #include "RpcSession_Definition.h"
 // }
+
+
+#pragma once
+#include "Channel.h"
+#include "../Util/Locker.h"
+#include "../protocol/all.h"
+
+
+namespace yrpc::rpc::detail
+{
+
+
+/**
+ * @brief 双向连接，一个session可以做服务
+ * 1、感觉数据保存这里最好，如果在manager，粒度太粗，manager不好管理
+ * 2、心跳还是放在manager，统一管理
+ * 3、session建立还是需要从manager的main epoll里面（只负责监听的主epoll）创建
+ * 4、从属epoll就是 m 个连接在一个epoll里面，就是协程了。
+ * 5、buffer 就设置在Session里面吧
+ */
+class RpcSession
+{
+    typedef Channel::Buffer Buffer;
+    typedef Channel::errorcode errorcode;
+    typedef yrpc::util::lock::Mutex Mutex;
+    typedef std::shared_ptr<Channel> ChannelPtr;
+
+    template<class T>
+    using lock_guard = yrpc::util::lock::lock_guard<T>;
+
+
+public:
+    RpcSession(ChannelPtr channel);
+    ~RpcSession();
+
+    // 协议包
+    void GetAPacket();
+
+    void GetAllPacket();
+
+    void GetNPacket();
+
+    bool HasPacket();
+
+    size_t PushPacket();
+
+    size_t PushByteArray();
+
+public:
+    struct Protocol
+    {
+        char* buf;
+        size_t len;
+    };
+    typedef std::queue<Protocol> C2SQueue;
+    typedef std::queue<Protocol> S2CQueue;
+
+private:
+    // 协议多路分解，核心
+
+    /**
+     * @brief 获取数据，直接分解为protocol，插入到queue里面
+     */
+    void ProtocolMultiplexing(const errorcode&,const Buffer&);
+
+
+    // Session上行数据
+    void Input(char*,size_t);
+
+    // Session下行数据
+    void Output(const char*,size_t);
+private:
+
+    /// io 缓存 
+    Buffer m_input_buffer;  // 好像没啥用     
+    Mutex m_input_mutex;
+    Buffer m_output_buffer;
+    Mutex m_output_mutex;
+
+
+    /// 协议队列
+    C2SQueue    m_c2s_queue;
+    S2CQueue    m_s2c_queue;
+
+    /// 很重要的双向信道
+    ChannelPtr m_channel;      // io 信道
+
+    /// 
+
+};
+
+
+}

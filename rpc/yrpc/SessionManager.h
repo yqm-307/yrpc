@@ -43,6 +43,8 @@ private:
     SessionID GetSessionID();
 
 private:
+    // acceptor 负责监听的epoll
+    
     SessionMap m_client_sessions;   // session map
     ServAddrList m_serv_list;       // 服务器列表，通过框架RpcClient主动连接，注册在这里
     yrpc::coroutine::poller::Epoller* scheduler_;    //协程调度器

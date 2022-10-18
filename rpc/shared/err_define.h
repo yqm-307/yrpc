@@ -22,7 +22,7 @@ enum ERR_NETWORK
 
     // info
     ERR_NETWORK_SEND_OK     = 2002,
-
+    ERR_NETWORK_RECV_OK     = 2003,
     
 };
 
