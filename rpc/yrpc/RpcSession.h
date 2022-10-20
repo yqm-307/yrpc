@@ -306,18 +306,21 @@ private:
 private:
 
     /// io 缓存 
-    Buffer m_input_buffer;  // 好像没啥用     
-    Mutex m_input_mutex;
+    /// output 缓冲区
     Buffer m_output_buffer;
     Mutex m_output_mutex;
 
 
-    /// 协议队列
+    /// input 协议队列
+    Buffer m_input_buffer;  // 好像没啥用     
+    Mutex m_input_mutex;
     C2SQueue    m_c2s_queue;
     S2CQueue    m_s2c_queue;
 
+
     /// 很重要的双向信道
     ChannelPtr m_channel;      // io 信道
+
 
     /// 
 
