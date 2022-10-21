@@ -180,7 +180,12 @@ public:
      */
     YRoutine_t GetCurrentRoutine();
 
-
+    /**
+     * @brief 协程数量
+     * 
+     * @return size_t 
+     */
+    size_t Size();
 
 private:
     typedef yrpc::util::clock::YTimer<RoutineSocket*>::Ptr TTaskPtr;

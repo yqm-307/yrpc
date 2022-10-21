@@ -95,6 +95,13 @@ bool Epoller::Loop()
     
 }
 
+size_t Epoller::Size()
+{
+    return runtime_.Size();
+}
+
+
+
 void Epoller::DoTimeoutTask()
 {
     while(true)

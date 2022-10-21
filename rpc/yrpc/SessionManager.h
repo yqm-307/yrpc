@@ -21,9 +21,9 @@ private:
     typedef std::vector<yrpc::detail::net::YAddress> ServAddrList;     // 服务器列表
 
 public:
-    static SessionManager* GetInstance();
+    static SessionManager* GetInstance(int n=0);   
 
-    int CreateNewSession(); // 创建一个session
+    int CreateNewSession(int NThread); // 创建一个session
 
     int Submit(const yrpc::util::buffer::Buffer& buff,SessionID session_id);  // 提交协议流 
 
@@ -38,7 +38,7 @@ public:
     
     
 private:
-    SessionManager();  
+    SessionManager(int Nthread);  
 
     SessionID GetSessionID();
 
@@ -47,8 +47,9 @@ private:
     
     SessionMap m_client_sessions;   // session map
     ServAddrList m_serv_list;       // 服务器列表，通过框架RpcClient主动连接，注册在这里
-    yrpc::coroutine::poller::Epoller* scheduler_;    //协程调度器
-    // yrpc::detail::net::YAddress servaddr_;             //服务端地址
+    yrpc::coroutine::poller::Epoller* m_accept;         // 只负责 listen 的 epoll
+    yrpc::coroutine::poller::Epoller* m_multi_io;       // 协程调度器
+    // yrpc::detail::net::YAddress servaddr_;           // 服务端地址
     const int port;
     
     // yrpc::detail::net::Connector connector_;        //

@@ -3,6 +3,10 @@
 
 using namespace yrpc::rpc::detail;
 
+// 是否正在写
+#define IsWriting(status) (!(status&Writing == 0)) 
+// 是否正在读
+#define IsReading(status) (!(status&Reading == 0))
 
 void Channel::CloseInitFunc(const errorcode& e,const ConnPtr m_conn)
 {
@@ -70,22 +74,23 @@ bool Channel::IsAlive()
 /* send data to peer */
 size_t Channel::Send(const Buffer& data)
 {
-    int n = m_conn->send(data);
-    errorcode e;
-    if(n > 0)
-    {
-        e.set(yrpc::util::logger::format("send %d bytes",n),
-            yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,       // code 类型 :网络
-            yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_OK      // code :发送成功
-        );    
-    }
-    else
-        e.set("send fail",
-            yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
-            yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL
-        );
-    m_sendcallback(e,n);
-    return n;
+    Send(data.peek(),data.ReadableBytes());
+    // int n = m_conn->send(data);
+    // errorcode e;
+    // if(n > 0)
+    // {
+    //     e.set(yrpc::util::logger::format("send %d bytes",n),
+    //         yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,       // code 类型 :网络
+    //         yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_OK      // code :发送成功
+    //     );    
+    // }
+    // else
+    //     e.set("send fail",
+    //         yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
+    //         yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL
+    //     );
+    // m_sendcallback(e,n);
+    // return n;
 }
 
 
@@ -93,20 +98,55 @@ size_t Channel::Send(const Buffer& data)
 /* send len byte to peer */
 size_t Channel::Send(const char* data,size_t len)
 {
-    int n = m_conn->send(data,len);
-    errorcode e;
-    if(n > 0)
+    /**
+     * 这里针对双缓冲进行的特殊处理，其实很简单，就是第一个缓冲正在被内核读写而不能改动。那么就让用户去读写另一个
+     * 缓冲区，如果此时socket空闲了，那么就主动去send数据，这样就不会存在冲突了。但是不确保高效
+     * 
+     * 本段代码含义很简单：先写入buffer，然后判断socket是否可以写，可写则发送数据。
+     */
+    m_buff.GetCurrentBuffer().WriteString(data,len);
+    if ( !IsWriting(m_status) )
     {
-        e.set(yrpc::util::logger::format("send %d bytes",n),
-            yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,       // code 类型 :网络
-            yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_OK      // code :发送成功
-        );    
+        int n = m_conn->send(m_buff.GetCurrentBuffer().peek(),m_buff.GetCurrentBuffer().ReadableBytes());   // 涉及m_conn的IO操作，可能导致挂起
+        
+        // io完成，状态转移
+        m_buff.ChangeCurrent();
+        m_status == Writing;
+
+        // 错误分析
+        errorcode e;
+        if (n > 0)
+        {
+            e.set(yrpc::util::logger::format("send %d bytes", n),
+                  yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,  // code 类型 :网络
+                  yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_OK // code :发送成功
+            );
+        }
+        else
+            e.set("send fail",
+                  yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
+                  yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL);
+        
+        // 回调通知
+        m_sendcallback(e, n);
+        return n;
     }
-    else
-        e.set("send fail",
-            yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
-            yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL
-        );
-    m_sendcallback(e,n);
-    return n;
+    else    
+        return len;
+
+    
 }
+
+
+
+// 防止代码污染
+#ifdef IsWriting
+#undef IsWriting
+#endif
+
+
+#ifdef IsReading
+#undef IsReading
+#endif
+
+

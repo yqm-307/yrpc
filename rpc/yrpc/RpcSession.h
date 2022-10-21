@@ -258,13 +258,14 @@ class RpcSession
     typedef Channel::errorcode errorcode;
     typedef yrpc::util::lock::Mutex Mutex;
     typedef std::shared_ptr<Channel> ChannelPtr;
+    typedef yrpc::coroutine::poller::Epoller Epoller;
 
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 
 
 public:
-    RpcSession(ChannelPtr channel);
+    RpcSession(ChannelPtr channel,Epoller* loop);
     ~RpcSession();
 
     // 协议包
@@ -276,9 +277,9 @@ public:
 
     bool HasPacket();
 
-    size_t PushPacket();
+    size_t PushPacket(const std::string& pck);
 
-    size_t PushByteArray();
+    size_t PushByteArray(const Buffer& bytearray);
 
 public:
     struct Protocol
@@ -304,6 +305,8 @@ private:
     // Session下行数据
     void Output(const char*,size_t);
 private:
+    /// 当前所在的eventloop
+    Epoller*        m_current_loop;
 
     /// io 缓存 
     /// output 缓冲区
@@ -312,18 +315,14 @@ private:
 
 
     /// input 协议队列
-    Buffer m_input_buffer;  // 好像没啥用     
-    Mutex m_input_mutex;
-    C2SQueue    m_c2s_queue;
-    S2CQueue    m_s2c_queue;
+    Buffer          m_input_buffer;  // 好像没啥用     
+    Mutex           m_input_mutex;
+    C2SQueue        m_c2s_queue;
+    S2CQueue        m_s2c_queue;
 
 
     /// 很重要的双向信道
-    ChannelPtr m_channel;      // io 信道
-
-
-    /// 
-
+    ChannelPtr      m_channel;      // io 信道
 };
 
 

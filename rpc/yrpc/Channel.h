@@ -29,7 +29,11 @@ public:
     typedef std::function<void(const errorcode&,size_t)>    SendCallback;
     typedef std::function<void(const errorcode&)>           CloseCallback;
     typedef std::function<void(const errorcode&)>           ErrorCallback;
-
+    enum ChannelStatus{
+        Done = 1,       // 未初始化
+        Reading = 1<<1,    // 正在读
+        Writing = 1<<2        // 正在写
+    };
 public:
     Channel();
     Channel(ConnPtr new_conn);
@@ -71,7 +75,28 @@ private:
     void updata();
 
 private:
-    ConnPtr       m_conn;     // channel hold conn
+    struct DoubleBuffer
+    {
+        DoubleBuffer():current(m_idx[0]){}
+        Buffer      m_buffer[2];
+        const int   m_idx[2]{0,1};
+        int current;
+        Buffer& GetCurrentBuffer()
+        { return m_buffer[current]; }
+        void ChangeCurrent()
+        { current = 1-current; }
+    };
+
+
+    ConnPtr         m_conn;     // channel hold conn
+
+    // 信道应该带有io状态，正在读、正在写、空闲
+    int             m_status;
+
+    
+    DoubleBuffer    m_buff;
+    // Buffer          m_buffer[2];    // 双缓冲
+
 
     RecvCallback        m_recvcallback;
     SendCallback        m_sendcallback;
