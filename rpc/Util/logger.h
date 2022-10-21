@@ -39,7 +39,7 @@
 namespace yrpc::util::logger
 {
 
-enum LOGLEVEL
+enum LOGLEVEL : int32_t
 {
     LOG_TRACE=0,        //跟踪点
     LOG_DEBUG,          //调试

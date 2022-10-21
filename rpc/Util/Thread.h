@@ -17,7 +17,7 @@
 
 namespace yrpc::util::threadpool
 {
-enum ThreadStatus
+enum ThreadStatus : int32_t
 {
         Stop=0,    //停止  
         Running,    //运行

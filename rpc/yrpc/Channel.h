@@ -29,7 +29,8 @@ public:
     typedef std::function<void(const errorcode&,size_t)>    SendCallback;
     typedef std::function<void(const errorcode&)>           CloseCallback;
     typedef std::function<void(const errorcode&)>           ErrorCallback;
-    enum ChannelStatus{
+    enum ChannelStatus : int32_t
+    {
         Done = 1,       // 未初始化
         Reading = 1<<1,    // 正在读
         Writing = 1<<2        // 正在写

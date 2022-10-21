@@ -28,7 +28,7 @@ typedef YCO_Scheduler Scheduler;
  * @brief 协程运行时状态：运行中、挂起、阻塞、已完成
  * 
  */
-enum YCO_SchedulerStatus
+enum YCO_SchedulerStatus : int32_t
 {
     RUNNING=0,
     SUSPEND,

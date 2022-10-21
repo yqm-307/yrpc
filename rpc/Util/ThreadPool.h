@@ -22,7 +22,8 @@
 namespace yrpc::util::threadpool
 {
 
-enum ThreadPoolErrnoCode{
+enum ThreadPoolErrnoCode : int32_t
+{
 	PoolStop=0,
 	TaskQueueFull,
 	TaskQueueBlock,

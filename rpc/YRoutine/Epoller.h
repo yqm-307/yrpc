@@ -43,7 +43,8 @@ typedef int YRoutine_t;
 
 
 
-enum EpollREventStatus {
+enum EpollREventStatus  : int32_t
+{
     EpollREvent_Timeout = 0,
     EpollREvent_Error = -1,
     EpollREvent_Close = -2,

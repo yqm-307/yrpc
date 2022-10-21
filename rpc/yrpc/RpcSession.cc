@@ -36,7 +36,7 @@ void RpcSession::ProtocolMultiplexing(const Buffer& buff)
      */
     if ( m_input_buffer.Has_Pkg() )
     {
-        
+        m_input_buffer.GetAReq();
     }
     else
     {

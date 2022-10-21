@@ -20,7 +20,7 @@ namespace yrpc::detail::protocol::define
 {
 
     // yrpc 错误码
-    enum YRPC_ErrCode
+    enum YRPC_ErrCode : int32_t
     {
         CALL_FATAL_OTHRE = 0,                   // 未知错误
         CALL_FATAL_SERVICE_ID_IS_BAD    = 1,    //服务不存在或服务id错误
@@ -38,15 +38,19 @@ namespace yrpc::detail::protocol::define
      * 字节流，或者说都算是 RPC_CALL_RSP 或者 RPC_CALL_REQ）使用的协议，都在下面的枚举值中。
      * 
      * 如果需要判断详细的req、rsp类型，就需要 google protobuf 相关api支持
+     * 
+     * 约定大于50000是
      */
-    enum YRPC_PROTOCOL
+    enum YRPC_PROTOCOL : int32_t
     {
         type_YRPC_PROTOCOL_Done = 0,
+    
         type_C2S_HEARTBEAT_REQ = 10000,
-        type_S2C_HEARTBEAT_RSP = 10001,
         type_C2S_RPC_CALL_REQ = 10010,
-        type_S2C_RPC_CALL_RSP = 10011,
-        type_S2C_RPC_ERROR = 10012,
+
+        type_S2C_HEARTBEAT_RSP = 50001,
+        type_S2C_RPC_CALL_RSP = 50011,
+        type_S2C_RPC_ERROR = 50012,         
     };
 
 }

@@ -5,7 +5,7 @@ namespace yrpc::detail::shared
 {
 
 
-enum YRPC_ERR_TYPE
+enum YRPC_ERR_TYPE : int32_t
 {
     ERR_TYPE_OK         = 0,
     ERRTYPE_NETWORK     = 100,
@@ -14,7 +14,7 @@ enum YRPC_ERR_TYPE
 };
 
 
-enum ERR_NETWORK
+enum ERR_NETWORK : int32_t
 {
     // err
     ERR_NETWORK_DEFAULT     = 0,

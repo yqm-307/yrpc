@@ -19,7 +19,7 @@ namespace yrpc::detail::net
 typedef yrpc::coroutine::poller::RoutineSocket RoutineSocket;
 
 
-enum CONN_STATUS
+enum CONN_STATUS : int32_t
 {
     connected=0,    //已经建立连接
     connecting=1,   //正在建立连接
