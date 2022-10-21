@@ -66,7 +66,9 @@ public:
     size_t PrepareBytes() const;                 
     /* buffer 数据段长度 */
     size_t DataSize() const {return ReadableBytes();}  //buffer 数据段长度
-
+    /* 获取为std::string_view */
+    std::string_view View() const
+    { return std::string_view(begin(),ReadableBytes()); }
     /* 从sockfd 读取字节流到buffer中 */
     int64_t readfd(int sockfd,int& Errno);  //connector接受数据使用
     /* 获取当前可读数据首 */

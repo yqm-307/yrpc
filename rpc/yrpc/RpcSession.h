@@ -237,6 +237,7 @@
 #pragma once
 #include "Channel.h"
 #include "../Util/Locker.h"
+#include "../Util/Statistics.h"
 #include "../protocol/all.h"
 
 
@@ -277,9 +278,9 @@ public:
 
     bool HasPacket();
 
-    size_t PushPacket(const std::string& pck);
+    size_t Append(const std::string_view pck);
 
-    size_t PushByteArray(const Buffer& bytearray);
+    size_t Append(const Buffer& bytearray);
 
 public:
     struct Protocol
@@ -304,21 +305,35 @@ private:
 
     // Session下行数据
     void Output(const char*,size_t);
+
+    
+    void InitFunc();
+    void RecvFunc(const errorcode&,Buffer&);
+    void SendFunc(const errorcode&,size_t);
+    void CloseFunc(const errorcode&);
+    
 private:
     /// 当前所在的eventloop
     Epoller*        m_current_loop;
 
     /// io 缓存 
     /// output 缓冲区
-    Buffer m_output_buffer;
-    Mutex m_output_mutex;
+    // Buffer m_output_buffer;
+    // Mutex m_output_mutex;
 
+    Mutex           m_push_mutex;
 
     /// input 协议队列
     Buffer          m_input_buffer;  // 好像没啥用     
     Mutex           m_input_mutex;
     C2SQueue        m_c2s_queue;
     S2CQueue        m_s2c_queue;
+
+
+    /// 统计，debug使用
+#ifdef YRPC_DEBUG
+    yrpc::util::statistics::ByteRecord m_byterecord;
+#endif
 
 
     /// 很重要的双向信道

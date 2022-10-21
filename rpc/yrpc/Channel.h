@@ -72,7 +72,7 @@ private:
     static void ErrorInitFunc(const errorcode&,const ConnPtr);
     static void RecvInitFunc(const errorcode&,Buffer&,const ConnPtr);
 private:
-    void updata();
+    void InitFunc();
 
 private:
     struct DoubleBuffer

@@ -9,19 +9,25 @@ using namespace yrpc::rpc::detail;
 #define IsReading(status) (!(status&Reading == 0))
 
 void Channel::CloseInitFunc(const errorcode& e,const ConnPtr m_conn)
-{
-    INFO("Channel::CloseInitFunc(), info[errcode : %d]: peer:{ip:port} = {%s}\t",e.err(),m_conn->StrIPPort());
+{ 
+    INFO("Channel::CloseInitFunc(), info[errcode : %d]: peer:{ip:port} = {%s}\t",
+        e.err(),
+        m_conn->StrIPPort()); 
 }
 
 void Channel::ErrorInitFunc(const errorcode& e,const ConnPtr m_conn)
-{
-    INFO("Channel::ErrorCallback(), info[errocde : %d]:: peer:{ip:port} = {%s}\t",e.err(),m_conn->StrIPPort());
+{ 
+    INFO("Channel::ErrorCallback(), info[errocde : %d]:: peer:{ip:port} = {%s}\t",
+        e.err(),
+        m_conn->StrIPPort()); 
 }
 
 
 void Channel::SendInitFunc(const errorcode&e,size_t len,const ConnPtr m_conn)
-{
-    INFO("Channel::SendInitFunc(), info[errcode : %d]: peer:{ip:port} = {%s}\t",e.err(),m_conn->StrIPPort());
+{ 
+    INFO("Channel::SendInitFunc(), info[errcode : %d]: peer:{ip:port} = {%s}\t",
+        e.err(),
+        m_conn->StrIPPort()); 
 }
 
 // void Channel::RecvInitFunc(const errorcode& e,Buffer&,const ConnPtr m_conn);
@@ -33,23 +39,23 @@ void Channel::SendInitFunc(const errorcode&e,size_t len,const ConnPtr m_conn)
 Channel::Channel()
     :m_conn(nullptr)
 {
-    this->SetCloseCallback([this](const errorcode& e){Channel::CloseInitFunc(e,this->m_conn);});
-    this->SetErrorCallback([this](const errorcode& e){Channel::ErrorInitFunc(e,this->m_conn);});
-    this->SetRecvCallback([this](const errorcode& e,Buffer& buff){this->m_recvcallback(e,buff);});
-    this->SetSendCallback([this](const errorcode& e,size_t len){Channel::SendInitFunc(e,len,this->m_conn);});
+    InitFunc();
 }
 
 Channel::Channel(ConnPtr newconn)
     :m_conn(newconn)
 {
-    DEBUG("Channel::Channel(), info: construction channel peer:{ip:port} = {%s}",newconn->StrIPPort().c_str());
+    InitFunc();
+    DEBUG("Channel::Channel(), info: construction channel peer:{ip:port} = {%s}",
+            newconn->StrIPPort().c_str());
 }
 
 Channel::~Channel()
 {
     errorcode e("channel is destory",yrpc::detail::shared::ERR_TYPE_OK,0);
     m_closecallback(e);
-    DEBUG("Channel::~Channel(), info: destory channel peer:{ip:port} = {%s}",m_conn->StrIPPort().c_str());
+    DEBUG("Channel::~Channel(), info: destory channel peer:{ip:port} = {%s}",
+            m_conn->StrIPPort().c_str());
 }
 
 
@@ -138,15 +144,18 @@ size_t Channel::Send(const char* data,size_t len)
 }
 
 
+void Channel::InitFunc()
+{
+    this->SetCloseCallback([this](const errorcode& e){Channel::CloseInitFunc(e,this->m_conn);});
+    this->SetErrorCallback([this](const errorcode& e){Channel::ErrorInitFunc(e,this->m_conn);});
+    this->SetRecvCallback([this](const errorcode& e,Buffer& buff){this->m_recvcallback(e,buff);});
+    this->SetSendCallback([this](const errorcode& e,size_t len){Channel::SendInitFunc(e,len,this->m_conn);});
+}
+
+
 
 // 防止代码污染
-#ifdef IsWriting
 #undef IsWriting
-#endif
-
-
-#ifdef IsReading
 #undef IsReading
-#endif
 
 
