@@ -30,7 +30,7 @@ public:
      * @param len 长度
      * @return ssize_t 接收长度 
      */
-    ssize_t Save(const char* data,size_t len)
+    ssize_t Append(const char* data,size_t len)
     { buffer.WriteString(data,len); }
 
     /**

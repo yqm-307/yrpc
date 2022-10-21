@@ -1,6 +1,5 @@
 #include "RpcSession.h"
 
-
 using namespace yrpc::rpc::detail;
 
 
@@ -19,18 +18,32 @@ void RpcSession::Output(const char* data,size_t len)
 }
 
 
-void Input(char*,size_t);
-
-
-
-void RpcSession::ProtocolMultiplexing(const errorcode& e,const Buffer& buff)
+void RpcSession::Input(char* data,size_t len)
 {
-    if(e.err() != yrpc::detail::shared::ERR_NETWORK_RECV_OK)
+    lock_guard<Mutex> lock(m_input_mutex);
+    m_input_buffer.Append(data,len);
+#ifdef YRPC_DEBUG
+    m_byterecord.Addrecv_bytes(len);
+#endif
+}
+
+
+
+void RpcSession::ProtocolMultiplexing(const Buffer& buff)
+{
+    /**
+     * 虽然这个函数很重要，但是主要功能还是解包然后判断数据包类型进行分类
+     */
+    if ( m_input_buffer.Has_Pkg() )
     {
         
     }
     else
-        ERROR(e.what().c_str());
+    {
+
+    }
+    
+
 }
 
 
@@ -76,11 +89,7 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
     // 将数据保存到Buffer里
     if(e.err() == yrpc::detail::shared::ERR_NETWORK_RECV_OK)    // 正常接收
     {
-        lock_guard<Mutex> lock(m_input_mutex);
-        m_input_buffer.WriteString(buff.peek(),buff.ReadableBytes());
-#ifdef YRPC_DEBUG
-        m_byterecord.Addrecv_bytes(buff.ReadableBytes());
-#endif
+        Input(buff.peek(),buff.ReadableBytes());
     }
     else
     {

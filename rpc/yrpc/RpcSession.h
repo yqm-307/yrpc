@@ -239,6 +239,7 @@
 #include "../Util/Locker.h"
 #include "../Util/Statistics.h"
 #include "../protocol/all.h"
+#include "../network/SessionBuffer.h"
 
 
 namespace yrpc::rpc::detail
@@ -260,6 +261,7 @@ class RpcSession
     typedef yrpc::util::lock::Mutex Mutex;
     typedef std::shared_ptr<Channel> ChannelPtr;
     typedef yrpc::coroutine::poller::Epoller Epoller;
+    typedef yrpc::detail::net::SessionBuffer SessionBuffer;
 
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
@@ -292,12 +294,18 @@ public:
     typedef std::queue<Protocol> S2CQueue;
 
 private:
-    // 协议多路分解，核心
+    /*
+    * 这里是这个类最核心的部分，重要的几个函数，和大概功能我列出来。
+    * Input  从channel接收数据
+    * Output 从channel发送数据
+    * ProtocolMultiplexing  协议多路复用和分解，调用Getpck 相关函数触发
+    * 
+    */
 
     /**
-     * @brief 获取数据，直接分解为protocol，插入到queue里面
+     * @brief 将当前数据进行分解，并放在c2s、s2c队列中
      */
-    void ProtocolMultiplexing(const errorcode&,const Buffer&);
+    void ProtocolMultiplexing(const Buffer&);
 
 
     // Session上行数据
@@ -324,7 +332,7 @@ private:
     Mutex           m_push_mutex;
 
     /// input 协议队列
-    Buffer          m_input_buffer;  // 好像没啥用     
+    SessionBuffer   m_input_buffer;         // input buffer 
     Mutex           m_input_mutex;
     C2SQueue        m_c2s_queue;
     S2CQueue        m_s2c_queue;
