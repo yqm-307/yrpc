@@ -16,9 +16,9 @@ using std::placeholders::_4;
 using std::placeholders::_5;
 
 typedef std::function<void(const ConnectionPtr&,void*)> OnConnectHandle;
-typedef std::function<void(const char*,size_t)> OnRecvHandle;
-typedef std::function<void(const ConnectionPtr&)> ConnCloseHandle;
-typedef std::function<void()> OnCloseHandle;
+typedef std::function<void(const char*,size_t)>         OnRecvHandle;
+typedef std::function<void(const ConnectionPtr&)>       ConnCloseHandle;
+typedef std::function<void()>                           OnCloseHandle;
 
 
 }

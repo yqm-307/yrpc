@@ -20,6 +20,9 @@ private:
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::util::lock::CountDownLatch    CountDownLatch;
     typedef yrpc::detail::net::Acceptor         Acceptor;
+    typedef yrpc::detail::net::ConnectionPtr    ConnPtr;
+
+    typedef std::unordered_map<SessionID,RpcSession*>   SessionMap;
 
 public:
     static SessionManager* GetInstance(int n=0);   
@@ -45,9 +48,11 @@ private:
 
     // 运行在 main loop 中的，只做新连接的分发
     void RunInMainLoop();
-
     // 运行在 sub loop 中的，只做io、协议解析
     void RunInSubLoop(Epoller*);
+
+    // 连接建立
+    void OnAccept(ConnPtr,void*);
 
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
@@ -58,7 +63,7 @@ private:
     std::thread*        m_main_thread;
     std::thread**       m_sub_threads;   
 
-                  
+    SessionMap          m_sessions;         // 会话
 
     // main loop 控制
     std::atomic_bool    m_run;

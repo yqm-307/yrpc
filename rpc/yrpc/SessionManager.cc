@@ -50,6 +50,11 @@ void SessionManager::RunInSubLoop(Epoller* lp)
     lp->Loop();
 }
 
+void SessionManager::OnAccept(ConnPtr newconn,void*)
+{
+    // todo 新连接建立session保存在manager
+}
+
 
 
 SessionManager *SessionManager::GetInstance(int n)
