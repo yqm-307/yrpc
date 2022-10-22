@@ -265,33 +265,53 @@ class RpcSession
 
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
+public:
+    typedef struct session_detail_protocol
+    {
+        enum type : int8_t{
+            done = 0,
+            c2s = 1,
+            s2c = 2,
+        };
 
+        std::string data{""};
+        type t{type::done};
+    }Protocol;
 
+    typedef std::queue<Protocol> PckQueue;
 public:
     RpcSession(ChannelPtr channel,Epoller* loop);
     ~RpcSession();
 
-    // 协议包
-    void GetAPacket();
 
-    void GetAllPacket();
 
-    void GetNPacket();
-
+    //////////////////////
+    ///// 协议控制 ///////
+    //////////////////////
+    
+    // 获取一个协议包，失败返回的protocol 字节数为0
+    Protocol GetAPacket();
+    // 获取当前所有协议包，失败返回一个空的queue
+    PckQueue GetAllPacket();
+    // 当前是否有协议
     bool HasPacket();
-
+    // 向output追加数据
     size_t Append(const std::string_view pck);
-
+    // 向output追加数据
     size_t Append(const Buffer& bytearray);
 
-public:
-    struct Protocol
-    {
-        char* buf;
-        size_t len;
-    };
-    typedef std::queue<Protocol> C2SQueue;
-    typedef std::queue<Protocol> S2CQueue;
+
+    //////////////////////
+    ///// 连接控制 ///////
+    //////////////////////
+    bool IsAlive();
+
+    void Close();
+
+    void ForceClose();
+
+
+
 
 private:
     /*
@@ -305,7 +325,7 @@ private:
     /**
      * @brief 将当前数据进行分解，并放在c2s、s2c队列中
      */
-    void ProtocolMultiplexing(const Buffer&);
+    void ProtocolMultiplexing();
 
 
     // Session上行数据
@@ -334,18 +354,16 @@ private:
     /// input 协议队列
     SessionBuffer   m_input_buffer;         // input buffer 
     Mutex           m_input_mutex;
-    C2SQueue        m_c2s_queue;
-    S2CQueue        m_s2c_queue;
-
+    PckQueue        m_pck_queue;
 
     /// 统计，debug使用
 #ifdef YRPC_DEBUG
     yrpc::util::statistics::ByteRecord m_byterecord;
 #endif
 
-
     /// 很重要的双向信道
     ChannelPtr      m_channel;      // io 信道
+    char*           m_remain;       // 不完整的包
 };
 
 

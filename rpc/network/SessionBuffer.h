@@ -37,12 +37,13 @@ public:
     ssize_t Append(const char* data,size_t len)
     { buffer.WriteString(data,len); }
 
+
     /**
      * @brief 获取一个请求
      * 
      * @return std::string 请求的比特流 
      */
-    std::string GetAReq();
+    std::string GetAPck();
 
 
     /**
@@ -50,7 +51,7 @@ public:
      * 
      * @param std::string& bytearray 请求的比特流
      */
-    void GetAReq(std::string& bytearray);
+    void GetAPck(std::string& bytearray);
 
     /**
      * @brief 是否有完整的pkg
@@ -71,12 +72,15 @@ public:
 
     void GetByteArray(std::string& byte);
 
+
+
     size_t Length()
     {
         return buffer.DataSize();
     }
+
 private:
-    yrpc::util::buffer::Buffer buffer;  //
+    yrpc::util::buffer::Buffer buffer;      // 
 };
 
 }

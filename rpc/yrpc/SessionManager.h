@@ -1,4 +1,5 @@
 #include "RpcClientSession.h"
+#include "RpcSession.h"
 #include <vector>
 
 namespace yrpc::rpc::detail
@@ -16,9 +17,9 @@ class SessionManager : yrpc::util::noncopyable::noncopyable
 public:
     typedef uint32_t SessionID;
 private:
-    // typedef std::map<SessionID,RpcClientSession*> SessionMap;       // session id <==> session
-    typedef std::unordered_map<SessionID,RpcClientSession*> SessionMap;  // servid <==> session
-    typedef std::vector<yrpc::detail::net::YAddress> ServAddrList;     // 服务器列表
+    typedef yrpc::coroutine::poller::Epoller    Epoller;
+    typedef yrpc::util::lock::CountDownLatch    CountDownLatch;
+    typedef yrpc::detail::net::Acceptor         Acceptor;
 
 public:
     static SessionManager* GetInstance(int n=0);   
@@ -42,18 +43,28 @@ private:
 
     SessionID GetSessionID();
 
+    // 运行在 main loop 中的，只做新连接的分发
+    void RunInMainLoop();
+
+    // 运行在 sub loop 中的，只做io、协议解析
+    void RunInSubLoop(Epoller*);
+
 private:
-    // acceptor 负责监听的epoll
+    Epoller*            m_main_loop;        // 只负责 listen 的 epoll
+    Acceptor            m_main_acceptor;    // listen 
+    Epoller**           m_sub_loop;         // 协程调度器
+    CountDownLatch      m_loop_latch;       // 
     
-    SessionMap m_client_sessions;   // session map
-    ServAddrList m_serv_list;       // 服务器列表，通过框架RpcClient主动连接，注册在这里
-    yrpc::coroutine::poller::Epoller* m_accept;         // 只负责 listen 的 epoll
-    yrpc::coroutine::poller::Epoller* m_multi_io;       // 协程调度器
-    // yrpc::detail::net::YAddress servaddr_;           // 服务端地址
+    std::thread*        m_main_thread;
+    std::thread**       m_sub_threads;   
+
+                  
+
+    // main loop 控制
+    std::atomic_bool    m_run;
+
     const int port;
     
-    // yrpc::detail::net::Connector connector_;        //
-
 };
 
 }

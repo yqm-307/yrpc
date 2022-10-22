@@ -39,18 +39,20 @@ namespace yrpc::detail::protocol::define
      * 
      * 如果需要判断详细的req、rsp类型，就需要 google protobuf 相关api支持
      * 
-     * 约定大于50000是
+     * 约定大于30000是 服务端响应
      */
-    enum YRPC_PROTOCOL : int32_t
+    enum YRPC_PROTOCOL : uint16_t
     {
         type_YRPC_PROTOCOL_Done = 0,
     
         type_C2S_HEARTBEAT_REQ = 10000,
         type_C2S_RPC_CALL_REQ = 10010,
 
-        type_S2C_HEARTBEAT_RSP = 50001,
-        type_S2C_RPC_CALL_RSP = 50011,
-        type_S2C_RPC_ERROR = 50012,         
+        /* 用来区分 c2s 和 s2c 协议的分界线*/
+#define type_YRPC_PROTOCOL_CS_LIMIT 30000   
+        type_S2C_HEARTBEAT_RSP = 30001,
+        type_S2C_RPC_CALL_RSP = 30011,
+        type_S2C_RPC_ERROR = 30012,         
     };
 
 }
@@ -136,11 +138,12 @@ protected:
  *  |               |               |                       |                     |
  *  | length(16bit) |  type(16bit)  | protocol id(32bit)    | protobuf bytes(data)|    
  *  |               |               |                       |                     |
- *   包长度 2 字节  ,  范围 1-65535 
- *   协议类型 2 字节 , 范围 1-65535
- *   协议id 4 字节  ,  范围 1-42E
+ *   包长度 2 字节  ,  范围 1-65535     整条协议，包括协议头长度
+ *   协议类型 2 字节 , 范围 1-65535     定义在 YRPC_PROTOCOL 
+ *   协议id 4 字节  ,  范围 1-42E       id generate 产生
  */
 #define ProtocolHeadSize (sizeof(uint16_t)+sizeof(uint16_t)+sizeof(uint32_t))
+#define ProtocolMaxSize  UINT16_MAX
 struct ProtocolHead
 {
     ProtocolHead():m_type(0),m_length(0),m_id(yrpc::util::id::GenerateID::GetIDuint32()){}

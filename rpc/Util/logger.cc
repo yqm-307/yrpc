@@ -271,3 +271,5 @@ std::string yrpc::util::logger::format(const char* fmt, ...)
 
     return std::string(data);
 }
+
+

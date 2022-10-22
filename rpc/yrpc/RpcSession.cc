@@ -5,6 +5,14 @@ using namespace yrpc::rpc::detail;
 
 
 
+RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
+    :m_remain((char*)calloc(sizeof(char),ProtocolMaxSize))
+{
+    InitFunc();
+}
+
+
+
 
 /// 单线程内执行，无需加锁，任务注册加锁即可
 void RpcSession::Output(const char* data,size_t len)
@@ -29,21 +37,35 @@ void RpcSession::Input(char* data,size_t len)
 
 
 
-void RpcSession::ProtocolMultiplexing(const Buffer& buff)
+void RpcSession::ProtocolMultiplexing()
 {
     /**
      * 虽然这个函数很重要，但是主要功能还是解包然后判断数据包类型进行分类
      */
-    if ( m_input_buffer.Has_Pkg() )
+    while(true)
     {
-        m_input_buffer.GetAReq();
+        if (m_input_buffer.Has_Pkg())
+        {
+            Protocol proto;
+            proto.data = m_input_buffer.GetAPck();
+            if (proto.data.size() == 0)
+                DEBUG("RpcSession::ProtocolMultiplexing(), info: GetAPck error!");
+            yrpc::detail::protocol::YProtocolResolver resolver(proto.data);
+            if ( resolver.GetProtoType() < type_YRPC_PROTOCOL_CS_LIMIT )
+            {// c2s
+                proto.t = Protocol::type::c2s;
+            }
+            else
+            {// s2c
+                proto.t = Protocol::type::s2c;
+            }
+            m_pck_queue.push(proto);
+        }
+        else
+        {
+            break;
+        }
     }
-    else
-    {
-
-    }
-    
-
 }
 
 
@@ -89,7 +111,10 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
     // 将数据保存到Buffer里
     if(e.err() == yrpc::detail::shared::ERR_NETWORK_RECV_OK)    // 正常接收
     {
+        
         Input(buff.peek(),buff.ReadableBytes());
+        ProtocolMultiplexing();     // 进行一次协议解析
+    
     }
     else
     {
@@ -116,4 +141,36 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
 void RpcSession::CloseFunc(const errorcode& e)
 {
     // todo 错误处理
+    INFO("RpcSession::CloseFunc() , info: todo");
 }
+
+
+RpcSession::Protocol RpcSession::GetAPacket()
+{
+    if ( m_pck_queue.size() > 0 )
+    {
+        auto tmp = m_pck_queue.front();
+        m_pck_queue.pop();
+        return tmp;
+    }    
+    return Protocol();
+}
+
+RpcSession::PckQueue RpcSession::GetAllPacket()
+{
+    if ( m_pck_queue.size() > 0 )
+    {
+        PckQueue tmp;
+        tmp.swap(m_pck_queue);
+        return tmp;
+    }
+    return PckQueue();
+}
+
+
+bool RpcSession::HasPacket()
+{
+    return !m_pck_queue.empty();
+}
+
+

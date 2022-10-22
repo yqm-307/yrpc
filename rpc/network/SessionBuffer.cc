@@ -2,7 +2,7 @@
 
 using namespace yrpc::detail::net;
 
-std::string SessionBuffer::GetAReq()
+std::string SessionBuffer::GetAPck()
 {
     //包头
     int msglength = yrpc::util::protoutil::BytesToType<int>(buffer.peek());
@@ -21,7 +21,7 @@ std::string SessionBuffer::GetAReq()
         return "";
 }
 
-void SessionBuffer::GetAReq(std::string& bytearray)
+void SessionBuffer::GetAPck(std::string& bytearray)
 {
     //包头
     int msglength = yrpc::util::protoutil::BytesToType<int>(buffer.peek());

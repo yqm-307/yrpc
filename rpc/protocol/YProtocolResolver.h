@@ -17,7 +17,7 @@ class YProtocolResolver: public Base_Msg<google::protobuf::Message>
     typedef yrpc::detail::protocol::define::YRPC_PROTOCOL YRPC_PROTOCOL;
 public:
     typedef google::protobuf::Message ProtobufRsp;
-    YProtocolResolver(YRPC_PROTOCOL type,std::string_view bytes):m_bytes(bytes),m_prototype(type) {}
+    YProtocolResolver(std::string_view bytes):m_bytes(bytes) {}
     YProtocolResolver(const YProtocolResolver& p)
             :m_prototype(p.m_prototype),
             m_protocol_head(p.m_protocol_head),
