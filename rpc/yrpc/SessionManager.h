@@ -69,7 +69,7 @@ private:
     // 添加一个新的Session 到 SessionManager 的数据结构中
     void AddNewSession(Address,RpcSession*);
     // 删除并释放 Session 中一个Session 的资源。如果不存在，则返回false，否则返回true
-    bool DelSession(SessionID);
+    bool DelSession(Address);
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
     Acceptor            m_main_acceptor;    // listen 

@@ -40,15 +40,25 @@ SessionManager::SessionManager(int Nthread)
 
 
 
-void SessionManager::AddNewSession(Address addr,RpcSession* session)
+void SessionManager::AddNewSession(const Address& addr,RpcSession* session)
 {
     // lock_guard<Mutex> lock(m_mutex);
-    if (  )
+    SessionID i = m_id_key.load();
+    m_addrtoid.insert(std::make_pair(addr.GetIPPort(),i));
+    ++m_id_key;
+    m_sessions.insert(std::make_pair(i,session));
 }
 
-bool SessionManager::DelSession(SessionID id)
+bool SessionManager::DelSession(const Address& id)
 {
 
+    auto it = m_addrtoid.find(id.GetIPPort());
+    m_addrtoid.erase(it);
+    
+    if (m_sessions.erase(it->second) >= 0)
+        return true;
+    else
+        return false;
 }
 
 
