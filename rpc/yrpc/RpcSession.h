@@ -256,12 +256,12 @@ namespace yrpc::rpc::detail
  */
 class RpcSession
 {
-    typedef Channel::Buffer Buffer;
-    typedef Channel::errorcode errorcode;
-    typedef yrpc::util::lock::Mutex Mutex;
-    typedef std::shared_ptr<Channel> ChannelPtr;
-    typedef yrpc::coroutine::poller::Epoller Epoller;
-    typedef yrpc::detail::net::SessionBuffer SessionBuffer;
+    typedef Channel::Buffer                     Buffer;
+    typedef Channel::errorcode                  errorcode;
+    typedef yrpc::util::lock::Mutex             Mutex;
+    typedef Channel::ChannelPtr                 ChannelPtr;
+    typedef yrpc::coroutine::poller::Epoller    Epoller;
+    typedef yrpc::detail::net::SessionBuffer    SessionBuffer;
 
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;

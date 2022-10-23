@@ -154,6 +154,14 @@ void Channel::InitFunc()
 
 
 
+Channel::ChannelPtr Channel::Create(ConnPtr conn)
+{
+    return std::make_shared<Channel>(conn);
+}
+
+
+
+
 // 防止代码污染
 #undef IsWriting
 #undef IsReading

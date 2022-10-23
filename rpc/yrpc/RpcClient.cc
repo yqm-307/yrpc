@@ -11,6 +11,9 @@ RpcClient::RpcClient(std::string ip,int port,std::string logpath,int stack_size,
     // connector_(scheduler_,servaddr_),
     session_(nullptr)
 {   
+
+    // 检查连接是否存在于 sessionManager 中，如果存在，直接将 RpcSession 添加到
+
     // assert(scheduler_!=nullptr);
     thread_ = new std::thread(RpcClient::run,this);
     assert(thread_);
@@ -78,4 +81,21 @@ bool RpcClient::async_call(std::string name,std::shared_ptr<google::protobuf::Me
     //     return true;
     // else
     //     return false;
+}
+
+
+void RpcClient::OnConnect(const errcode& e,RpcSession* sess)
+{
+    if (sess != nullptr)
+        m_session = sess;
+
+    if(e.err() != yrpc::detail::shared::ERR_NETWORK_CONN_OK)
+    {
+        assert(sess != nullptr);
+        m_session = sess;
+    }
+    else
+    {
+        INFO("%s:%s , info:%s",__FUNCTION__,__LINE__,e.what().c_str());
+    } 
 }

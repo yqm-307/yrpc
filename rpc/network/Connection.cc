@@ -13,9 +13,12 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,RoutineSocket
     schedule_->AddTask([this](void*ptr){recvhandler();},nullptr);   //注册recv handler
     INFO("Connection::Connection() , info: connect success ! peer addr : %s",cli.GetIPPort().c_str());
 }
+
 Connection::~Connection()
 {
 
+    // 内存释放
+    schedule_->DestorySocket(socket_);
 }
 
 
@@ -96,8 +99,11 @@ void Connection::Close()
 {
     conn_status_ = disconnect;
     INFO("Connection::Close() : disconnect");
+    yrpc::detail::shared::errorcode e;
+    e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
+    e.setinfo("Connection::Close() : disconnect");
     if(closecb_ != nullptr)
-        closecb_(shared_from_this());
+        closecb_(e,shared_from_this());
 }
 
 void runhandle()
@@ -111,6 +117,9 @@ void Connection::recvhandler()
 
     // yrpc::util::buffer::Buffer buffer;
     char* buffer = new char[4096];
+    yrpc::detail::shared::errorcode e;
+    e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
+
     while(conn_status_)
     {
         memset(buffer,'\0',sizeof(buffer));
@@ -118,9 +127,13 @@ void Connection::recvhandler()
 
         if(n > 0) 
         {
+            e.setcode(yrpc::detail::shared::ERR_NETWORK_RECV_OK);
+            
             DEBUG("Connection::recvhandler() debug , info: from internet recv %d bytes",n);
             if(onrecv_)
-                onrecv_(buffer,n);
+            {
+                onrecv_(e,buffer,n);
+            }
             else
                 ERROR("Connection::recvhandler() error , info: recv handler is illegal!");
         }

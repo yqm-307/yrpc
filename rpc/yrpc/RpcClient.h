@@ -27,6 +27,9 @@ class RpcClient
 {
     typedef detail::SessionManager SessionManager;
     typedef detail::SessionManager::SessionID SessionID;
+    // using net = yrpc::detail::net;
+    typedef detail::RpcSession          RpcSession;
+    typedef yrpc::detail::shared::errorcode     errcode;
 public:
 
     /* Result 的 指针类型 */
@@ -37,6 +40,7 @@ public:
     
     /* Req(请求报文) 的 protomsg指针类型 */
     template<class SType>   using ReqPtr = std::shared_ptr<SType>;
+
 
 public:
 
@@ -72,8 +76,11 @@ private:
     static void run(void*);
     void NewConnection(yrpc::detail::net::ConnectionPtr new_conn);
 
+    void OnConnect(const errcode&,RpcSession*);
+
 private:
-    SessionID m_session; // session
+    // SessionID m_session; // session
+    RpcSession* m_session;
     // yrpc::coroutine::poller::Epoller* scheduler_;   //协程调度器
     yrpc::detail::net::YAddress servaddr_;         //  服务端地址
     // yrpc::detail::net::Connector connector_;       //  

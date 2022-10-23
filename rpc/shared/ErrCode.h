@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <cstring>
+#include <stdarg.h>
 #include "err_define.h"
 
 namespace yrpc::detail::shared
@@ -33,6 +35,18 @@ public:
     template<class StrRef>
     void setinfo(StrRef&& errinfo)
     { m_err_info = errinfo; }
+
+    void setinfo(const char* fmt,...)
+    {
+        char data[128];
+        size_t i = 0;
+        va_list ap;
+
+        va_start(ap, fmt);
+        vsnprintf(data + i, 128 - i, fmt, ap);
+        va_end(ap);
+        m_err_info = data;
+    }
 
 
     void setcode(int code)

@@ -29,6 +29,7 @@ public:
     typedef std::function<void(const errorcode&,size_t)>    SendCallback;
     typedef std::function<void(const errorcode&)>           CloseCallback;
     typedef std::function<void(const errorcode&)>           ErrorCallback;
+    typedef std::shared_ptr<Channel>                        ChannelPtr;
     enum ChannelStatus : int32_t
     {
         Done = 1,       // 未初始化
@@ -65,7 +66,7 @@ public:
     { m_errorcallback = cb; }
     void SetCloseCallback(CloseCallback cb)
     { m_closecallback = cb; }
-
+    static ChannelPtr Create(ConnPtr conn);
 private:
 
     static void CloseInitFunc(const errorcode&,const ConnPtr);

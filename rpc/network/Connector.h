@@ -15,39 +15,30 @@
 
 namespace yrpc::detail::net
 {
+
+
+/***
+ * Connector 纯函数实现。
+ * 因为想要将 network 抽象出来，但是本人设计水平不高，目前想到的办法就是将 network 部分尽量做纯函数实现，
+ * 类似ECS那样，网络库本身不保存数据，数据层在 channel 、 session
+ * 
+ * 
+*/
 class Connector
 {
 public:
-    Connector(yrpc::coroutine::poller::Epoller* loop,YAddress servaddr,int socket_ms=5000,int conn_ms=3000);
+    Connector(yrpc::coroutine::poller::Epoller* loop);
     ~Connector();
 
-    /**
-     * @brief 调用connect，就会注册OnConnect到Epoller中
-     */
-    void connect();
-    void setOnConnect(OnConnectHandle conn,void* arg = nullptr)
-    { onconnect_ = conn; args_=arg;}
-    void setClosed(OnCloseHandle close)
-    { onclosed_ = close; }
+    void AsyncConnect(RoutineSocket* ,YAddress servaddr,OnConnectHandle conn,void* arg = nullptr);
+
+    static RoutineSocket* CreateSocket();
+    static void DestorySocket(RoutineSocket*);
 
 protected:
-    void onConnect();
-    void CreateSocket();
-    void ReleaseSocket();
-
+    void onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_,void* args_);
 private:
     yrpc::coroutine::poller::Epoller* scheduler_;
-    RoutineSocket* servfd_;
-    int fd_;
-    YAddress servaddr_;
-
-    OnConnectHandle onconnect_;
-    OnCloseHandle onclosed_;
-
-    void* args_;
-
-    int socket_timeout_ms_;
-    int connect_timeout_ms_;
 
 };
 

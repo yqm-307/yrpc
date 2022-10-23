@@ -7,7 +7,8 @@ SessionManager::SessionManager(int Nthread)
     :port(7912),
     m_loop_latch(Nthread-1),
     m_main_loop(new Epoller(64*1024,65535)),
-    m_main_acceptor(m_main_loop,8121,2000,1000)
+    m_main_acceptor(m_main_loop,8121,2000,1000),
+    m_connector(m_main_loop)
 {
     // 初始化 main eventloop，但是不运行
     m_main_loop->RunForever();
@@ -39,6 +40,17 @@ SessionManager::SessionManager(int Nthread)
 
 
 
+void SessionManager::AddNewSession(Address addr,RpcSession* session)
+{
+    // lock_guard<Mutex> lock(m_mutex);
+    if (  )
+}
+
+bool SessionManager::DelSession(SessionID id)
+{
+
+}
+
 
 void SessionManager::RunInMainLoop()
 {
@@ -50,9 +62,21 @@ void SessionManager::RunInSubLoop(Epoller* lp)
     lp->Loop();
 }
 
-void SessionManager::OnAccept(ConnPtr newconn,void*)
+void SessionManager::OnAccept(ConnPtr newconn,void* ep)
 {
+    auto loop = (Epoller*)ep;
     // todo 新连接建立session保存在manager
+    if (newconn == nullptr)
+        return;
+    auto channel = Channel::Create(newconn);
+    yrpc::rpc::detail::RpcSession* newsession = new RpcSession(channel,loop);
+
+    // SessionID newid = m_hash((intptr_t)newsession); 
+    // 添加到数据结构中
+    m_sessions.insert(std::make_pair(m_id_key.load(),new RpcSession(channel,loop)));
+    m_id_key++;
+
+
 }
 
 
@@ -66,30 +90,29 @@ SessionManager *SessionManager::GetInstance(int n)
     return manager;
 }
 
-// 创建session 然后连接对端。
-int SessionManager::CreateNewSession(int Nthread) // 创建一个session
+
+void SessionManager::AsyncConnect(Address peer,OnSession onsession)
 {
+    using namespace yrpc::detail::net;
+    decltype(m_addrtoid)::iterator it = m_addrtoid.find(peer.GetIPPort());
+    // 连接是否已经存在
+    if( it == m_addrtoid.end() )
+    {   // 不存在，新建连接
+        RoutineSocket* socket = Connector::CreateSocket();
+        m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,const ConnectionPtr& conn,void* ){
 
-}
-
-
-int SessionManager::Submit(const yrpc::util::buffer::Buffer& buff,SessionID session)
-{
-    auto it = m_client_sessions.find(session);
-    if( it == m_client_sessions.end() )
-    {//连接不存在，建立连接
-        // connector_.connect();
-        // ERROR("SessionManager::Submit_Call() , info: ");
+        }); // 新建连接
     }
     else
-    {//连接已经存在，直接提交
-        // it->second->RpcAsyncCall(buff);
+    {
+        auto sess = m_sessions.find(it->second);
+        assert(sess != m_sessions.end());
+        onsession(sess->second);
     }
 }
 
 
-SessionManager::SessionID SessionManager::GetSessionID()
+void SessionManager::OnConnect(ConnPtr conn)
 {
-    static uint32_t count=1;
-    return count++;
+
 }
