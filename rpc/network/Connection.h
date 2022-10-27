@@ -36,6 +36,7 @@ public:
     Connection(yrpc::coroutine::poller::Epoller* scheduler,RoutineSocket* sockfd,const YAddress& cli);
     ~Connection();
 
+    // 获取 shared_form_this
     ConnectionPtr GetPtr()
     { return this->shared_from_this(); }
     
@@ -48,6 +49,7 @@ public:
      */
     size_t send(const char* data,size_t len);
 
+    // 发送data中的所有数据到对端
     size_t send(const Buffer& data);
     
     /**
@@ -59,6 +61,7 @@ public:
      */
     size_t recv(char* buffer,size_t buflen);
 
+    // 接受对端数据，到data中
     size_t recv(Buffer& data);
 
     /*关闭连接，但是等待本次传输完成*/
@@ -66,10 +69,13 @@ public:
     /*强制关闭连接，释放资源*/
     void ForceClose();
     
+
     void setOnRecvCallback(OnRecvHandle cb)
-    { onrecv_ = cb; }
+    { onrecv_ = cb; update();}
     void setOnCloseCallback(ConnCloseHandle cb)
     { closecb_ = cb; }
+
+    // 设置完回调一定要更新
     void update()
     { schedule_->AddTask([this](void*){recvhandler();},nullptr); }
 
@@ -79,6 +85,11 @@ public:
     /*conn关闭，返回true*/
     bool IsClosed()
     { return conn_status_ == disconnect;}
+
+    
+    // 返回连接中对端地址
+    const YAddress& GetPeerAddress() const
+    { return cliaddr_; }
 
     std::string StrIPPort()
     { return cliaddr_.GetIPPort(); }

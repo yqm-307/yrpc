@@ -57,6 +57,7 @@ public:
     size_t Send(const char* data,size_t len);
     
 
+
 public:
     void SetRecvCallback(RecvCallback cb)  
     { m_recvcallback = cb; }

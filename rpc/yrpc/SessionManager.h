@@ -46,6 +46,13 @@ public:
      *    RpcSession 进行可靠的通信。
      * 3、如果 多个 RpcClient 同时调用AsyncConnect，就会导致注册多个两机之间的TCP连接。（待解决，标志位或者更好的办法）
      *    这里思考主要是要不要允许可以创建多个rpcclient，指向同一个连接。如果可以那么RpcSession就需要加锁。
+     * 
+     * 解决方案：
+     *    通过两个Map  address to id 和 id to session 区分已建立连接和尚未建立完毕。其实是个简单的状态，如果存在于
+     * addressid但是不存在与SessionMap中，说明正在建立连接，连接尚未完成。但是删除连接是完整的删除。建立连接分两阶段:
+     *      1、注册连接建立。 address : id
+     *      2、建立连接完毕。 id : session
+     *    删除还是一个完整的原子操作。好处就是可以通过id去索引 RpcClinet 注册的回调.
      */
     void AsyncConnect(Address peer,OnSession onsession);
 
@@ -66,15 +73,16 @@ private:
     void OnConnect(ConnPtr);
 
 private:
-    // 添加一个新的Session 到 SessionManager 的数据结构中
-    void AddNewSession(Address,RpcSession*);
-    // 删除并释放 Session 中一个Session 的资源。如果不存在，则返回false，否则返回true
-    bool DelSession(Address);
+    // 添加一个新的Session 到 SessionMap 中
+    void AddNewSession(const Address&,Channel::ChannelPtr);
+    // 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
+    bool DelSession(const Address&);
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
     Acceptor            m_main_acceptor;    // listen 
     Connector           m_connector;        
-    Epoller**           m_sub_loop;         // 协程调度器
+    Epoller**           m_sub_loop;         // sub eventloop
+    const size_t        m_sub_loop_size;    // sub eventloop 数量
     CountDownLatch      m_loop_latch;       // 
     int                 m_balance;          // 新连接轮转负载
     

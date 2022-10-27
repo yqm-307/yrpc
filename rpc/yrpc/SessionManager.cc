@@ -2,9 +2,12 @@
 #include <unistd.h>
 using namespace yrpc::rpc::detail;
 
+#define BalanceNext ( m_balance = (m_balance + 1) % (m_sub_loop_size))
+
 
 SessionManager::SessionManager(int Nthread)
     :port(7912),
+    m_sub_loop_size(Nthread-1),
     m_loop_latch(Nthread-1),
     m_main_loop(new Epoller(64*1024,65535)),
     m_main_acceptor(m_main_loop,8121,2000,1000),
@@ -40,25 +43,31 @@ SessionManager::SessionManager(int Nthread)
 
 
 
-void SessionManager::AddNewSession(const Address& addr,RpcSession* session)
+void SessionManager::AddNewSession(const Address& addr,Channel::ChannelPtr ptr)
 {
     // lock_guard<Mutex> lock(m_mutex);
+    
+    auto sessionptr = new RpcSession(ptr,m_sub_loop[BalanceNext]);
     SessionID i = m_id_key.load();
-    m_addrtoid.insert(std::make_pair(addr.GetIPPort(),i));
+    m_addrtoid.insert(std::make_pair(addr.GetIPPort(),i));  // 地址映射
     ++m_id_key;
-    m_sessions.insert(std::make_pair(i,session));
+    m_sessions.insert(std::make_pair(i,sessionptr));        // session 映射
 }
 
 bool SessionManager::DelSession(const Address& id)
 {
-
     auto it = m_addrtoid.find(id.GetIPPort());
     m_addrtoid.erase(it);
     
-    if (m_sessions.erase(it->second) >= 0)
+    auto its = m_sessions.find(it->second);
+    if ( its != m_sessions.end() )
+    {
+        delete its->second;     // 释放内存
+        m_sessions.erase(its);
         return true;
+    }
     else
-        return false;
+        return false;   // 不存在此节点
 }
 
 
@@ -109,12 +118,18 @@ void SessionManager::AsyncConnect(Address peer,OnSession onsession)
     if( it == m_addrtoid.end() )
     {   // 不存在，新建连接
         RoutineSocket* socket = Connector::CreateSocket();
-        m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,const ConnectionPtr& conn,void* ){
-
+        m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,const ConnectionPtr& conn,void* ep){
+            // 构造新的Session
+            if(e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
+            {
+                auto channelptr = Channel::Create(conn);    // 建立通信信道
+                this->AddNewSession(conn->GetPeerAddress(),channelptr); // 添加到SessionMap
+                
+            }
         }); // 新建连接
     }
     else
-    {
+    {   //  已经存在，直接返回
         auto sess = m_sessions.find(it->second);
         assert(sess != m_sessions.end());
         onsession(sess->second);
@@ -126,3 +141,17 @@ void SessionManager::OnConnect(ConnPtr conn)
 {
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+#undef BalanceNext

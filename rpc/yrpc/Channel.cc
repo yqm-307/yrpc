@@ -162,6 +162,8 @@ Channel::ChannelPtr Channel::Create(ConnPtr conn)
 
 
 
+
+
 // 防止代码污染
 #undef IsWriting
 #undef IsReading

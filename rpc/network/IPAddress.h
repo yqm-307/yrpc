@@ -50,15 +50,16 @@ public:
 
     }
     YAddress():is_null(true){}
+    
     explicit operator bool() const
     { return is_null;}
 
-    bool operator==(const YAddress& oth)
+    bool operator==(const YAddress& oth) const
     {
         return  ((this->_ip==oth._ip) && (this->_port == oth._port));
     }
 
-    bool operator!=(const YAddress& oth)
+    bool operator!=(const YAddress& oth) const
     {
         return !(*this == oth);
     }
