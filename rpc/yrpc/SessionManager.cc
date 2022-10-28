@@ -45,7 +45,7 @@ SessionManager::SessionManager(int Nthread)
 
 void SessionManager::AddNewSession(const Address& addr,Channel::ChannelPtr ptr)
 {
-    // lock_guard<Mutex> lock(m_mutex);
+    lock_guard<Mutex> lock(m_mutex_sessions);
     
     auto sessionptr = new RpcSession(ptr,m_sub_loop[BalanceNext]);
     SessionID i = m_id_key.load();
@@ -56,6 +56,7 @@ void SessionManager::AddNewSession(const Address& addr,Channel::ChannelPtr ptr)
 
 bool SessionManager::DelSession(const Address& id)
 {
+    lock_guard<Mutex> lock(m_mutex_addrid);
     auto it = m_addrtoid.find(id.GetIPPort());
     m_addrtoid.erase(it);
     
@@ -113,6 +114,30 @@ SessionManager *SessionManager::GetInstance(int n)
 void SessionManager::AsyncConnect(Address peer,OnSession onsession)
 {
     using namespace yrpc::detail::net;
+    static Mutex _lock;
+    
+    
+
+    {
+        static std::map<std::string,std::queue<OnSession>> _connect_async_wait_queue;
+        lock_guard<Mutex> lock(_lock);
+        auto addr_peer = peer.GetIPPort();
+        auto iter = _connect_async_wait_queue.find(peer.GetIPPort());
+
+        if(iter == _connect_async_wait_queue.end())
+        {// 连接尚未开始
+            m_addrtoid.insert(std::make_pair(addr_peer,GetNewID()));
+            std::queue<OnSession> queue;
+            queue.push(onsession);
+            _connect_async_wait_queue.insert(std::make_pair(addr_peer,queue));
+        }
+        else
+        {// 连接正在进行中
+            iter->second.push(onsession);
+        }
+        return;
+    }
+
     decltype(m_addrtoid)::iterator it = m_addrtoid.find(peer.GetIPPort());
     // 连接是否已经存在
     if( it == m_addrtoid.end() )
@@ -124,7 +149,6 @@ void SessionManager::AsyncConnect(Address peer,OnSession onsession)
             {
                 auto channelptr = Channel::Create(conn);    // 建立通信信道
                 this->AddNewSession(conn->GetPeerAddress(),channelptr); // 添加到SessionMap
-                
             }
         }); // 新建连接
     }
@@ -135,6 +159,7 @@ void SessionManager::AsyncConnect(Address peer,OnSession onsession)
         onsession(sess->second);
     }
 }
+
 
 
 void SessionManager::OnConnect(ConnPtr conn)

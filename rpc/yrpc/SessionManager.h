@@ -69,13 +69,20 @@ private:
     void RunInSubLoop(Epoller*);
     // 连接建立
     void OnAccept(ConnPtr,void*);
-
+    // 连接建立
     void OnConnect(ConnPtr);
-
+    // 注意这是线程不安全的,获取一个新的session uid
+    SessionID GetNewID()
+    { return (++m_id_key); }
 private:
-    // 添加一个新的Session 到 SessionMap 中
+
+    /**
+     * 建立新连接多阶段操作
+     * 
+     */
+    // 此操作线程安全: 添加一个新的Session 到 SessionMap 中
     void AddNewSession(const Address&,Channel::ChannelPtr);
-    // 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
+    // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(const Address&);
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
@@ -86,18 +93,19 @@ private:
     CountDownLatch      m_loop_latch;       // 
     int                 m_balance;          // 新连接轮转负载
     
-    std::thread*        m_main_thread;
+    std::thread*        m_main_thread;      
     std::thread**       m_sub_threads;   
 
-
     SessionMap          m_sessions;         // 会话
-    AddressMap          m_addrtoid;         
-    Mutex               m_mutex;
+    Mutex               m_mutex_sessions;   
+    AddressMap          m_addrtoid;         // addr id 
+    Mutex               m_mutex_addrid;     
 
 
     std::hash<std::string>  m_addrhash;     // 地址hash
 
-    std::atomic<uint64_t> m_id_key{10000};
+    // std::atomic<uint64_t> m_id_key{10000};  // session id 起名用的
+    uint64_t            m_id_key{10000};  // session id 起名用的
 
     // main loop 控制
     std::atomic_bool    m_run;
