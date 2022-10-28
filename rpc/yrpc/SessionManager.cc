@@ -43,15 +43,14 @@ SessionManager::SessionManager(int Nthread)
 
 
 
-void SessionManager::AddNewSession(const Address& addr,Channel::ChannelPtr ptr)
+SessionManager::SessionPtr SessionManager::AddNewSession(const Address& addr,Channel::ChannelPtr ptr)
 {
     lock_guard<Mutex> lock(m_mutex_sessions);
     
-    auto sessionptr = new RpcSession(ptr,m_sub_loop[BalanceNext]);
-    SessionID i = m_id_key.load();
-    m_addrtoid.insert(std::make_pair(addr.GetIPPort(),i));  // 地址映射
-    ++m_id_key;
-    m_sessions.insert(std::make_pair(i,sessionptr));        // session 映射
+    auto sessionptr = std::make_shared<RpcSession>(ptr,m_sub_loop[BalanceNext]);
+    auto it = m_addrtoid.find(addr.GetIPPort());
+    m_sessions.insert(std::make_pair(it->second,sessionptr));        // session 映射
+    return sessionptr;
 }
 
 bool SessionManager::DelSession(const Address& id)
@@ -63,7 +62,6 @@ bool SessionManager::DelSession(const Address& id)
     auto its = m_sessions.find(it->second);
     if ( its != m_sessions.end() )
     {
-        delete its->second;     // 释放内存
         m_sessions.erase(its);
         return true;
     }
@@ -114,50 +112,84 @@ SessionManager *SessionManager::GetInstance(int n)
 void SessionManager::AsyncConnect(Address peer,OnSession onsession)
 {
     using namespace yrpc::detail::net;
+    
+    static std::map<std::string,std::queue<OnSession>> _connect_async_wait_queue;
     static Mutex _lock;
     
-    
+    auto addr_peer = peer.GetIPPort();
+    auto it = m_addrtoid.find(peer.GetIPPort());
+    if( it == m_addrtoid.end() )
+    {   // 不存在，新建连接
 
-    {
-        static std::map<std::string,std::queue<OnSession>> _connect_async_wait_queue;
         lock_guard<Mutex> lock(_lock);
-        auto addr_peer = peer.GetIPPort();
-        auto iter = _connect_async_wait_queue.find(peer.GetIPPort());
-
+        auto iter = _connect_async_wait_queue.find(addr_peer);
         if(iter == _connect_async_wait_queue.end())
         {// 连接尚未开始
             m_addrtoid.insert(std::make_pair(addr_peer,GetNewID()));
             std::queue<OnSession> queue;
             queue.push(onsession);
             _connect_async_wait_queue.insert(std::make_pair(addr_peer,queue));
+
+            // 初始化套接字，并注册回调。回调需要在完成连接之后，清除连接等待队列、更新SessionMap   &_connect_async_wait_queue,&_lock,
+            RoutineSocket* socket = Connector::CreateSocket();
+            m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,const ConnectionPtr& conn,void* ep){
+                // 构造新的Session
+                if(e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
+                {
+                    auto channelptr = Channel::Create(conn);    // 建立通信信道
+                    // 更新SessionMap
+                    auto newSession = this->AddNewSession(conn->GetPeerAddress(),channelptr);
+                    {// clean 连接等待队列
+                        auto it = _connect_async_wait_queue.find(conn->StrIPPort());
+                        if (it == _connect_async_wait_queue.end())
+                        {
+                            DEBUG("线程安全问题");
+                        }
+                        auto conncb_queue = _connect_async_wait_queue.erase(it)->second;
+                        while(!conncb_queue.empty())    // 回调通知
+                        {
+                            conncb_queue.front().operator()(newSession);
+                        }
+                    }
+                }
+                else
+                {
+                    /* todo 错误处理 */
+                }
+            });
         }
         else
         {// 连接正在进行中
             iter->second.push(onsession);
         }
         return;
-    }
 
-    decltype(m_addrtoid)::iterator it = m_addrtoid.find(peer.GetIPPort());
-    // 连接是否已经存在
-    if( it == m_addrtoid.end() )
-    {   // 不存在，新建连接
-        RoutineSocket* socket = Connector::CreateSocket();
-        m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,const ConnectionPtr& conn,void* ep){
-            // 构造新的Session
-            if(e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
-            {
-                auto channelptr = Channel::Create(conn);    // 建立通信信道
-                this->AddNewSession(conn->GetPeerAddress(),channelptr); // 添加到SessionMap
-            }
-        }); // 新建连接
+
+        
     }
     else
-    {   //  已经存在，直接返回
-        auto sess = m_sessions.find(it->second);
-        assert(sess != m_sessions.end());
-        onsession(sess->second);
+    {   // 起码已经注册了，但不一定已经建立连接
+
+        auto it_sess = m_sessions.find(it->second);
+        if (it_sess == m_sessions.end())
+        {   // 注册了，但是尚未连接成功
+            lock_guard<Mutex> lock(_lock);
+            auto iter = _connect_async_wait_queue.find(addr_peer);
+            iter->second.push(onsession);
+        }
+        else
+        {   // 注册了，且Session已经在了
+            onsession(it_sess->second);
+        }
+
+
     }
+
+    {// 其实可以抽出来写个函数的
+
+    }
+
+
 }
 
 

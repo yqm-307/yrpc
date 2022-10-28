@@ -16,8 +16,9 @@ namespace yrpc::rpc::detail
 class SessionManager : yrpc::util::noncopyable::noncopyable
 {
 public:
+    typedef std::shared_ptr<RpcSession>         SessionPtr;
     typedef uint64_t SessionID;
-    typedef std::function<void(RpcSession*)>    OnSession;
+    typedef std::function<void(SessionPtr)>    OnSession;
 private:
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::util::lock::CountDownLatch    CountDownLatch;
@@ -27,8 +28,8 @@ private:
     typedef yrpc::detail::net::YAddress         Address;
     typedef yrpc::detail::net::Connector        Connector;
     typedef std::unordered_map<std::string,SessionID>       AddressMap;
-    typedef std::pair<SessionID,RpcSession*>    Entry;
-    typedef std::unordered_map<SessionID,RpcSession*>   SessionMap;
+    // typedef std::pair<SessionID,SessionPtr>     Entry;
+    typedef std::unordered_map<SessionID,SessionPtr>   SessionMap;
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
@@ -81,7 +82,7 @@ private:
      * 
      */
     // 此操作线程安全: 添加一个新的Session 到 SessionMap 中
-    void AddNewSession(const Address&,Channel::ChannelPtr);
+    SessionPtr AddNewSession(const Address&,Channel::ChannelPtr);
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(const Address&);
 private:
