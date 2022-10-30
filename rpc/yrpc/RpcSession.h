@@ -266,6 +266,7 @@ class RpcSession
     typedef yrpc::detail::net::SessionBuffer    SessionBuffer;
     typedef std::shared_ptr<RpcSession>         SessionPtr;
 
+
     
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
