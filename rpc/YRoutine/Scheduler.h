@@ -126,10 +126,10 @@ private:
 private:
     typedef std::vector<RoutineNode> YRoutineList;
 
-    size_t stack_size_;
-    YRoutineList r_list_;       
-    int current_routine_index_; //正在运行的协程
-    int last_routine_index_;    //记录空闲协程
+    size_t stack_size_;         // 协程栈默认大小
+    YRoutineList r_list_;       // 
+    int current_routine_index_; // 正在运行的协程
+    int last_routine_index_;    // 记录空闲协程
     
     //r_list 并不是 链表，只是数组，每个元素只是一个槽位，
     //可以参考我写的定时器队列，也是运用的这个原理，所

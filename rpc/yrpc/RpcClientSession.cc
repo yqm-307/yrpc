@@ -2,6 +2,10 @@
 
 using namespace yrpc::rpc::detail;
 
+
+#define doif(ProtoType/*YRPC_PROTOCOL*/) case type_##ProtoType: {ProtoType##_Handler ( rsp );} break 
+
+
 bool RpcClientSession::RpcAsyncCall(std::shared_ptr<google::protobuf::Message> proto, RpcCallback func)
 {
     if (m_regiseredmap.size() >= m_max_task) // 做一个限制，类似tcp窗口这种
@@ -107,19 +111,17 @@ void RpcClientSession::Handler()
 
 void RpcClientSession::Dispatch(const yrpc::detail::protocol::YProtocolResolver &rsp)
 {
-#define doif(ProtoType/*YRPC_PROTOCOL*/) case type_##ProtoType: {ProtoType##_Handler ( rsp );} break 
     using namespace yrpc::detail::protocol::define;
     auto type = rsp.GetProtoType();
 
     switch (type)
     {
-    doif( S2C_HEARTBEAT_RSP );
-    doif( S2C_RPC_CALL_RSP );
-    default:
-        FATAL("RpcClientSession::Dispatch() fatal , info: YRPC_PROTOCOL bad type[%d]",(uint16_t)type);
-        break;
+        doif( S2C_HEARTBEAT_RSP );
+        doif( S2C_RPC_CALL_RSP );
+        default:
+            FATAL("RpcClientSession::Dispatch() fatal , info: YRPC_PROTOCOL bad type[%d]",(uint16_t)type);
+            break;
     }
-#undef doif
 }
 
 
@@ -159,3 +161,9 @@ void RpcClientSession::S2C_HEARTBEAT_RSP_Handler(const yrpc::detail::protocol::Y
     auto it = m_regiseredmap.find(id); 
     INFO("heartbeat! ");
 }
+
+
+
+
+
+#undef doif

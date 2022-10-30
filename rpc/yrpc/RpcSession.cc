@@ -6,7 +6,8 @@ using namespace yrpc::rpc::detail;
 
 
 RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
-    :m_remain((char*)calloc(sizeof(char),ProtocolMaxSize))
+    :m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
+    m_can_used(true)
 {
     InitFunc();
 }
@@ -28,7 +29,7 @@ void RpcSession::Output(const char* data,size_t len)
 
 void RpcSession::Input(char* data,size_t len)
 {
-    lock_guard<Mutex> lock(m_input_mutex);
+    // lock_guard<Mutex> lock(m_input_mutex);
     m_input_buffer.Append(data,len);
 #ifdef YRPC_DEBUG
     m_byterecord.Addrecv_bytes(len);
@@ -42,6 +43,7 @@ void RpcSession::ProtocolMultiplexing()
     /**
      * 虽然这个函数很重要，但是主要功能还是解包然后判断数据包类型进行分类
      */
+    lock_guard<Mutex> lock(m_mutex_pck);    // 这里会和GetAllPak、GetAPack冲突,需要加锁
     while(true)
     {
         if (m_input_buffer.Has_Pkg())
@@ -52,12 +54,12 @@ void RpcSession::ProtocolMultiplexing()
                 DEBUG("RpcSession::ProtocolMultiplexing(), info: GetAPck error!");
             yrpc::detail::protocol::YProtocolResolver resolver(proto.data);
             if ( resolver.GetProtoType() < type_YRPC_PROTOCOL_CS_LIMIT )
-            {// c2s
-                proto.t = Protocol::type::c2s;
+            {// c2s 请求
+                proto.t = Protocol::type::req;
             }
             else
-            {// s2c
-                proto.t = Protocol::type::s2c;
+            {// s2c 响应
+                proto.t = Protocol::type::rsp;
             }
             m_pck_queue.push(proto);
         }
@@ -76,11 +78,9 @@ size_t RpcSession::Append(const std::string_view pck)
 {
     if(pck.size() == 0)
         return 0;
-    lock_guard<Mutex> locak(m_push_mutex);
-    m_current_loop->AddTask([&](void*){
-        Output(pck.data(),pck.size());
-    },nullptr);
 
+    lock_guard<Mutex> lock(m_push_mutex);
+    m_channel->Send(pck.data(),pck.size()); // 可能多线程同时send,需要加锁
     return pck.size();
 }
 
@@ -111,7 +111,7 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
     // 将数据保存到Buffer里
     if(e.err() == yrpc::detail::shared::ERR_NETWORK_RECV_OK)    // 正常接收
     {
-        
+        lock_guard<Mutex> lock(m_input_mutex);
         Input(buff.peek(),buff.ReadableBytes());
         ProtocolMultiplexing();     // 进行一次协议解析
     
@@ -140,13 +140,24 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
 
 void RpcSession::CloseFunc(const errorcode& e)
 {
-    // todo 错误处理
-    INFO("RpcSession::CloseFunc() , info: todo");
+    // 关闭Session对外提供的API
+    m_can_used.store(false);
+
+    // 通知SessionManager
+    if(m_closecb != nullptr)
+        m_closecb(e,m_channel->GetConnInfo()->GetPeerAddress());
+    
+    if(e.err())
+    {
+        /* todo 完善错误码 */
+    }
+    INFO("RpcSession::CloseFunc() , info: Session Stop");
 }
 
 
 RpcSession::Protocol RpcSession::GetAPacket()
 {
+    lock_guard<Mutex> lock(m_mutex_pck);   
     if ( m_pck_queue.size() > 0 )
     {
         auto tmp = m_pck_queue.front();
@@ -158,6 +169,7 @@ RpcSession::Protocol RpcSession::GetAPacket()
 
 RpcSession::PckQueue RpcSession::GetAllPacket()
 {
+    lock_guard<Mutex> lock(m_mutex_pck);   
     if ( m_pck_queue.size() > 0 )
     {
         PckQueue tmp;
@@ -170,6 +182,7 @@ RpcSession::PckQueue RpcSession::GetAllPacket()
 
 bool RpcSession::HasPacket()
 {
+    lock_guard<Mutex> lock(m_mutex_pck);   
     return !m_pck_queue.empty();
 }
 

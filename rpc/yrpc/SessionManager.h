@@ -27,7 +27,7 @@ private:
     typedef yrpc::util::lock::Mutex             Mutex;
     typedef yrpc::detail::net::YAddress         Address;
     typedef yrpc::detail::net::Connector        Connector;
-    typedef std::unordered_map<std::string,SessionID>       AddressMap;
+    // typedef std::unordered_map<std::string,SessionID>       AddressMap;
     // typedef std::pair<SessionID,SessionPtr>     Entry;
     typedef std::unordered_map<SessionID,SessionPtr>   SessionMap;
     template<class T>
@@ -68,21 +68,22 @@ private:
     void RunInMainLoop();
     // 运行在 sub loop 中的，只做io、协议解析
     void RunInSubLoop(Epoller*);
+    // 被连接后,
+    void OnAccept(Channel::ChannelPtr,void*);
     // 连接建立
-    void OnAccept(ConnPtr,void*);
-    // 连接建立
-    void OnConnect(ConnPtr);
+    void OnConnect(Channel::ChannelPtr);
     // 注意这是线程不安全的,获取一个新的session uid
     SessionID GetNewID()
     { return (++m_id_key); }
+
+    SessionID AddressToID(const Address&);
 private:
 
     /**
      * 建立新连接多阶段操作
-     * 
      */
     // 此操作线程安全: 添加一个新的Session 到 SessionMap 中
-    SessionPtr AddNewSession(const Address&,Channel::ChannelPtr);
+    SessionPtr AddNewSession(Channel::ChannelPtr);
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(const Address&);
 private:
@@ -99,13 +100,10 @@ private:
 
     SessionMap          m_sessions;         // 会话
     Mutex               m_mutex_sessions;   
-    AddressMap          m_addrtoid;         // addr id 
-    Mutex               m_mutex_addrid;     
 
 
     std::hash<std::string>  m_addrhash;     // 地址hash
 
-    // std::atomic<uint64_t> m_id_key{10000};  // session id 起名用的
     uint64_t            m_id_key{10000};  // session id 起名用的
 
     // main loop 控制

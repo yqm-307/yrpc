@@ -49,6 +49,7 @@ namespace yrpc::detail::protocol::define
         type_C2S_RPC_CALL_REQ = 10010,
 
         /* 用来区分 c2s 和 s2c 协议的分界线*/
+        /* 小于30000的都是请求,大于30000的都是响应 */ 
 #define type_YRPC_PROTOCOL_CS_LIMIT 30000   
         type_S2C_HEARTBEAT_RSP = 30001,
         type_S2C_RPC_CALL_RSP = 30011,

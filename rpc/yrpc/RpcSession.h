@@ -245,7 +245,7 @@
 namespace yrpc::rpc::detail
 {
 
-
+class SessionManager;
 /**
  * @brief 双向连接，一个session可以做服务
  * 1、感觉数据保存这里最好，如果在manager，粒度太粗，manager不好管理
@@ -256,22 +256,29 @@ namespace yrpc::rpc::detail
  */
 class RpcSession
 {
+    friend SessionManager;
+
     typedef Channel::Buffer                     Buffer;
     typedef Channel::errorcode                  errorcode;
     typedef yrpc::util::lock::Mutex             Mutex;
     typedef Channel::ChannelPtr                 ChannelPtr;
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::detail::net::SessionBuffer    SessionBuffer;
+    typedef std::shared_ptr<RpcSession>         SessionPtr;
 
+    
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
+    typedef std::function<void(
+        const yrpc::detail::shared::errorcode&,
+        const yrpc::detail::net::YAddress&)>   SessionCloseCallback;
     typedef struct session_detail_protocol
     {
         enum type : int8_t{
             done = 0,
-            c2s = 1,
-            s2c = 2,
+            req = 1,
+            rsp = 2,
         };
 
         std::string data{""};
@@ -289,16 +296,18 @@ public:
     ///// 协议控制 ///////
     //////////////////////
     
-    // 获取一个协议包，失败返回的protocol 字节数为0
+    // thread safe,获取一个协议包，失败返回的protocol 字节数为0
     Protocol GetAPacket();
-    // 获取当前所有协议包，失败返回一个空的queue
+    // thread safe,获取当前所有协议包，失败返回一个空的queue,尽量使用GetAllPacket
     PckQueue GetAllPacket();
-    // 当前是否有协议
+    // thread safe,当前是否有协议
     bool HasPacket();
-    // 向output追加数据
+    // thread safe,向output追加数据
     size_t Append(const std::string_view pck);
-    // 向output追加数据
+    // thread safe,向output追加数据
     size_t Append(const Buffer& bytearray);
+
+
 
 
     //////////////////////
@@ -310,8 +319,12 @@ public:
 
     void ForceClose();
 
+    static SessionPtr Create(ChannelPtr channel,Epoller* ep)
+    {
+        return std::make_shared<RpcSession>(channel,ep);
+    }
 
-
+    
 
 private:
     /*
@@ -328,26 +341,28 @@ private:
     void ProtocolMultiplexing();
 
 
-    // Session上行数据
+    // thread unsafe,Session上行数据
     void Input(char*,size_t);
 
-    // Session下行数据
+    // thread unsafe,Session下行数据
     void Output(const char*,size_t);
 
     
+
     void InitFunc();
+    // thread safe
     void RecvFunc(const errorcode&,Buffer&);
     void SendFunc(const errorcode&,size_t);
     void CloseFunc(const errorcode&);
     
+    void SetCloseFunc(SessionCloseCallback f)
+    { m_closecb = f; }  
+
+
 private:
     /// 当前所在的eventloop
     Epoller*        m_current_loop;
 
-    /// io 缓存 
-    /// output 缓冲区
-    // Buffer m_output_buffer;
-    // Mutex m_output_mutex;
 
     Mutex           m_push_mutex;
 
@@ -355,6 +370,7 @@ private:
     SessionBuffer   m_input_buffer;         // input buffer 
     Mutex           m_input_mutex;
     PckQueue        m_pck_queue;
+    Mutex           m_mutex_pck;
 
     /// 统计，debug使用
 #ifdef YRPC_DEBUG
@@ -364,6 +380,10 @@ private:
     /// 很重要的双向信道
     ChannelPtr      m_channel;      // io 信道
     char*           m_remain;       // 不完整的包
+
+    std::atomic_bool    m_can_used; // session是否可用
+
+    SessionCloseCallback    m_closecb;
 };
 
 

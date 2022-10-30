@@ -1,15 +1,13 @@
 #include "../YRoutineContext.h"
-
-
-
 using namespace yrpc;
 
-void f1(void *);
-void f2(void *);
 
+// 声明函数 f1
+void f1(void *);
+
+// 协程上下文
 yrpc::coroutine::context::YRoutineContext c1(64 * 1024, &f1, nullptr, nullptr, true);
 
-int test_count = 0;
 
 void f1(void *) {
     printf("f1 第一次进入\n");
@@ -24,6 +22,7 @@ void f1(void *) {
 
 int main(int argc, char ** argv) 
 {
+    
     printf("进入主函数\t唤醒f1\n");
     c1.Resume();
 

@@ -60,11 +60,12 @@ bool YRoutineContext::Yield()
 
 
 bool YRoutineContext::Resume()
-{
-    boost::context::detail::transfer_t trf;
-    trf = boost::context::detail::jump_fcontext(context_,reinterpret_cast<void*>(this));
+{ 
+    boost::context::detail::transfer_t trf; // 切换前后上下文
 
+    trf = boost::context::detail::jump_fcontext(context_,reinterpret_cast<void*>(this));    // main 
 
+    
     //帮助来源协程，保存它的上下文
     auto prev_context_ = trf.data;
     *(void**)prev_context_ = trf.fctx;

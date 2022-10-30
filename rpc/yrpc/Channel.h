@@ -18,6 +18,9 @@ namespace yrpc::rpc::detail
  * 
  * 3、Channel 的功能
  *      希望实现过滤器层面的协议分发，在TCP之上，应用层之下。并且提供包括健康检测、超时、重连等功能。
+ * 
+ * 4、Channel 是无锁的,不保证线程安全,需要上层的封装去保证Channel Send、Recv是线程安全的
+ *
 */
 class Channel
 {
@@ -50,12 +53,15 @@ public:
     /* check peer is alive */
     bool IsAlive();
 
-    /* send data to peer */
+    /* send data to peer (thread unsafe) */
     size_t Send(const Buffer& data);
 
-    /* send len byte to peer */
+    /* send len byte to peer (thread unsafe)*/
     size_t Send(const char* data,size_t len);
     
+
+    const ConnPtr GetConnInfo()
+    { return m_conn; }
 
 
 public:

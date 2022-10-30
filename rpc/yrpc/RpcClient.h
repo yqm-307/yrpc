@@ -25,11 +25,11 @@ namespace yrpc::rpc
  */
 class RpcClient
 {
-    typedef detail::SessionManager SessionManager;
-    typedef detail::SessionManager::SessionID SessionID;
+    typedef detail::SessionManager                  SessionManager;
+    typedef detail::SessionManager::SessionID       SessionID;
     // using net = yrpc::detail::net;
-    typedef detail::RpcSession          RpcSession;
-    typedef yrpc::detail::shared::errorcode     errcode;
+    typedef detail::RpcSession                      RpcSession;
+    typedef yrpc::detail::shared::errorcode         errcode;
 public:
 
     /* Result 的 指针类型 */
