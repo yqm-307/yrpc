@@ -133,7 +133,7 @@ void SessionManager::AsyncConnect(Address peer,OnSession onsession)
                     auto channelptr = Channel::Create(conn);    // 建立通信信道
                     // 更新SessionMap
                     auto newSession = this->AddNewSession(channelptr);
-                    {// clean 连接等待队列
+                    {// clean 连接等待队列，处理回调任务
                         auto it = _connect_async_wait_queue.find(AddressToID(conn->GetPeerAddress()));
                         if (it == _connect_async_wait_queue.end())
                         {

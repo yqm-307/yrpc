@@ -7,6 +7,8 @@ using namespace yrpc::rpc::detail;
 #define IsWriting(status) (!(status&Writing == 0)) 
 // 是否正在读
 #define IsReading(status) (!(status&Reading == 0))
+#define SetNoWriting(status) (status^Writing)
+#define SetNoReading(status) (status^Reading)
 
 void Channel::CloseInitFunc(const errorcode& e,const ConnPtr m_conn)
 { 
@@ -77,70 +79,29 @@ bool Channel::IsAlive()
 }
 
 
-/* send data to peer */
-size_t Channel::Send(const Buffer& data)
+size_t Channel::Send(const Buffer& data,Epoller* ep)
 {
-    Send(data.peek(),data.ReadableBytes());
-    // int n = m_conn->send(data);
-    // errorcode e;
-    // if(n > 0)
-    // {
-    //     e.set(yrpc::util::logger::format("send %d bytes",n),
-    //         yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,       // code 类型 :网络
-    //         yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_OK      // code :发送成功
-    //     );    
-    // }
-    // else
-    //     e.set("send fail",
-    //         yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
-    //         yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL
-    //     );
-    // m_sendcallback(e,n);
-    // return n;
+    return Send(data.peek(),data.ReadableBytes(),ep);
 }
 
 
 
-/* send len byte to peer */
-size_t Channel::Send(const char* data,size_t len)
+size_t Channel::Send(const char* data,size_t len,Epoller* ep)
 {
-    /**
-     * 这里针对双缓冲进行的特殊处理，其实很简单，就是第一个缓冲正在被内核读写而不能改动。那么就让用户去读写另一个
-     * 缓冲区，如果此时socket空闲了，那么就主动去send数据，这样就不会存在冲突了。但是不确保高效
-     * 
-     * 本段代码含义很简单：先写入buffer，然后判断socket是否可以写，可写则发送数据。
-     */
+    lock_guard<Mutex> lock(m_buff.m_lock);
     m_buff.GetCurrentBuffer().WriteString(data,len);
     if ( !IsWriting(m_status) )
     {
-        int n = m_conn->send(m_buff.GetCurrentBuffer().peek(),m_buff.GetCurrentBuffer().ReadableBytes());   // 涉及m_conn的IO操作，可能导致挂起
-        
-        // io完成，状态转移
+        m_status = m_status | Writing;
+        ep->AddTask([=](void*ep){
+            EpollerSend(m_buff.GetCurrentBuffer().peek(),m_buff.GetCurrentBuffer().DataSize(),(Epoller*)ep);
+        },ep);
         m_buff.ChangeCurrent();
-        m_status == Writing;
-
-        // 错误分析
-        errorcode e;
-        if (n > 0)
-        {
-            e.set(yrpc::util::logger::format("send %d bytes", n),
-                  yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,  // code 类型 :网络
-                  yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_OK // code :发送成功
-            );
-        }
-        else
-            e.set("send fail",
-                  yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
-                  yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL);
-        
-        // 回调通知
-        m_sendcallback(e, n);
-        return n;
     }
     else    
         return len;
 
-    
+    return len;
 }
 
 
@@ -159,10 +120,40 @@ Channel::ChannelPtr Channel::Create(ConnPtr conn)
     return std::make_shared<Channel>(conn);
 }
 
+size_t Channel::EpollerSend(const char *data, size_t len,Epoller* ep)
+{
 
+    int n = m_conn->send(data,len);
+    SetNoWriting(m_status);
+    
+    {// 线程安全的切换缓冲区,避免出现多线同时访问两个buffer的情况
+        lock_guard<Mutex> lock(m_buff.m_lock);
+        m_buff.GetIOBuffer().InitAll();
+        m_buff.ChangeCurrent();
+        if( m_buff.GetCurrentBuffer().DataSize() > 0 )  // 切换完,检测是否有数据，有则再注册
+        {
+            ep->AddTask([this](void*ep){
+                EpollerSend(m_buff.GetCurrentBuffer().peek(),m_buff.GetCurrentBuffer().DataSize(),(Epoller*)ep);
+            },ep);
+        }
+    }
+    // 错误分析
+    errorcode e;
 
-
-
+    if (n > 0)
+    {
+        e.set(yrpc::util::logger::format("send %d bytes", n),
+              yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,  // code 类型 :网络
+              yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_OK // code :发送成功
+        );
+    }
+    else
+        e.set("send fail",
+              yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
+              yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL);
+    // 回调通知
+    m_sendcallback(e, n);
+}
 
 // 防止代码污染
 #undef IsWriting

@@ -28,11 +28,16 @@ public:
     typedef yrpc::util::buffer::Buffer                      Buffer;
     typedef yrpc::detail::shared::errorcode                 errorcode;
     typedef yrpc::detail::net::ConnectionPtr                ConnPtr;
+    typedef yrpc::coroutine::poller::Epoller                Epoller;
     typedef std::function<void(const errorcode&,Buffer&)>   RecvCallback;
     typedef std::function<void(const errorcode&,size_t)>    SendCallback;
     typedef std::function<void(const errorcode&)>           CloseCallback;
     typedef std::function<void(const errorcode&)>           ErrorCallback;
     typedef std::shared_ptr<Channel>                        ChannelPtr;
+    typedef yrpc::util::lock::Mutex                         Mutex;
+    
+    template<class T>
+    using lock_guard = yrpc::util::lock::lock_guard<T>;
     enum ChannelStatus : int32_t
     {
         Done = 1,       // 未初始化
@@ -40,9 +45,17 @@ public:
         Writing = 1<<2        // 正在写
     };
 public:
+
+
+
     Channel();
     Channel(ConnPtr new_conn);
     virtual ~Channel();
+
+
+    ////////////////////////
+    ////// 连接接口 ////////
+    ////////////////////////
 
     /* close connection */
     void Close();
@@ -53,11 +66,14 @@ public:
     /* check peer is alive */
     bool IsAlive();
 
+    ////////////////////////
+    //////  IO接口  ////////
+    ////////////////////////
     /* send data to peer (thread unsafe) */
-    size_t Send(const Buffer& data);
+    size_t Send(const Buffer& data,Epoller* ep);
 
     /* send len byte to peer (thread unsafe)*/
-    size_t Send(const char* data,size_t len);
+    size_t Send(const char* data,size_t len,Epoller* ep);
     
 
     const ConnPtr GetConnInfo()
@@ -74,33 +90,43 @@ public:
     void SetCloseCallback(CloseCallback cb)
     { m_closecallback = cb; }
     static ChannelPtr Create(ConnPtr conn);
-private:
 
+
+private:
     static void CloseInitFunc(const errorcode&,const ConnPtr);
     static void SendInitFunc(const errorcode&,size_t,const ConnPtr);
     static void ErrorInitFunc(const errorcode&,const ConnPtr);
     static void RecvInitFunc(const errorcode&,Buffer&,const ConnPtr);
 private:
     void InitFunc();
-
+    size_t EpollerSend(const char* data,size_t len,Epoller*);
 private:
     struct DoubleBuffer
     {
         DoubleBuffer():current(m_idx[0]){}
-        Buffer      m_buffer[2];
-        const int   m_idx[2]{0,1};
-        int current;
+
+        // 
         Buffer& GetCurrentBuffer()
         { return m_buffer[current]; }
+        Buffer& GetIOBuffer()
+        { return m_buffer[1-current]; }
         void ChangeCurrent()
-        { current = 1-current; }
+        { 
+            current = 1-current; 
+        }
+
+        Buffer      m_buffer[2];
+        const int   m_idx[2]{0,1};
+        int         current;
+        Mutex       m_lock; // 保证IO线程和用户线程不会同时使用一个buffer
+        
     };
 
 
     ConnPtr         m_conn;     // channel hold conn
 
     // 信道应该带有io状态，正在读、正在写、空闲
-    int             m_status;
+    volatile int    m_status;
 
     
     DoubleBuffer    m_buff;

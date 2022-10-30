@@ -9,7 +9,7 @@
  * 
  */
 #include "Epoller.h"
-
+#include "../Util/Locker.h"
 
 using namespace yrpc::coroutine::poller;
 
@@ -37,14 +37,21 @@ Epoller::~Epoller()
 }
 
 
-void Epoller::AddTask(yrpc::coroutine::context::YRoutineFunc&&func,void* args)
+// void Epoller::AddTask(yrpc::coroutine::context::YRoutineFunc&&func,void* args)
+// {
+//     this->pending_tasks_.push(std::make_pair(func,args));
+// }
+void Epoller::AddTask(yrpc::coroutine::context::YRoutineFunc func,void* args)
+{   
+    yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> lock(m_lock);
+    this->pending_tasks_.push(std::make_pair(func,args));
+}
+
+void Epoller::AddTask_Unsafe(yrpc::coroutine::context::YRoutineFunc func,void* args)
 {
     this->pending_tasks_.push(std::make_pair(func,args));
 }
-void Epoller::AddTask(yrpc::coroutine::context::YRoutineFunc&func,void* args)
-{   
-    this->pending_tasks_.push(std::make_pair(func,args));
-}
+
 
 bool Epoller::YieldTask()
 {

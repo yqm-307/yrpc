@@ -15,15 +15,11 @@ RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
 
 
 
-/// 单线程内执行，无需加锁，任务注册加锁即可
 void RpcSession::Output(const char* data,size_t len)
 {
-    // m_current_loop->AddTask();
     if(len ==  0)
         return;
-    // lock_guard<Mutex> lock(m_output_mutex);
-    m_channel->Send(data,len);
-
+    m_channel->Send(data,len,m_current_loop);
 }
 
 
@@ -80,7 +76,7 @@ size_t RpcSession::Append(const std::string_view pck)
         return 0;
 
     lock_guard<Mutex> lock(m_push_mutex);
-    m_channel->Send(pck.data(),pck.size()); // 可能多线程同时send,需要加锁
+    m_channel->Send(pck.data(),pck.size(),m_current_loop); // 可能多线程同时send,需要加锁
     return pck.size();
 }
 
