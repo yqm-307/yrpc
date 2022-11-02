@@ -5,7 +5,7 @@ using namespace yrpc::rpc::detail;
 #define BalanceNext ( m_balance = (m_balance + 1) % (m_sub_loop_size))
 
 
-SessionManager::SessionManager(int Nthread)
+__YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     :port(7912),
     m_sub_loop_size(Nthread-1),
     m_loop_latch(Nthread-1),
@@ -43,7 +43,7 @@ SessionManager::SessionManager(int Nthread)
 
 
 
-SessionManager::SessionPtr SessionManager::AddNewSession(Channel::ChannelPtr ptr)
+__YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ChannelPtr ptr)
 {
     lock_guard<Mutex> lock(m_mutex_sessions);
     auto sessionptr = RpcSession::Create(ptr,m_sub_loop[BalanceNext]);
@@ -56,7 +56,7 @@ SessionManager::SessionPtr SessionManager::AddNewSession(Channel::ChannelPtr ptr
     return sessionptr;
 }
 
-bool SessionManager::DelSession(const Address& id)
+bool __YRPC_SessionManager::DelSession(const Address& id)
 {    
     lock_guard<Mutex> lock(m_mutex_sessions);
     auto its = m_sessions.find(AddressToID(id));
@@ -70,17 +70,17 @@ bool SessionManager::DelSession(const Address& id)
 }
 
 
-void SessionManager::RunInMainLoop()
+void __YRPC_SessionManager::RunInMainLoop()
 {
     m_main_acceptor.listen();
 }
 
-void SessionManager::RunInSubLoop(Epoller* lp)
+void __YRPC_SessionManager::RunInSubLoop(Epoller* lp)
 {
     lp->Loop();
 }
 
-void SessionManager::OnAccept(Channel::ChannelPtr newchannel,void* ep)
+void __YRPC_SessionManager::OnAccept(Channel::ChannelPtr newchannel,void* ep)
 {
     /**
      * 被连接后,注册到SessionMap中
@@ -90,17 +90,17 @@ void SessionManager::OnAccept(Channel::ChannelPtr newchannel,void* ep)
 
 
 
-SessionManager *SessionManager::GetInstance(int n)
+__YRPC_SessionManager *__YRPC_SessionManager::GetInstance(int n)
 {
-    static SessionManager *manager = nullptr;
+    static __YRPC_SessionManager *manager = nullptr;
     if (manager == nullptr)
         if(n == 0)
-            manager = new SessionManager(sysconf(_SC_NPROCESSORS_ONLN)*2);  // 默认根据处理器数量*2 分配线程
+            manager = new __YRPC_SessionManager(sysconf(_SC_NPROCESSORS_ONLN)*2);  // 默认根据处理器数量*2 分配线程
     return manager;
 }
 
 
-void SessionManager::AsyncConnect(Address peer,OnSession onsession)
+void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
 {
     using namespace yrpc::detail::net;
     
@@ -184,7 +184,7 @@ void SessionManager::AsyncConnect(Address peer,OnSession onsession)
 
 }
 
-SessionManager::SessionID SessionManager::AddressToID(const Address& addr)
+__YRPC_SessionManager::SessionID __YRPC_SessionManager::AddressToID(const Address& addr)
 {
     auto str = addr.GetIPPort();
     std::string id(19,'0');
@@ -200,7 +200,7 @@ SessionManager::SessionID SessionManager::AddressToID(const Address& addr)
 }
 
 
-void SessionManager::OnConnect(Channel::ChannelPtr conn)
+void __YRPC_SessionManager::OnConnect(Channel::ChannelPtr conn)
 {
 
 }

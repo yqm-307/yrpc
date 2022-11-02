@@ -14,8 +14,10 @@
 #include "./Service.h"
 #include "./RpcSession.h"
 #include "./CallResult.h"
-#include "./RpcClientSession.h"
+// #include "./RpcClientSession.h"
 #include "./SessionManager.h"
+#include "./Define.h"
+#include "CallObj.h"
 
 namespace yrpc::rpc
 {
@@ -25,23 +27,14 @@ namespace yrpc::rpc
  */
 class RpcClient
 {
-    typedef detail::SessionManager                  SessionManager;
-    typedef detail::SessionManager::SessionID       SessionID;
-    // using net = yrpc::detail::net;
-    typedef detail::RpcSession                      RpcSession;
-    typedef yrpc::detail::shared::errorcode         errcode;
-public:
-
-    /* Result 的 指针类型 */
-    // template<class S,class R> using ResultPtr = std::shared_ptr<Result<S,R>>;
-    
-    /* Rsp(响应报文) 的 protomsg指针类型 */
-    template<class Response>   using RspPtr = std::shared_ptr<Response>;
-    
-    /* Req(请求报文) 的 protomsg指针类型 */
-    template<class SType>   using ReqPtr = std::shared_ptr<SType>;
-
-
+    typedef detail::__YRPC_SessionManager                   SessionManager;
+    typedef detail::__YRPC_SessionManager::SessionID        SessionID;
+    typedef detail::RpcSession                              RpcSession;
+    typedef yrpc::detail::shared::errorcode                 errcode;
+    typedef yrpc::detail::net::YAddress                     Address;
+    typedef std::shared_ptr<RpcSession>                     SessionPtr;
+    typedef google::protobuf::Message                       Message;
+    typedef std::map<uint64_t,CallObj::Ptr>                      CallObjMap;               
 public:
 
     /**
@@ -53,48 +46,25 @@ public:
      * @param stack_size    协程栈大小，默认128kb
      * @param maxqueue      协程数上限
      */
-    RpcClient(std::string ip,int port,std::string logpath=InitLogName,int stack_size=128*1024,int maxqueue=65535);
-    RpcClient(yrpc::detail::net::YAddress servaddr_,std::string logpath=InitLogName,int stack_size=128*1024,int maxqueue=65535);
+    RpcClient(std::string ip,int port);
+    RpcClient(yrpc::detail::net::YAddress servaddr_);
     ~RpcClient();   //todo,退出不安全，在Client关闭时，应该先让所有请求都返回或者直接失败
     
-    void close();
-    bool isclose();
-
-    
-    // template<class SendType,class RecvType>
-    // bool async_call_long(std::string name,ReqPtr<SendType> send,std::function<void(RecvType&)> f);
-
-    // template<class SendType,class RecvType>
-    // ResultPtr<SendType,RecvType> result_long(std::string name,ReqPtr<SendType> send);
+    bool IsConnected();
+    int AsyncCall();
+    int SyncCall();
 
 
-    bool async_call(std::string name,std::shared_ptr<google::protobuf::Message> send,yrpc::rpc::detail::RpcCallback f);
-
-    // 提交调用
-    // bool Updata();
-private:
-    static void run(void*);
-    void NewConnection(yrpc::detail::net::ConnectionPtr new_conn);
-
-    void OnConnect(const errcode&,RpcSession*);
 
 private:
-    // SessionID m_session; // session
-    RpcSession* m_session;
-    // yrpc::coroutine::poller::Epoller* scheduler_;   //协程调度器
-    yrpc::detail::net::YAddress servaddr_;         //  服务端地址
-    // yrpc::detail::net::Connector connector_;       //  
-    yrpc::util::buffer::Buffer buffer_;             //  协议流
-    std::shared_ptr<yrpc::rpc::detail::RpcClientSession> session_;
-    std::thread* thread_;                           //thread
-    std::mutex lock_;
-    std::atomic_bool close_;
-    static const char InitLogName[];
+    void OnConnect(SessionPtr newsession);
 
-
+private:
+    SessionPtr          m_session;      // 实现rpc操作
+    Address             m_addr;
+    CallObjMap          m_map;          // map
 };
 
-const char RpcClient::InitLogName[] = "client.log";
 
 
 

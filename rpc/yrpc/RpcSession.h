@@ -315,7 +315,7 @@ public:
     //////////////////////
     ///// 连接控制 ///////
     //////////////////////
-    bool IsAlive();
+    bool IsClosed();
 
     void Close();
 
@@ -326,7 +326,10 @@ public:
         return std::make_shared<RpcSession>(channel,ep);
     }
 
-    
+        
+    void SetCloseFunc(SessionCloseCallback f)
+    { m_closecb = f; }  
+
 
 private:
     /*
@@ -356,9 +359,6 @@ private:
     void RecvFunc(const errorcode&,Buffer&);
     void SendFunc(const errorcode&,size_t);
     void CloseFunc(const errorcode&);
-    
-    void SetCloseFunc(SessionCloseCallback f)
-    { m_closecb = f; }  
 
 
 private:

@@ -29,20 +29,17 @@ public:
         return m_instance;
     }
 
-    // ProtocolFactroy(){}
-
-    // ProtocolFactroy(std::initializer_list<std::pair<ProtoID,CreateFunc>> args)
-    // {
-    //     Insert(std::move(args));
-    // }
-
-
     void Insert(std::initializer_list<std::pair<ProtoID,CreateFunc>> args)
     {
         for(auto a: args)
         {
             m_cfactory.insert(a);
         }
+    }
+
+    void Insert(std::pair<ProtoID,CreateFunc>& pair)
+    {
+        m_cfactory.insert(pair);
     }
 
 
@@ -61,12 +58,6 @@ private:
 };
 
 
-// void a()
-// {
-//     ProtocolFactroy::GetInstance()->Insert({
-//         YRPC_PROTO_REGISTER(10001,C2S_HEARTBEAT_REQ)
-//     });
-// }
 
 
 }

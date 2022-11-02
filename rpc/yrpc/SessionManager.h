@@ -1,5 +1,6 @@
-#include "RpcClientSession.h"
+// #include "RpcClientSession.h"
 #include "RpcSession.h"
+#include "../network/all.h"
 #include <vector>
 #include <map>
 
@@ -8,12 +9,9 @@ namespace yrpc::rpc::detail
 
 /**
  * @brief session 管理器，客户端最重要的管理模块
- * 1、负载均衡加在这里
- * 2、服务探测也加在这里
- * 3、心跳检测也加在这里
- * 4、承上启下，上对应RpcClient的使用者rpc call，下对应 network io
+ * 1、实现了 TCP 连接复用
  */
-class SessionManager : yrpc::util::noncopyable::noncopyable
+class __YRPC_SessionManager : yrpc::util::noncopyable::noncopyable
 {
 public:
     typedef std::shared_ptr<RpcSession>         SessionPtr;
@@ -33,7 +31,7 @@ private:
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
-    static SessionManager* GetInstance(int n=0);   
+    static __YRPC_SessionManager* GetInstance(int n=0);   
 
     /**
      * 异步的建立Session，Session建立完成，通过onsession返回 
@@ -60,7 +58,7 @@ public:
     
     
 private:
-    SessionManager(int Nthread);  
+    __YRPC_SessionManager(int Nthread);  
 
     SessionID GetSessionID();
 

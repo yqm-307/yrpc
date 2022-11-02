@@ -118,6 +118,14 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
     }
 }
 
+
+bool RpcSession::IsClosed()
+{
+    return m_channel->IsClosed();
+}
+
+
+
 void RpcSession::SendFunc(const errorcode& e,size_t len)
 {
     if( e.err() == yrpc::detail::shared::ERR_NETWORK_SEND_OK )
