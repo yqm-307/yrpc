@@ -45,12 +45,19 @@ void Acceptor::listen()
             ERROR("Acceptor::listen() error , YRAcceptor error!");
         else
         {//创建conn
+            errorcode e; e.settype(yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK);
+            if (newfd >= 0)
+                e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_OK);
+            else
+                e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_FAIL);
             //创建socket
             RoutineSocket* clisock = scheduler_->CreateSocket(newfd,socket_timeout_ms_,connect_timeout_ms_);  //普通连接
             YAddress cli(inet_ntoa(cliaddr.sin_addr),ntohs(len));
             Connection::ConnectionPtr newconn = std::make_shared<Connection>(scheduler_,clisock,std::move(cli));
             //handle(newconn->GetPtr());  //不对，这里如果让出cpu， 程序就会阻塞到执行完，还是要runinloop 在epoll中执行
-            scheduler_->AddTask(std::bind(onconnection_,newconn,_1),args_);
+            scheduler_->AddTask([this,newconn,e](void*){
+                this->onconnection_(e,newconn);
+            },args_);
         }
         //todo 注册协程任务
         //新连接到达时的处理协程

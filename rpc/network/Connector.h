@@ -30,13 +30,13 @@ public:
     Connector(yrpc::coroutine::poller::Epoller* loop);
     ~Connector();
 
-    void AsyncConnect(RoutineSocket* ,YAddress servaddr,OnConnectHandle conn,void* arg = nullptr);
+    void AsyncConnect(RoutineSocket* ,YAddress servaddr,OnConnectHandle conn);
 
     static RoutineSocket* CreateSocket();
     static void DestorySocket(RoutineSocket*);
 
 protected:
-    void onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_,void* args_);
+    void onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_);
 private:
     yrpc::coroutine::poller::Epoller* scheduler_;
 

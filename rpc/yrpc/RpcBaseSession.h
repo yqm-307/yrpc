@@ -65,7 +65,7 @@ public:
 protected:
 
     void AppendInputBuffer(const char* b,size_t len)
-    { m_input_buffer.Save(b,len); }
+    { m_input_buffer.Append(b,len); }
 
     /* 如果 buffer 中有至少一个完整的包，将其填充至byte_array中。线程安全 */
     bool GetAProtocol(std::string& byte_array)
@@ -73,7 +73,7 @@ protected:
         yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> _lock(m_lock_in);
         bool tmp;
         if(tmp=m_input_buffer.Has_Pkg())
-            m_input_buffer.GetAReq(byte_array);
+            m_input_buffer.GetAPck(byte_array);
         return tmp; 
     }
 
@@ -88,7 +88,7 @@ protected:
     void PendingToSend(const char* byte,size_t len)
     {
         yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> _lock(m_lock_out);
-        m_output_buffer.Save(byte,len);
+        m_output_buffer.Append(byte,len);
     }
 
     /* output buffer 字节数 */

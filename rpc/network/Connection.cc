@@ -115,16 +115,17 @@ void runhandle()
 void Connection::recvhandler()
 {
 
-    // yrpc::util::buffer::Buffer buffer;
-    char* buffer = new char[4096];
+    yrpc::util::buffer::Buffer buffer;
+
+    char* array = new char[4096];
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
 
     while(conn_status_)
     {
-        memset(buffer,'\0',sizeof(buffer));
-        int n = recv(buffer,sizeof(buffer));
-
+        memset(array,'\0',sizeof(buffer));
+        int n = recv(array,sizeof(buffer));
+        buffer.WriteString(array);        
         if(n > 0) 
         {
             e.setcode(yrpc::detail::shared::ERR_NETWORK_RECV_OK);
@@ -132,7 +133,7 @@ void Connection::recvhandler()
             DEBUG("Connection::recvhandler() debug , info: from internet recv %d bytes",n);
             if(onrecv_)
             {
-                onrecv_(e,buffer,n);
+                onrecv_(e,buffer);
             }
             else
                 ERROR("Connection::recvhandler() error , info: recv handler is illegal!");

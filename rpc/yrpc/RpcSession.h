@@ -260,8 +260,9 @@ class RpcSession
 
     typedef Channel::Buffer                     Buffer;
     typedef Channel::errorcode                  errorcode;
-    typedef yrpc::util::lock::Mutex             Mutex;
     typedef Channel::ChannelPtr                 ChannelPtr;
+    typedef Channel::ConnPtr                    ConnPtr;
+    typedef yrpc::util::lock::Mutex             Mutex;
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::detail::net::SessionBuffer    SessionBuffer;
     typedef std::shared_ptr<RpcSession>         SessionPtr;

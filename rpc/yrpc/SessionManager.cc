@@ -126,7 +126,7 @@ void SessionManager::AsyncConnect(Address peer,OnSession onsession)
             RoutineSocket* socket = Connector::CreateSocket();
 
             // 回调
-            m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,const ConnectionPtr& conn,void* ep){
+            m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,const ConnectionPtr& conn){
                 // 构造新的Session
                 if(e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
                 {

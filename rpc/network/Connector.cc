@@ -15,13 +15,13 @@ Connector::~Connector()
 
 
 
-void Connector::AsyncConnect(RoutineSocket* socket,YAddress servaddr,OnConnectHandle conn,void* arg = nullptr)
+void Connector::AsyncConnect(RoutineSocket* socket,YAddress servaddr,OnConnectHandle conn)
 {   
-    scheduler_->AddTask([=](void*){onConnect(socket,servaddr,conn,arg);},arg);
+    scheduler_->AddTask([=](void*){onConnect(socket,servaddr,conn);});
 }
 
 
-void Connector::onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_,void* args_)
+void Connector::onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_)
 {
     int n = yrpc::socket::YRConnect(*servfd_,servaddr_.getsockaddr(),servaddr_.getsocklen());
     int connerror=0;
@@ -31,10 +31,10 @@ void Connector::onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnCon
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
     if(connerror == ECONNREFUSED)
-    {
+    {// 连接被拒绝
         e.setcode(yrpc::detail::shared::ERR_NETWORK_ECONNREFUSED);
         e.setinfo("Connector::connect() error , YRConnect error : connect refused %d",connerror);
-        onconnect_(e,nullptr,args_);
+        onconnect_(e,nullptr);
         return;
     }
     if(n<0)
@@ -48,7 +48,7 @@ void Connector::onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnCon
         if(onconnect_)
         {
             e.setinfo("Connector::connect() ,connet success peer %s",conn->StrIPPort().c_str());
-            onconnect_(e,conn,args_);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
+            onconnect_(e,conn);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
         }
         else
             INFO("Connector no connect handle!");

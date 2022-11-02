@@ -10,26 +10,26 @@ using namespace yrpc::rpc::detail;
 #define SetNoWriting(status) (status^Writing)
 #define SetNoReading(status) (status^Reading)
 
-void Channel::CloseInitFunc(const errorcode& e,const ConnPtr m_conn)
+void Channel::CloseInitFunc(const errorcode& e)
 { 
     INFO("Channel::CloseInitFunc(), info[errcode : %d]: peer:{ip:port} = {%s}\t",
         e.err(),
-        m_conn->StrIPPort()); 
+        m_conn->StrIPPort().c_str()); 
 }
 
-void Channel::ErrorInitFunc(const errorcode& e,const ConnPtr m_conn)
+void Channel::ErrorInitFunc(const errorcode& e)
 { 
     INFO("Channel::ErrorCallback(), info[errocde : %d]:: peer:{ip:port} = {%s}\t",
         e.err(),
-        m_conn->StrIPPort()); 
+        m_conn->StrIPPort().c_str()); 
 }
 
 
-void Channel::SendInitFunc(const errorcode&e,size_t len,const ConnPtr m_conn)
+void Channel::SendInitFunc(const errorcode&e,size_t len)
 { 
     INFO("Channel::SendInitFunc(), info[errcode : %d]: peer:{ip:port} = {%s}\t",
         e.err(),
-        m_conn->StrIPPort()); 
+        m_conn->StrIPPort().c_str()); 
 }
 
 // void Channel::RecvInitFunc(const errorcode& e,Buffer&,const ConnPtr m_conn);
@@ -44,9 +44,11 @@ Channel::Channel()
     InitFunc();
 }
 
-Channel::Channel(ConnPtr newconn)
-    :m_conn(newconn)
+Channel::Channel(ConnPtr newconn,Epoller* ep)
+    :m_conn(newconn),
+    m_eventloop(ep)
 {
+    assert(m_eventloop != nullptr);
     InitFunc();
     DEBUG("Channel::Channel(), info: construction channel peer:{ip:port} = {%s}",
             newconn->StrIPPort().c_str());
@@ -55,7 +57,9 @@ Channel::Channel(ConnPtr newconn)
 Channel::~Channel()
 {
     errorcode e("channel is destory",yrpc::detail::shared::ERR_TYPE_OK,0);
-    m_closecallback(e);
+    if (m_closecallback == nullptr)
+        CloseInitFunc(e);
+    m_closecallback(e,m_conn);
     DEBUG("Channel::~Channel(), info: destory channel peer:{ip:port} = {%s}",
             m_conn->StrIPPort().c_str());
 }
@@ -65,7 +69,7 @@ Channel::~Channel()
 void Channel::Close()
 {
     errorcode e("call func : Channel::Close,info: disconnection",yrpc::detail::shared::ERR_TYPE_OK,0);
-    m_closecallback(e);
+    m_closecallback(e,m_conn);
 }       
 
 bool Channel::IsClosed()
@@ -79,38 +83,41 @@ bool Channel::IsAlive()
 }
 
 
-size_t Channel::Send(const Buffer& data,Epoller* ep)
+size_t Channel::Send(const Buffer& data)
 {
-    return Send(data.peek(),data.ReadableBytes(),ep);
+    return Send(data.peek(),data.ReadableBytes());
 }
 
 
 
-size_t Channel::Send(const char* data,size_t len,Epoller* ep)
+size_t Channel::Send(const char* data,size_t len)
 {
-    lock_guard<Mutex> lock(m_buff.m_lock);
-    m_buff.GetCurrentBuffer().WriteString(data,len);
-    if ( !IsWriting(m_status) )
-    {
-        m_status = m_status | Writing;
-        ep->AddTask([=](void*ep){
-            EpollerSend(m_buff.GetCurrentBuffer().peek(),m_buff.GetCurrentBuffer().DataSize(),(Epoller*)ep);
-        },ep);
-        m_buff.ChangeCurrent();
-    }
-    else    
-        return len;
 
+    m_buffer.WriteString(data,len);
+    
+    m_mutex_buff.lock();
+    if ( !IsWriting(m_status) ) // 没有正在发送数据
+    {    
+
+        m_status = m_status | Writing;
+        std::shared_ptr<Buffer> IObuffptr = std::make_shared<Buffer>();
+        IObuffptr->swap(m_buffer);  // 
+        m_eventloop->AddTask([=](void*){
+            EpollerSend(IObuffptr->peek(),IObuffptr->DataSize());
+        });
+    }
+
+    m_mutex_buff.unlock();
     return len;
 }
 
 
 void Channel::InitFunc()
 {
-    this->SetCloseCallback([this](const errorcode& e){Channel::CloseInitFunc(e,this->m_conn);});
-    this->SetErrorCallback([this](const errorcode& e){Channel::ErrorInitFunc(e,this->m_conn);});
-    this->SetRecvCallback([this](const errorcode& e,Buffer& buff){this->m_recvcallback(e,buff);});
-    this->SetSendCallback([this](const errorcode& e,size_t len){Channel::SendInitFunc(e,len,this->m_conn);});
+    m_conn->setOnRecvCallback([this](const errorcode& e,Buffer& data){
+        assert(this->m_recvcallback!=nullptr);
+        this->m_recvcallback(e,data,this->m_conn);
+    });
 }
 
 
@@ -120,23 +127,29 @@ Channel::ChannelPtr Channel::Create(ConnPtr conn)
     return std::make_shared<Channel>(conn);
 }
 
-size_t Channel::EpollerSend(const char *data, size_t len,Epoller* ep)
+void Channel::EpollerSend(const char *data, size_t len)
 {
 
     int n = m_conn->send(data,len);
-    SetNoWriting(m_status);
-    
-    {// 线程安全的切换缓冲区,避免出现多线同时访问两个buffer的情况
-        lock_guard<Mutex> lock(m_buff.m_lock);
-        m_buff.GetIOBuffer().InitAll();
-        m_buff.ChangeCurrent();
-        if( m_buff.GetCurrentBuffer().DataSize() > 0 )  // 切换完,检测是否有数据，有则再注册
+    {
+        lock_guard<Mutex> lock(m_mutex_buff);
+        SetNoWriting(m_status);
+        /**
+         * 因为发送事件的注册是工作线程调用send驱动的，如果buffer有数据，但是send不被调用。
+         * 就会导致数据积压在buffer中。所以我添加一个主动检测机制，发送完毕后，检查缓冲区
+         * 是否还有待发送数据，如果没有就可以退出。如果有，就直接注册一个发送事件
+         * 
+         * 思考另一个方法，就是保证注册发送事件的顺序。
+         * 
+         * 这样多线程send也不会出错
+         */
+        if ( m_buffer.DataSize() > 0 ) 
         {
-            ep->AddTask([this](void*ep){
-                EpollerSend(m_buff.GetCurrentBuffer().peek(),m_buff.GetCurrentBuffer().DataSize(),(Epoller*)ep);
-            },ep);
+            Send(m_buffer);
         }
     }
+
+    
     // 错误分析
     errorcode e;
 
@@ -152,7 +165,7 @@ size_t Channel::EpollerSend(const char *data, size_t len,Epoller* ep)
               yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
               yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL);
     // 回调通知
-    m_sendcallback(e, n);
+    m_sendcallback(e, n,m_conn);
 }
 
 // 防止代码污染

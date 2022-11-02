@@ -17,8 +17,8 @@ using std::placeholders::_3;
 using std::placeholders::_4;
 using std::placeholders::_5;
 
-typedef std::function<void(const errorcode&,ConnectionPtr,void*)>    OnConnectHandle;
-typedef std::function<void(const errorcode&,const char*,size_t)>            OnRecvHandle;
+typedef std::function<void(const errorcode&,ConnectionPtr)>    OnConnectHandle;
+typedef std::function<void(const errorcode&,yrpc::util::buffer::Buffer&)>            OnRecvHandle;
 typedef std::function<void(const errorcode&,const ConnectionPtr&)>          ConnCloseHandle;
 typedef std::function<void(const errorcode&)>                               OnCloseHandle;
 

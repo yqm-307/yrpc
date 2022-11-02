@@ -1,7 +1,7 @@
 #pragma once
 #include "../network/all.h"
 #include "../shared/all.h"
-
+#include "../Util/Locker.h"
 
 namespace yrpc::rpc::detail
 {
@@ -29,10 +29,10 @@ public:
     typedef yrpc::detail::shared::errorcode                 errorcode;
     typedef yrpc::detail::net::ConnectionPtr                ConnPtr;
     typedef yrpc::coroutine::poller::Epoller                Epoller;
-    typedef std::function<void(const errorcode&,Buffer&)>   RecvCallback;
-    typedef std::function<void(const errorcode&,size_t)>    SendCallback;
-    typedef std::function<void(const errorcode&)>           CloseCallback;
-    typedef std::function<void(const errorcode&)>           ErrorCallback;
+    typedef std::function<void(const errorcode&,Buffer&,const ConnPtr)>   RecvCallback;
+    typedef std::function<void(const errorcode&,size_t,const ConnPtr)>    SendCallback;
+    typedef std::function<void(const errorcode&,const ConnPtr)>           CloseCallback;
+    typedef std::function<void(const errorcode&,const ConnPtr)>           ErrorCallback;
     typedef std::shared_ptr<Channel>                        ChannelPtr;
     typedef yrpc::util::lock::Mutex                         Mutex;
     
@@ -49,7 +49,7 @@ public:
 
 
     Channel();
-    Channel(ConnPtr new_conn);
+    Channel(ConnPtr new_conn,Epoller*);
     virtual ~Channel();
 
 
@@ -57,7 +57,10 @@ public:
     ////// 连接接口 ////////
     ////////////////////////
 
-    /* close connection */
+    /**
+     * @brief 主动优雅关闭连接(优雅关闭,并非 linux socket 层面的 so_linger 设置,是指将buffer中数据完全发送完毕)
+     *  调用该接口后，不能接收和发送数据
+     */
     void Close();
     
     /* check connection is closed */
@@ -70,10 +73,10 @@ public:
     //////  IO接口  ////////
     ////////////////////////
     /* send data to peer (thread unsafe) */
-    size_t Send(const Buffer& data,Epoller* ep);
+    size_t Send(const Buffer& data);
 
     /* send len byte to peer (thread unsafe)*/
-    size_t Send(const char* data,size_t len,Epoller* ep);
+    size_t Send(const char* data,size_t len);
     
 
     const ConnPtr GetConnInfo()
@@ -93,35 +96,24 @@ public:
 
 
 private:
-    static void CloseInitFunc(const errorcode&,const ConnPtr);
-    static void SendInitFunc(const errorcode&,size_t,const ConnPtr);
-    static void ErrorInitFunc(const errorcode&,const ConnPtr);
-    static void RecvInitFunc(const errorcode&,Buffer&,const ConnPtr);
+    void CloseInitFunc(const errorcode&);
+    void SendInitFunc(const errorcode&,size_t);
+    void ErrorInitFunc(const errorcode&);
+    // static void RecvInitFunc(const errorcode&,Buffer&,const ConnPtr);    // 应该要求上层封装提供
 private:
     void InitFunc();
-    size_t EpollerSend(const char* data,size_t len,Epoller*);
+
+    /**
+     * @brief 协程
+     * 
+     * @param data  待发送字节流 
+     * @param len   待发送字节流长度
+     * @return void   以Callback的形式完成发送后回调
+     */
+    void EpollerSend(const char* data,size_t len);
 private:
-    struct DoubleBuffer
-    {
-        DoubleBuffer():current(m_idx[0]){}
 
-        // 
-        Buffer& GetCurrentBuffer()
-        { return m_buffer[current]; }
-        Buffer& GetIOBuffer()
-        { return m_buffer[1-current]; }
-        void ChangeCurrent()
-        { 
-            current = 1-current; 
-        }
-
-        Buffer      m_buffer[2];
-        const int   m_idx[2]{0,1};
-        int         current;
-        Mutex       m_lock; // 保证IO线程和用户线程不会同时使用一个buffer
-        
-    };
-
+    Epoller*        m_eventloop;
 
     ConnPtr         m_conn;     // channel hold conn
 
@@ -129,9 +121,8 @@ private:
     volatile int    m_status;
 
     
-    DoubleBuffer    m_buff;
-    // Buffer          m_buffer[2];    // 双缓冲
-
+    Buffer          m_buffer;    // 单缓冲
+    Mutex           m_mutex_buff;
 
     RecvCallback        m_recvcallback;
     SendCallback        m_sendcallback;

@@ -1,5 +1,6 @@
 #pragma once
 #include "Connection.h"
+#include "../shared/all.h"
 
 
 namespace yrpc::detail::net
@@ -7,6 +8,7 @@ namespace yrpc::detail::net
 
 class Acceptor
 {
+    typedef yrpc::detail::shared::errorcode errorcode;
 public:
     /**
      * @brief Construct a new Acceptor object

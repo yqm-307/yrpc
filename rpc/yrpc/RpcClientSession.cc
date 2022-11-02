@@ -98,7 +98,7 @@ void RpcClientSession::Handler()
                 {
                     yrpc::detail::protocol::define::YRPC_PROTOCOL type;
                     type = (yrpc::detail::protocol::define::YRPC_PROTOCOL)yrpc::util::protoutil::BytesToType<uint16_t>(protobyte.c_str());
-                    yrpc::detail::protocol::YProtocolResolver rsp(type, protobyte);
+                    yrpc::detail::protocol::YProtocolResolver rsp(protobyte);
                     Dispatch(rsp);
                 }
             }

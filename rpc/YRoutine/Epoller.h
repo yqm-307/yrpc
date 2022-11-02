@@ -34,6 +34,7 @@
 #include "../Util/TimeQueue.h"
 #include "../Util/noncopyable.h"
 #include "../Util/TcpUtil.h"
+#include "../Util/Locker.h"
 namespace yrpc::coroutine::poller
 {
 class Epoller;
@@ -80,7 +81,7 @@ typedef yrpc::coroutine::context::YRoutineFunc TaskFunc;
 
 class Epoller final:util::noncopyable::noncopyable 
 {
-
+    typedef yrpc::util::lock::Mutex     Mutex;
 public:
     /**
      * @brief 构造一个Epoller对象
@@ -119,10 +120,10 @@ public:
      * @param func 任务函数
      * @param args 任务函数的参数
      */
-    void AddTask(yrpc::coroutine::context::YRoutineFunc func,void* args);
+    void AddTask(yrpc::coroutine::context::YRoutineFunc func,void* args = nullptr);
     
 
-    void AddTask_Unsafe(yrpc::coroutine::context::YRoutineFunc func,void* args);
+    void AddTask_Unsafe(yrpc::coroutine::context::YRoutineFunc func,void* args = nullptr);
 
     /**
      * @brief 挂起当前执行任务，切换到主协程，对外提供纯粹的yield接口，不保证一定切换回来
@@ -222,7 +223,7 @@ private:
     int max_size_;              //待处理任务队列长度
     detail::Scheduler runtime_;         //协程调度
     yrpc::util::clock::YTimer<RoutineSocket*> timer_; //定时事件队列
-    yrpc::util::lock::Mutex         m_lock;         // thread safe addtask
+    Mutex               m_lock;         // thread safe addtask
 
     int epollfd_;               
     bool close_;   

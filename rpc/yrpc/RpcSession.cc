@@ -19,7 +19,7 @@ void RpcSession::Output(const char* data,size_t len)
 {
     if(len ==  0)
         return;
-    m_channel->Send(data,len,m_current_loop);
+    m_channel->Send(data,len);
 }
 
 
@@ -76,7 +76,7 @@ size_t RpcSession::Append(const std::string_view pck)
         return 0;
 
     lock_guard<Mutex> lock(m_push_mutex);
-    m_channel->Send(pck.data(),pck.size(),m_current_loop); // 可能多线程同时send,需要加锁
+    m_channel->Send(pck.data(),pck.size()); // 可能多线程同时send,需要加锁
     return pck.size();
 }
 
@@ -88,15 +88,15 @@ size_t RpcSession::Append(const Buffer& bytearray)
 
 void RpcSession::InitFunc()
 {
-    m_channel->SetRecvCallback([this](const errorcode& e,Buffer& buff){
+    m_channel->SetRecvCallback([this](const errorcode& e,Buffer& buff,const ConnPtr){
         this->RecvFunc(e,buff);
     });
 
-    m_channel->SetSendCallback([this](const errorcode& e,size_t len){
+    m_channel->SetSendCallback([this](const errorcode& e,size_t len,const ConnPtr){
         this->SendFunc(e,len);
     });
 
-    m_channel->SetCloseCallback([this](const errorcode& e){
+    m_channel->SetCloseCallback([this](const errorcode& e,const ConnPtr){
         this->CloseFunc(e);
     });
 
