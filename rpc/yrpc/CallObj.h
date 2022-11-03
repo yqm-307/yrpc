@@ -9,8 +9,13 @@ namespace yrpc::rpc
 {
 
 class CallObjFactory;
+
+
+
 /**
- * @brief 封装调用对象,屏蔽同步/异步调用的差异
+ * @brief 封装调用对象,屏蔽同步/异步调用的差异,可以说专门提供给服务调用方的
+ * 1、提供一个公共的回调接口(为了屏蔽同步异步调用差距)
+ * 
  */
 class CallObj
 {
@@ -20,81 +25,55 @@ class CallObj
     typedef yrpc::util::buffer::Buffer      ByteArray;
     typedef yrpc::util::lock::Sem_t         Sem_t;
     typedef std::function<void(MessagePtr)> CallResultFunc;
-    typedef yrpc::detail::protocol::YProtocolGenerater  Generater;
-    typedef yrpc::detail::protocol::YProtocolResolver   Resolver;
-
+    typedef yrpc::detail::protocol::YProtocolGenerater  Generater;  // 存储 request 并提供序列化
+    typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化
+    
 public:
     typedef std::shared_ptr<CallObj>        Ptr;
 
 
     ~CallObj();
 
-    template<typename MsgType>
-    static Ptr Create(MsgType,int,CallResultFunc);
 
     //////////////
     // 对外接口
     //////////////
-    bool IsAsync()
-    { return !(m_callback == nullptr); }
+    bool IsAsync();
 
-    void CallBack(MessagePtr ptr)
-    { assert(m_callback); m_callback(ptr); }
+    void CallBack(MessagePtr ptr);
 
-    MessagePtr GetRusult()
-    { 
-        if (m_rsp == nullptr)
-            m_posix_cond_t.wait();
-        else
-            return m_rsp;         
-    }
+    MessagePtr GetRusult();
 
+    template<typename MsgType>
+    static Ptr Create(MsgType,int,CallResultFunc);
     
+    void SetResult();
     
 private:
     CallObj() = delete;
-    CallObj(MessagePtr ptr,int id,CallResultFunc func)
-        :m_req(ptr),
-        m_callback(func),
-        m_type_id(id)
-    {
-        // 危险操作，临时使用原始指针
-        yrpc::detail::protocol::YProtocolGenerater generater(ptr.get(),yrpc::detail::protocol::define::type_C2S_RPC_CALL_REQ);
-        m_bys.clear();
-        generater.ToByteArray(m_bys);
-        m_pck_id = generater.GetProtoID();  // 包id 
-    }
+    CallObj(MessagePtr ptr,int id,CallResultFunc func);
 
-    void SetResult(MessagePtr ptr)
-    { 
-        m_rsp = ptr; 
-        m_posix_cond_t.notify_all();
-    }
+    void SetResult(const std::string_view&);
 
-    MessagePtr CreateAReq()
-    { return ProtocolFactroy::GetInstance()->Create(m_type_id); }
+    MessagePtr CreateAReq();
 
-    MessagePtr CreateARsp()
-    { return ProtocolFactroy::GetInstance()->Create(m_type_id+1); }
+    MessagePtr CreateARsp();
     
+
     /**
      * @brief 获取包id
      * 
      * @return uint32_t 
      */
-    uint32_t GetID()
-    {
-        return m_
-    }
+    uint32_t GetID();
 
 private:
     // Message*        m_message;  // 数据部分   
-    MessagePtr      m_req;      // 对象 
-    MessagePtr      m_rsp;
-    std::string     m_bys;      // 字节流
-    std::string     m_result;   // 字节流
+    Generater       m_req;
+    std::string     m_req_bytearray;
+    Resolver        m_rsp;
+    std::string     m_rsq_bytearray;
     int             m_type_id;  // 类型id
-    int             m_pck_id;   // 包id
     const CallResultFunc  m_callback; // 异步调用
     Sem_t           m_posix_cond_t; // 通知用户完成
 };

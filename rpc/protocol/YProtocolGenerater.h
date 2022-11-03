@@ -25,7 +25,7 @@ public:
     
 
         
-    YProtocolGenerater(google::protobuf::Message* req,YRPC_PROTOCOL prototype);
+    YProtocolGenerater(MessagePtr req,YRPC_PROTOCOL prototype);
 
     virtual ~YProtocolGenerater(){}    
 

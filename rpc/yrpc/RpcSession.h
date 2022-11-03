@@ -21,7 +21,18 @@ class SessionManager;
 class RpcSession
 {
     friend SessionManager;
+    
+    struct session_detail_protocol
+    {
+        enum type : int8_t{
+            done = 0,
+            req = 1,
+            rsp = 2,
+        };
 
+        std::string data{""};
+        type t{type::done};
+    };
     typedef Channel::Buffer                     Buffer;
     typedef Channel::errorcode                  errorcode;
     typedef Channel::ChannelPtr                 ChannelPtr;
@@ -36,22 +47,13 @@ class RpcSession
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
+    typedef session_detail_protocol             Protocol;
+    typedef std::queue<Protocol>                PckQueue;
     typedef std::function<void(
         const yrpc::detail::shared::errorcode&,
         const yrpc::detail::net::YAddress&)>   SessionCloseCallback;
-    typedef struct session_detail_protocol
-    {
-        enum type : int8_t{
-            done = 0,
-            req = 1,
-            rsp = 2,
-        };
 
-        std::string data{""};
-        type t{type::done};
-    }Protocol;
-
-    typedef std::queue<Protocol> PckQueue;
+    typedef std::function<void(std::string&)>    DispatchCallback;
 public:
     RpcSession(ChannelPtr channel,Epoller* loop);
     ~RpcSession();
@@ -74,6 +76,11 @@ public:
     size_t Append(const Buffer& bytearray);
 
 
+    void SetToClientCallback(DispatchCallback cb)
+    { m_toclient = cb; }
+    void SetToServerCallback(DispatchCallback cb)
+    { m_toserver = cb; }
+
 
 
     //////////////////////
@@ -86,15 +93,15 @@ public:
     void ForceClose();
 
     static SessionPtr Create(ChannelPtr channel,Epoller* ep)
-    {
-        return std::make_shared<RpcSession>(channel,ep);
-    }
+    { return std::make_shared<RpcSession>(channel,ep); }
 
         
     void SetCloseFunc(SessionCloseCallback f)
     { m_closecb = f; }  
+    
 
-
+    
+    
 private:
     /*
     * 这里是这个类最核心的部分，重要的几个函数，和大概功能我列出来。
@@ -127,7 +134,7 @@ private:
 
 private:
     /// 当前所在的eventloop
-    Epoller*        m_current_loop;
+    Epoller*        m_current_loop{nullptr};
 
 
     Mutex           m_push_mutex;
@@ -145,11 +152,14 @@ private:
 
     /// 很重要的双向信道
     ChannelPtr      m_channel;      // io 信道
-    char*           m_remain;       // 不完整的包
+    char*           m_remain{nullptr};       // 不完整的包
 
     std::atomic_bool    m_can_used; // session是否可用
 
-    SessionCloseCallback    m_closecb;
+    SessionCloseCallback    m_closecb{nullptr};
+    DispatchCallback        m_toclient{nullptr};
+    DispatchCallback        m_toserver{nullptr};
+
 };
 
 

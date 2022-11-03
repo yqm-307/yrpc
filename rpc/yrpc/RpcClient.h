@@ -34,7 +34,9 @@ class RpcClient
     typedef yrpc::detail::net::YAddress                     Address;
     typedef std::shared_ptr<RpcSession>                     SessionPtr;
     typedef google::protobuf::Message                       Message;
-    typedef std::map<uint64_t,CallObj::Ptr>                      CallObjMap;               
+    typedef std::map<uint64_t,CallObj::Ptr>                 CallObjMap;      
+    typedef yrpc::detail::protocol::YProtocolGenerater  Generater;  // 存储 request 并提供序列化
+    typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化         
 public:
 
     /**
@@ -50,19 +52,49 @@ public:
     RpcClient(yrpc::detail::net::YAddress servaddr_);
     ~RpcClient();   //todo,退出不安全，在Client关闭时，应该先让所有请求都返回或者直接失败
     
+
+    /**
+     * @brief 是否已经建立连接
+     * 
+     * @return true  已经完成连接
+     * @return false 连接尚未完成
+     */
     bool IsConnected();
-    int AsyncCall();
-    int SyncCall();
+
+
+
+    
+
+    /**
+     * @brief 发起一次调用
+     * 
+     * @param call 调用
+     * @return int 
+     */
+    int Call(CallObj::Ptr&& call);
 
 
 
 private:
+    /**
+     * @brief 连接建立完成，通过newsession返回session
+     * 
+     * @param newsession 
+     */
     void OnConnect(SessionPtr newsession);
+
+
+    /**
+     * @brief 处理一条协议
+     * 
+     * @param pck 字节流
+     */
+    void OnPckHandler(std::string& pck);
 
 private:
     SessionPtr          m_session;      // 实现rpc操作
     Address             m_addr;
-    CallObjMap          m_map;          // map
+    CallObjMap          m_callmap;          // map
 };
 
 

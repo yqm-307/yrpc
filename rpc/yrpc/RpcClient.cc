@@ -32,6 +32,8 @@ void RpcClient::OnConnect(SessionPtr newsession)
     if (newsession != nullptr)
     {
         m_session = newsession;
+        assert(m_session != nullptr);
+        m_session->SetToClientCallback([this](std::string& pck){OnPckHandler(pck);});
     }
     else
     {
@@ -40,7 +42,26 @@ void RpcClient::OnConnect(SessionPtr newsession)
 }
 
 
-int RpcClient::AsyncCall()
+void RpcClient::OnPckHandler(std::string&/*字节流*/ pck)
+{
+    Resolver rsl(pck);
+    // 获取包id,很重要，to select callobjmap
+    auto it = m_callmap.find(rsl.GetProtoID());
+    if (it == m_callmap.end())
+    {
+        ERROR("RpcClient::OnPckHandler() , info: cann`t find package id");
+    }
+    
+
+}
+
+
+int CallObj()
+{
+
+}
+
+int GetResult()
 {
 
 }

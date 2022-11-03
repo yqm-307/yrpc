@@ -20,8 +20,9 @@ class YProtocolResolver: public Base_Msg<google::protobuf::Message>
 public:
     
     YProtocolResolver(std::string_view bytes):m_bytes(bytes) {}
+    YProtocolResolver(){};
 
-    YProtocolResolver(const YProtocolResolver& p);
+    YProtocolResolver(const YProtocolResolver& p):m_bytes(0){}
 
     virtual ~YProtocolResolver();
 
@@ -60,6 +61,24 @@ public:
     YRPC_PROTOCOL GetProtoType() const 
     { return (YRPC_PROTOCOL)m_protocol_head.m_type; }
 
+
+    /**
+     * @brief 设置待解析数据字节流
+     * 
+     * @param view 
+     */
+    void SetByteArray(const std::string_view& view) 
+    { m_bytes = view; }
+
+
+    /**
+     * @brief 是否为空
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool IsEmpty()
+    { return m_bytes.size() == 0; }
 protected:
     // 32位长
     ProtocolHead        m_protocol_head;   //协议头

@@ -109,8 +109,7 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
     {
         lock_guard<Mutex> lock(m_input_mutex);
         Input(buff.peek(),buff.ReadableBytes());
-        ProtocolMultiplexing();     // 进行一次协议解析
-    
+        ProtocolMultiplexing();     // 进行一次协议解析        
     }
     else
     {

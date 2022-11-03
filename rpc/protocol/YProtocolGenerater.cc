@@ -14,10 +14,11 @@ YProtocolGenerater::YProtocolGenerater()
 {
 }
 
-YProtocolGenerater::YProtocolGenerater(google::protobuf::Message *req, YRPC_PROTOCOL prototype)
+YProtocolGenerater::YProtocolGenerater(MessagePtr req, YRPC_PROTOCOL prototype)
     : m_prototype(prototype),
       m_message(req)
 {
+    assert(m_message);
 }
 
 
