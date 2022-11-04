@@ -111,13 +111,33 @@ size_t Epoller::Size()
 
 void Epoller::DoTimeoutTask()
 {
-    while(true)
+    // 定时协程任务 coroutine
     {
-        TTaskPtr timetask = timer_.GetATimeoutTask();   //弹出超时任务
-        if(timetask == nullptr)   //当前没有超时事件了
-            break;
-        timetask->data()->eventtype_ = EpollREvent_Timeout;
-        runtime_.Resume(timetask->data()->routine_index_);    //执行
+        std::vector<TTaskPtr> queue;
+        {// 减小临界区
+            lock_guard<Mutex> lock(mutex_timer_);
+            timer_.GetAllTimeoutTask(queue);
+        }
+
+        for (auto && task : queue )   // 处理超时任务
+        {
+            task->Data()->eventtype_ = EpollREvent_Timeout;
+            runtime_.Resume(task->Data()->routine_index_); // 唤醒超时唤醒协程
+        }
+    }
+
+    // 定时套接字任务 callback
+    {
+        std::vector<TTaskPtr> queue;
+        {// 减小临界区
+            lock_guard<Mutex> lock(mutex_socket_timer_);
+            socket_timer_.GetAllTimeoutTask(queue);
+        }
+        for (auto && task : queue)   // 处理超时任务
+        {
+            task->Data()->eventtype_ = EpollREvent_Timeout;
+            task->Data()->socket_timeout_(task->Data());    // callback
+        }
     }
 }
 
@@ -134,36 +154,62 @@ bool Epoller::QueueFull()
 
 void Epoller::DoPendingList()
 {
-    while(!pending_tasks_.empty())
+    decltype(pending_tasks_) queue;
+
+    {// 减少临界区
+        yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> lock(m_lock);
+        queue.swap(pending_tasks_);
+    }
+
+    while(!queue.empty())
     {
-        auto task = pending_tasks_.front();
+        auto task = queue.front();
         YRoutine_t co_t = runtime_.Add(task.first,task.second);
         if(!runtime_.Resume(co_t))
             TRACE("Epoller::DoPendingList() runtime_.Resume() false");
-        pending_tasks_.pop();
+        queue.pop();
     }
 }
 
 void Epoller::ResumeAll(int flag)
 {
-    std::vector<RoutineSocket*> list;
+    std::vector<TTaskPtr> list;
     timer_.GetAllTask(list);
     for(auto p : list)
     {
-        p->eventtype_ = flag;
-        runtime_.Resume(p->routine_index_);
+        p->Data()->eventtype_ = flag;
+        runtime_.Resume(p->Data()->routine_index_);
     }
 }
 
 
 int Epoller::AddTimer(RoutineSocket* socket,yrpc::util::clock::Timestamp<yrpc::util::clock::ms> ts)
 {
+    lock_guard<Mutex> lock(mutex_timer_);
     socket->timetask_ = timer_.AddTask(ts,socket);
     if(socket->timetask_ != nullptr)
         return 0;
     else
         return -1;
 }
+
+
+int Epoller::AddSocketTimer(RoutineSocket* socket)
+{
+
+    auto timepoint = yrpc::util::clock::now<yrpc::util::clock::ms>()
+                    + yrpc::util::clock::ms(socket->socket_timeout_ms_);
+
+    lock_guard<Mutex> lock(mutex_socket_timer_);
+    socket->timetask_ = socket_timer_.AddTask(timepoint,socket);
+
+    if (socket->timetask_ != nullptr)
+        return 0;
+    else
+        return -1;
+}
+
+
 
 void Epoller::CancelTimer(RoutineSocket*socket)
 {
@@ -222,6 +268,19 @@ void Epoller::WakeUpSuspend()
         runtime_.Resume(a_id);
         suspend_queue_.pop();
     }
+}
+
+
+
+
+
+
+
+int Epoller::ResetSocketTimer(RoutineSocket* socket)
+{
+    // 重置socket timer，取消之前的socket超时定时器，设置新的socket超时定时器
+    this->CancelTimer(socket);  
+    return this->AddSocketTimer(socket);
 }
 
 

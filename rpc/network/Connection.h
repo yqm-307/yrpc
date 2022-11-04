@@ -30,6 +30,7 @@ class Connection:std::enable_shared_from_this<Connection>
 {
 public:
     typedef std::shared_ptr<Connection> ConnectionPtr;
+    typedef std::function<void()>       OnTimeoutCallback;
     typedef yrpc::util::buffer::Buffer Buffer;
 public:
 
@@ -37,8 +38,7 @@ public:
     ~Connection();
 
     // 获取 shared_form_this
-    ConnectionPtr GetPtr()
-    { return this->shared_from_this(); }
+    ConnectionPtr GetPtr();
     
     /**
      * @brief 发送数据
@@ -48,9 +48,9 @@ public:
      * @return size_t 发送成功字节，正常发送会yield直到发送完毕，但是如果socket异常可能发送失败
      */
     size_t send(const char* data,size_t len);
-
-    // 发送data中的所有数据到对端
-    size_t send(const Buffer& data);
+    size_t send(const Buffer& data);            
+    
+    
     
     /**
      * @brief 接受数据到接受缓冲区 
@@ -60,39 +60,68 @@ public:
      * @return size_t 成功写入buffer字节数；如果返回0，对端关闭；如果返回-1，读取错误。
      */
     size_t recv(char* buffer,size_t buflen);
-
-    // 接受对端数据，到data中
     size_t recv(Buffer& data);
 
-    /*关闭连接，但是等待本次传输完成*/
+
+    /**
+     * @brief   关闭本次连接，但是等待缓冲区数据发送完毕
+     */
     void Close();
-    /*强制关闭连接，释放资源*/
+
+
+    /**
+     * @brief   强制关闭 socket fd, 释放资源
+     */
     void ForceClose();
     
 
-    void setOnRecvCallback(OnRecvHandle cb)
-    { onrecv_ = cb; update();}
-    void setOnCloseCallback(ConnCloseHandle cb)
-    { closecb_ = cb; }
+    /**
+     * @param cb std::function<void(const errorcode&,yrpc::util::buffer::Buffer&)>
+     */
+    void setOnRecvCallback(OnRecvHandle cb);
+    /**
+     * @param cb std::function<void(const errorcode&,const ConnectionPtr&)>
+     */
+    void setOnCloseCallback(ConnCloseHandle cb);
+
+    void setOnTimeoutCallback(OnTimeoutCallback cb);
+
 
     // 设置完回调一定要更新
-    void update()
-    { schedule_->AddTask([this](void*){recvhandler();},nullptr); }
+    void update();
 
-    /*当前套接字是否超时，默认超时时间5s*/
-    bool IsTimeOut()
-    { return socket_->eventtype_ == yrpc::coroutine::poller::EpollREvent_Timeout; }
-    /*conn关闭，返回true*/
-    bool IsClosed()
-    { return conn_status_ == disconnect;}
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool IsTimeOut();
 
+
+    /**
+     * @brief 判断连接是否端开
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool IsClosed();
     
-    // 返回连接中对端地址
-    const YAddress& GetPeerAddress() const
-    { return cliaddr_; }
-
-    std::string StrIPPort()
-    { return cliaddr_.GetIPPort(); }
+    /**
+     * @brief 获取对端地址
+     * 
+     * @return const YAddress&  
+     */
+    const YAddress& GetPeerAddress() const;
+    
+    
+    
+    /**
+     * @brief 获取对端IP Port 字符串形式
+     * 
+     * @return std::string 
+     */
+    std::string StrIPPort();
 protected:
     //是否已经建立连接
     bool is_connected()
@@ -101,26 +130,25 @@ protected:
     void runhandle();
 
     void initclosehandler(ConnectionPtr conn)
-    {
-        DEBUG("client :%s , info: connection close!",conn->StrIPPort().c_str());
-    }
+    { DEBUG("client :%s , info: connection close!",conn->StrIPPort().c_str()); }
 
     void recvhandler();
 
+    void TimeOut(RoutineSocket* socket);
 protected:
     //todo outputbuffer ，不会让服务的写操作阻塞。但是rpc对于这个有要求吗？毕竟服务完成到返回都可以算作整体，而且有协程，处理完该发不出去还是发不出去
-    yrpc::coroutine::poller::RoutineSocket* socket_;
-    yrpc::coroutine::poller::Epoller* schedule_;    //由拥有者赋予
+    RoutineSocket*          m_socket;    
+    yrpc::coroutine::poller::Epoller* m_schedule;    //由拥有者赋予
     
-    CONN_STATUS conn_status_;
-    YAddress cliaddr_;
+    CONN_STATUS             m_conn_status;
+    YAddress                m_cliaddr;
 
-    bool Reading_;
-    bool Writing_; 
+    bool                    m_Reading;
+    bool                    m_Writing; 
 
-    OnRecvHandle    onrecv_;
-    ConnCloseHandle closecb_;
-
+    OnRecvHandle            m_onrecv;
+    ConnCloseHandle         m_closecb;   // 
+    OnTimeoutCallback       m_timeoutcb;  // 超时回调通知
 };
 
 

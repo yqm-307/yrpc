@@ -37,7 +37,9 @@ void RpcSession::Input(char* data,size_t len)
 void RpcSession::ProtocolMultiplexing()
 {
     /**
-     * 虽然这个函数很重要，但是主要功能还是解包然后判断数据包类型进行分类
+     * 这个函数很重要
+     * 1、解包然后判断数据包类型进行分类
+     * 2、触发ToClient、ToServer分发给不同的处理handler
      */
     lock_guard<Mutex> lock(m_mutex_pck);    // 这里会和GetAllPak、GetAPack冲突,需要加锁
     while(true)
@@ -52,10 +54,19 @@ void RpcSession::ProtocolMultiplexing()
             if ( resolver.GetProtoType() < type_YRPC_PROTOCOL_CS_LIMIT )
             {// c2s 请求
                 proto.t = Protocol::type::req;
+                if(m_ctoserver != nullptr)
+                    m_ctoserver(proto.data);
+                else    // 没有服务提供者的处理函数，返回错误信息
+                    NoneServerHandler();    
+
             }
             else
             {// s2c 响应
                 proto.t = Protocol::type::rsp;
+                if (m_stoclient != nullptr)
+                    m_stoclient(proto.data);
+                else    // 没有客户端处理函数？存在这种可能吗。但是加上以防万一
+                    NoneClientHandler();
             }
             m_pck_queue.push(proto);
         }
@@ -100,6 +111,10 @@ void RpcSession::InitFunc()
         this->CloseFunc(e);
     });
 
+    m_channel->SetTimeOutCallback([this](){
+        this->m_timeoutcallback();
+    });
+
 }
 
 void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
@@ -123,6 +138,10 @@ bool RpcSession::IsClosed()
     return m_channel->IsClosed();
 }
 
+void RpcSession::Close()
+{
+    m_channel->Close();
+}
 
 
 void RpcSession::SendFunc(const errorcode& e,size_t len)
@@ -190,3 +209,14 @@ bool RpcSession::HasPacket()
 }
 
 
+
+
+void RpcSession::NoneServerHandler()
+{
+
+}   
+
+void RpcSession::NoneClientHandler()
+{
+
+}

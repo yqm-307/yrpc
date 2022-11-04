@@ -1,15 +1,17 @@
 #include <iostream>
 #include <google/protobuf/message.h>
+#include <condition_variable>
 #include "../Util/Buffers.h"
 #include "../Util/Locker.h"
 #include "../msg/all.h"
 #include "../protocol/all.h"
+#include "Define.h"
 
 namespace yrpc::rpc
 {
 
 class CallObjFactory;
-
+class RpcClient;
 
 
 /**
@@ -20,14 +22,16 @@ class CallObjFactory;
 class CallObj
 {
     friend CallObjFactory;
+    friend RpcClient;
     typedef google::protobuf::Message       Message;
     typedef std::shared_ptr<Message>        MessagePtr;
     typedef yrpc::util::buffer::Buffer      ByteArray;
     typedef yrpc::util::lock::Sem_t         Sem_t;
+    typedef yrpc::util::lock::Mutex         Mutex;
     typedef std::function<void(MessagePtr)> CallResultFunc;
     typedef yrpc::detail::protocol::YProtocolGenerater  Generater;  // 存储 request 并提供序列化
     typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化
-    
+    typedef yrpc::rpc::detail::RPC_CALL_TYPE    TYPE;
 public:
     typedef std::shared_ptr<CallObj>        Ptr;
 
@@ -38,23 +42,18 @@ public:
     //////////////
     // 对外接口
     //////////////
-    bool IsAsync();
-
-    void CallBack(MessagePtr ptr);
-
-    MessagePtr GetRusult();
+    TYPE GetResult(MessagePtr);
 
     template<typename MsgType>
     static Ptr Create(MsgType,int,CallResultFunc);
     
-    void SetResult();
     
 private:
     CallObj() = delete;
     CallObj(MessagePtr ptr,int id,CallResultFunc func);
 
     void SetResult(const std::string_view&);
-
+    void SetResult(const Resolver&);
     MessagePtr CreateAReq();
 
     MessagePtr CreateARsp();
@@ -74,8 +73,10 @@ private:
     Resolver        m_rsp;
     std::string     m_rsq_bytearray;
     int             m_type_id;  // 类型id
-    const CallResultFunc  m_callback; // 异步调用
-    Sem_t           m_posix_cond_t; // 通知用户完成
+    const CallResultFunc    m_callback; // 异步调用
+    Sem_t           m_cond_t; // 通知用户完成
+    Mutex              m_lock;
+    TYPE            m_status;
 };
 
 

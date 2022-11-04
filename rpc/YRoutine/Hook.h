@@ -58,9 +58,9 @@ int YRSocketFd(Socket &socket);
 
 Socket *YRCreateSocket();
 
-void YRSetArgs(Socket &socket, void *args);
+// void YRSetArgs(Socket &socket, void *args);
 
-void *YRGetArgs(Socket &socket);
+// void *YRGetArgs(Socket &socket);
 
 void YRWait(Socket &socket, const int timeout_ms);
 

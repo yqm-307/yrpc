@@ -51,8 +51,7 @@ void RpcClient::OnPckHandler(std::string&/*字节流*/ pck)
     {
         ERROR("RpcClient::OnPckHandler() , info: cann`t find package id");
     }
-    
-
+    it->second->SetResult(rsl);     //设置结果
 }
 
 

@@ -53,23 +53,35 @@ enum EpollREventStatus  : int32_t
 
 struct RoutineSocket
 {
-typedef int YRoutine_t;
-    Epoller* scheduler;
-    //EpollREventStatus
-    int eventtype_;     //Epoll Event Type 不是事件类型，而是错误码
-    struct epoll_event event_;
-    int sockfd_;
-    int epollfd_;
-    YRoutine_t routine_index_;
-    int connect_timeout_ms_;
-    int socket_timeout_ms_;
+private:
+    typedef int YRoutine_t;
+    typedef std::function<void(RoutineSocket*)> ConnTimeOut;
+    typedef std::function<void(RoutineSocket*)> SocketTimeOut;
 
-    time_t last_recv_time;     // 最后一次接受数据时间
+public:
+    Epoller* scheduler; // 所属eventloop
+
+    int             eventtype_;         //Epoll Event Type 不是事件类型，而是错误码
+    struct epoll_event event_;      // epoll event 对象
+    int             sockfd_;            // socket fd
+    int             epollfd_;           // 所属 epoll fd
+    YRoutine_t      routine_index_;     // 协程id
+
+    /////////////////////////////
+    //////  TimeOut about  //////
+    /////////////////////////////
+    int             connect_timeout_ms_;    
+    int             socket_timeout_ms_;
+    ConnTimeOut     conn_timeout_;
+    SocketTimeOut   socket_timeout_;
+
+    
+    time_t          last_recv_time;     // 最后一次接受数据时间
     /**
      * task生命期和Socket相同，因为socket在Timer中触发超时事件，就要被断开了，此时task同时析构合情合理
      */
     yrpc::util::clock::YTimer<RoutineSocket*>::TaskSlot::Ptr timetask_;
-    void* args;
+    void** args;     /*作为拓展使用*/
 };
 
 
@@ -82,6 +94,9 @@ typedef yrpc::coroutine::context::YRoutineFunc TaskFunc;
 class Epoller final:util::noncopyable::noncopyable 
 {
     typedef yrpc::util::lock::Mutex     Mutex;
+
+    template<typename Lock_> 
+    using lock_guard = yrpc::util::lock::lock_guard<Lock_>;
 public:
     /**
      * @brief 构造一个Epoller对象
@@ -125,6 +140,7 @@ public:
 
     void AddTask_Unsafe(yrpc::coroutine::context::YRoutineFunc func,void* args = nullptr);
 
+    
     /**
      * @brief 挂起当前执行任务，切换到主协程，对外提供纯粹的yield接口，不保证一定切换回来
      * 
@@ -132,10 +148,14 @@ public:
      * @return false 当前执行协程yield失败，或者没有协程（排除调度协程，也就是主协程）正在执行
      */
     bool YieldTask();
+    
+    
     /**
      * @brief 将当前运行协程添加到suspend队列中，并挂起当前协程，只是挂起让出cpu等待调度器调度到本协程，保证一定切换回来
      */
     void Yield();
+
+
     /**
      * @brief 开始循环 如果没有设置forever标志位，则不阻塞，处理当前事件后直接返回；否则阻塞，一直循环
      * 
@@ -172,6 +192,36 @@ public:
 
 
     /**
+     * @brief 添加一个定时任务
+     * 
+     * @param socket 套接字
+     * @param timeoutms 超时时间 ms
+     * @return int 
+     */
+    int AddTimer(RoutineSocket* socket,int timeoutms);
+
+
+
+    /**
+     * @brief 添加一个 socket 超时定时器
+     *  socket 超时比较特殊，如果每次IO都重新设置，那么触发将会非常的频繁。所以设置为定时检测是否有keep a live之类的
+     *  就是下面的 ResetSocketTimer 
+     * 
+     * @param socket 超时定时器
+     * @return int 0成功,-1失败
+     */
+    int AddSocketTimer(RoutineSocket* socket);
+
+
+    /**
+     * @brief 重置一个 Socket 超时定时器
+     * 
+     * @param socket 超时定时器
+     * @return int 0成功,-1失败
+     */
+    int ResetSocketTimer(RoutineSocket* socket);
+
+    /**
      * @brief 取消该定时任务
      * 
      * @param socket socket封装
@@ -193,21 +243,29 @@ public:
 
 private:
     typedef yrpc::util::clock::YTimer<RoutineSocket*>::Ptr TTaskPtr;
+    
+    
     /**
      * @brief 当前其他任务，注册到线程调度器中
      */
     void DoPendingList();
+    
+    
     /**
      * @brief 处理所有定时事件，并将socket 标志位设置为 flag，全部执行
      * 
      * @param flag 
      */
     void ResumeAll(int flag);
+    
+    
     /**
      * @brief 处理超时事件
      * @param next_timeout 
      */
     void DoTimeoutTask();
+
+
     /**
      * @brief 唤醒挂起的协程
      */
@@ -218,16 +276,23 @@ private:
     typedef std::queue<Task> TaskQueue;             //新任务队列
     typedef std::queue<YRoutine_t> SuspendQueue;    //挂起协程队列
 
-    SuspendQueue suspend_queue_;//协程挂起队列
-    TaskQueue pending_tasks_;   //待处理任务
-    int max_size_;              //待处理任务队列长度
-    detail::Scheduler runtime_;         //协程调度
-    yrpc::util::clock::YTimer<RoutineSocket*> timer_; //定时事件队列
-    Mutex               m_lock;         // thread safe addtask
+    SuspendQueue                suspend_queue_;     //协程挂起队列
+    TaskQueue                   pending_tasks_;     //待处理任务
+    Mutex                       m_lock;             // thread safe addtask
+    int                         max_size_;          //待处理任务队列长度
+    detail::Scheduler           runtime_;           //协程调度
 
-    int epollfd_;               
-    bool close_;   
-    bool forever_;     
+
+
+    yrpc::util::clock::YTimer<RoutineSocket*>   timer_;         //定时事件队列
+    Mutex                                       mutex_timer_;   
+    yrpc::util::clock::YTimer<RoutineSocket*>   socket_timer_;  //定时事件队列
+    Mutex                                       mutex_socket_timer_;   
+
+
+    int         epollfd_;               
+    bool        close_;   
+    bool        forever_;     
 };
 
 

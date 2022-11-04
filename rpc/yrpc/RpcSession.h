@@ -77,9 +77,9 @@ public:
 
 
     void SetToClientCallback(DispatchCallback cb)
-    { m_toclient = cb; }
+    { m_stoclient = cb; }
     void SetToServerCallback(DispatchCallback cb)
-    { m_toserver = cb; }
+    { m_ctoserver = cb; }
 
 
 
@@ -98,7 +98,8 @@ public:
         
     void SetCloseFunc(SessionCloseCallback f)
     { m_closecb = f; }  
-    
+    void SetTimeOutFunc(Channel::TimeOutCallback f)
+    { m_timeoutcallback = f; }
 
     
     
@@ -131,12 +132,13 @@ private:
     void SendFunc(const errorcode&,size_t);
     void CloseFunc(const errorcode&);
 
-
+    // server handler 尚未注册
+    void NoneServerHandler();
+    // client handler 尚未注册
+    void NoneClientHandler();
 private:
     /// 当前所在的eventloop
     Epoller*        m_current_loop{nullptr};
-
-
     Mutex           m_push_mutex;
 
     /// input 协议队列
@@ -157,8 +159,9 @@ private:
     std::atomic_bool    m_can_used; // session是否可用
 
     SessionCloseCallback    m_closecb{nullptr};
-    DispatchCallback        m_toclient{nullptr};
-    DispatchCallback        m_toserver{nullptr};
+    DispatchCallback        m_stoclient{nullptr};
+    DispatchCallback        m_ctoserver{nullptr};
+    Channel::TimeOutCallback m_timeoutcallback{nullptr};
 
 };
 

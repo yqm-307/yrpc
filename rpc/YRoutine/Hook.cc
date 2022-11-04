@@ -273,15 +273,15 @@ Socket *YRCreateSocket()
 }
 
 
-void YRSetArgs(Socket &socket, void *args)
-{
-    socket.args = args;
-}
+// void YRSetArgs(Socket &socket, void *args)
+// {
+//     socket.args = args;
+// }
 
-void *YRGetArgs(Socket &socket)
-{
-    return socket.args;
-}
+// void *YRGetArgs(Socket &socket)
+// {
+//     return socket.args;
+// }
 
 void YRLazyDestory(Socket &socket)
 {

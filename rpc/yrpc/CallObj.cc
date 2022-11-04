@@ -2,27 +2,10 @@
 
 using namespace yrpc::rpc;
 
-bool CallObj::IsAsync()
-{
-    return !(m_callback == nullptr);
-}
 
-void CallObj::CallBack(MessagePtr ptr)
-{
-    assert(m_callback);
-    m_callback(ptr);
-}
 
-CallObj::MessagePtr CallObj::GetRusult()
-{
-    if (m_callback != nullptr)
-        return nullptr;
 
-    if (m_rsp.IsEmpty())
-        m_posix_cond_t.wait();
-    MessagePtr ret = ProtocolFactroy::GetInstance()->Create(m_type_id);
-    return ret;
-}
+
 
 CallObj::CallObj(MessagePtr ptr, int id, CallResultFunc func)
     : m_req(ptr,yrpc::detail::protocol::define::type_C2S_RPC_CALL_REQ),
@@ -36,9 +19,37 @@ CallObj::CallObj(MessagePtr ptr, int id, CallResultFunc func)
 
 void CallObj::SetResult(const std::string_view& view)
 {
-    assert(view.size() > 0);
-    m_rsp.SetByteArray(view);
-    m_posix_cond_t.notify_all();
+    Resolver res(view);
+    SetResult(res);
+}
+
+
+void CallObj::SetResult(const Resolver& res)
+{
+    yrpc::util::lock::lock_guard<Mutex> lock(m_lock);
+    if ( m_callback == nullptr )
+    {   // 同步唤醒
+        m_rsp = res;
+        m_cond_t.notify_all();
+    }
+    else
+    {   // 异步回调
+        auto rsp = CreateARsp();
+        res.ToProtoMsg(rsp);
+        m_callback(rsp);
+    }
+}
+
+
+CallObj::TYPE CallObj::GetResult(MessagePtr ret)
+{
+
+    if (m_callback != nullptr)
+        return TYPE::RPC_CALL_IS_SYNC;  // 不是异步调用
+    if (m_rsp.IsEmpty())                // 尚未返回
+        m_cond_t.wait();
+    ret = ProtocolFactroy::GetInstance()->Create(m_type_id);
+    return m_status;
 }
 
 

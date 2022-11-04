@@ -45,6 +45,11 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
 
 __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ChannelPtr ptr)
 {
+    /**
+     * 建立新连接
+     * 
+     * 建立新连接，并保存在Manager中，注意注册超时、关闭时回调
+     */
     lock_guard<Mutex> lock(m_mutex_sessions);
     auto sessionptr = RpcSession::Create(ptr,m_sub_loop[BalanceNext]);
     // 创建并初始化新Session
@@ -52,6 +57,11 @@ __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::
         // 连接断开，从SessionMap中删除此Session
         this->DelSession(addr);
     });
+
+    sessionptr->SetTimeOutFunc([this,sessionptr](){
+        sessionptr->Close();    // 触发 CloseCallback
+    });
+
     m_sessions.insert(std::make_pair(AddressToID(ptr->GetConnInfo()->GetPeerAddress()),sessionptr));        // session 映射
     return sessionptr;
 }

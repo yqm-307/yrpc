@@ -85,9 +85,9 @@ private:
 
 
     /**
-     * @brief 处理一条协议
+     * @brief 此函数处理一条协议，并通知调用者
      * 
-     * @param pck 字节流
+     * @param pck 一条协议的字节流
      */
     void OnPckHandler(std::string& pck);
 

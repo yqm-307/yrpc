@@ -33,6 +33,7 @@ public:
     typedef std::function<void(const errorcode&,size_t,const ConnPtr)>    SendCallback;
     typedef std::function<void(const errorcode&,const ConnPtr)>           CloseCallback;
     typedef std::function<void(const errorcode&,const ConnPtr)>           ErrorCallback;
+    typedef std::function<void()>                                         TimeOutCallback;
     typedef std::shared_ptr<Channel>                        ChannelPtr;
     typedef yrpc::util::lock::Mutex                         Mutex;
     
@@ -83,6 +84,8 @@ public:
     { return m_conn; }
 
 
+
+
 public:
     void SetRecvCallback(RecvCallback cb)  
     { m_recvcallback = cb; }
@@ -92,6 +95,8 @@ public:
     { m_errorcallback = cb; }
     void SetCloseCallback(CloseCallback cb)
     { m_closecallback = cb; }
+    void SetTimeOutCallback(TimeOutCallback cb)
+    { m_timeoutcallback = cb; }
     static ChannelPtr Create(ConnPtr conn);
 
 
@@ -114,12 +119,9 @@ private:
 private:
 
     Epoller*        m_eventloop;
-
     ConnPtr         m_conn;     // channel hold conn
-
-    // 信道应该带有io状态，正在读、正在写、空闲
-    volatile int    m_status;
-
+    volatile int    m_status;   // 信道应该带有io状态，正在读、正在写、空闲
+    bool            m_is_closed{false};
     
     Buffer          m_buffer;    // 单缓冲
     Mutex           m_mutex_buff;
@@ -128,9 +130,9 @@ private:
     SendCallback        m_sendcallback;
     CloseCallback       m_closecallback;
     ErrorCallback       m_errorcallback;
+    TimeOutCallback     m_timeoutcallback;
 };
 
 
 
 }
-

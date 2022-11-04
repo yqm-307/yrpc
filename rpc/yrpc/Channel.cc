@@ -57,9 +57,13 @@ Channel::Channel(ConnPtr newconn,Epoller* ep)
 Channel::~Channel()
 {
     errorcode e("channel is destory",yrpc::detail::shared::ERR_TYPE_OK,0);
-    if (m_closecallback == nullptr)
-        CloseInitFunc(e);
-    m_closecallback(e,m_conn);
+    if (!m_is_closed)
+    {
+        if (m_closecallback == nullptr)
+            CloseInitFunc(e);
+        m_closecallback(e, m_conn);
+    }
+
     DEBUG("Channel::~Channel(), info: destory channel peer:{ip:port} = {%s}",
             m_conn->StrIPPort().c_str());
 }
@@ -70,6 +74,7 @@ void Channel::Close()
 {
     errorcode e("call func : Channel::Close,info: disconnection",yrpc::detail::shared::ERR_TYPE_OK,0);
     m_closecallback(e,m_conn);
+    m_is_closed = true;
 }       
 
 bool Channel::IsClosed()
@@ -117,6 +122,10 @@ void Channel::InitFunc()
     m_conn->setOnRecvCallback([this](const errorcode& e,Buffer& data){
         assert(this->m_recvcallback!=nullptr);
         this->m_recvcallback(e,data,this->m_conn);
+    });
+
+    m_conn->setOnTimeoutCallback([this](){
+        this->m_timeoutcallback();
     });
 }
 
