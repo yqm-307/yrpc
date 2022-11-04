@@ -9,10 +9,10 @@ YProtocolGenerater::YProtocolGenerater(const YProtocolGenerater &p)
 {
 }
 
-YProtocolGenerater::YProtocolGenerater()
-    : m_message(nullptr)
-{
-}
+// YProtocolGenerater::YProtocolGenerater()
+//     : m_message(nullptr)
+// {
+// }
 
 YProtocolGenerater::YProtocolGenerater(MessagePtr req, YRPC_PROTOCOL prototype)
     : m_prototype(prototype),
@@ -29,7 +29,7 @@ YProtocolGenerater& YProtocolGenerater::operator=(const YProtocolGenerater &p)
     m_prototype = m_prototype;
 }
 
-bool YProtocolGenerater::ToByteArray(std::string &bytearray)
+bool YProtocolGenerater::ToByteArray(std::string &bytearray) const
 {
     bytearray.resize(ProtocolHeadSize, '0'); // 预留 protocol head
 

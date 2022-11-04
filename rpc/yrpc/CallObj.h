@@ -55,10 +55,10 @@ private:
     void SetResult(const std::string_view&);
     void SetResult(const Resolver&);
     MessagePtr CreateAReq();
-
     MessagePtr CreateARsp();
     
-
+    const Generater& GetRequest();
+    const Resolver& GetResponse();
     /**
      * @brief 获取包id
      * 

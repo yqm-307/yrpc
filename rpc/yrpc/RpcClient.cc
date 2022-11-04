@@ -55,14 +55,17 @@ void RpcClient::OnPckHandler(std::string&/*字节流*/ pck)
 }
 
 
-int CallObj()
+
+
+int RpcClient::Call(CallObj::Ptr&& call)
 {
-
-}
-
-int GetResult()
-{
-
+    yrpc::util::lock::lock_guard<Mutex> lock(m_mutex);
+    auto res = m_callmap.insert(std::make_pair(call->GetID(),call));
+    if (!res.second)    // 相同值
+        return -1;
+    std::string bytes;
+    call->GetRequest().ToByteArray(bytes);
+    m_session->Append(bytes);
 }
 
 

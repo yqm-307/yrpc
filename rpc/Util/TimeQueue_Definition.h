@@ -51,7 +51,7 @@ typename YTimer<TaskObject>::Ptr YTimer<TaskObject>::AddTask(Timestamp<ms> expir
 template<class TaskObject>
 void YTimer<TaskObject>::CancelTask(Ptr task)
 {
-    task->cancel();
+    task->Cancel();
 }
 
 template<class TaskObject>
@@ -62,7 +62,7 @@ void YTimer<TaskObject>::GetAllTimeoutTask(std::vector<Ptr>& sockets)
     if(min_heap_.empty())
         return;
     while(!min_heap_.empty() && clock::expired<ms>(min_heap_.top()->GetValue()))
-        if( !(p = PopTimeTask())->is_canceled())  //不是被取消的
+        if( !(p = PopTimeTask())->Is_Canceled())  //不是被取消的
             sockets.push_back(p);
 
 }
@@ -109,7 +109,7 @@ void YTimer<TaskObject>::GetAllTask(std::vector<Ptr>& sockets)
 {
     Ptr p=nullptr;
     while(!min_heap_.empty())
-        if( !(p = PopTimeTask())->is_canceled() )  //不是被取消的
+        if( !(p = PopTimeTask())->Is_Canceled() )  //不是被取消的
             sockets.push_back(p);
 }
 
@@ -133,7 +133,7 @@ Task<DataObject>::Task(clock::Timestamp<ms> &timepoint, DataObject data)
 
 
 template<typename DataObject>
-Task<DataObject>::Ptr Task<DataObject>::CreateTaskSlotWithSharedOfThis(clock::Timestamp<ms> &tp, DataObject data_)
+typename Task<DataObject>::Ptr Task<DataObject>::CreateTaskSlotWithSharedOfThis(clock::Timestamp<ms> &tp, DataObject data_)
 {
     return std::make_shared<Task>(tp, data_);
 }
@@ -170,7 +170,7 @@ DataObject& Task<DataObject>::Data() { return data_; }
 
 
 template<typename DataObject>
-void Task<DataObject>::SetAutoReset(int tick_ms = -1)
+void Task<DataObject>::SetAutoReset(int tick_ms)
 {
     trigger_interval_ = tick_ms;
 }

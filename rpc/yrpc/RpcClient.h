@@ -32,6 +32,7 @@ class RpcClient
     typedef detail::RpcSession                              RpcSession;
     typedef yrpc::detail::shared::errorcode                 errcode;
     typedef yrpc::detail::net::YAddress                     Address;
+    typedef yrpc::util::lock::Mutex                         Mutex;
     typedef std::shared_ptr<RpcSession>                     SessionPtr;
     typedef google::protobuf::Message                       Message;
     typedef std::map<uint64_t,CallObj::Ptr>                 CallObjMap;      
@@ -63,8 +64,6 @@ public:
 
 
 
-    
-
     /**
      * @brief 发起一次调用
      * 
@@ -72,8 +71,6 @@ public:
      * @return int 
      */
     int Call(CallObj::Ptr&& call);
-
-
 
 private:
     /**
@@ -92,9 +89,10 @@ private:
     void OnPckHandler(std::string& pck);
 
 private:
-    SessionPtr          m_session;      // 实现rpc操作
+    SessionPtr          m_session;          // 实现rpc IO 操作
     Address             m_addr;
     CallObjMap          m_callmap;          // map
+    Mutex               m_mutex;
 };
 
 

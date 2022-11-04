@@ -22,7 +22,7 @@ public:
     YProtocolResolver(std::string_view bytes):m_bytes(bytes) {}
     YProtocolResolver(){};
 
-    YProtocolResolver(const YProtocolResolver& p):m_bytes(0){}
+    YProtocolResolver(const YProtocolResolver& p);
 
     virtual ~YProtocolResolver();
 
@@ -34,12 +34,7 @@ public:
      * @return true 
      * @return false 
      */
-    bool ToProtoMsg(MessagePtr message) const 
-    {
-        m_protocol_head.SetByteArray(m_bytes.data());
-        std::string_view proto_bytes(m_bytes.data(),m_bytes.size()-sizeof(uint16_t)*3);        
-        return yrpc::detail::Codec::ParseToMessage(message,proto_bytes);
-    }
+    bool ToProtoMsg(MessagePtr message) const;
 
 
 

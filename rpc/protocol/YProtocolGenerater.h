@@ -43,7 +43,7 @@ public:
      * @return true 
      * @return false 
      */
-    bool ToByteArray(std::string& bytearray);
+    bool ToByteArray(std::string& bytearray) const;
 
 
     /**
@@ -51,7 +51,7 @@ public:
      * 
      * @param rsp 
      */
-    void SetMessage(MessagePtr rsp)
+    void SetMessage(MessagePtr rsp) 
     { m_message = rsp; }
     
     
@@ -71,8 +71,7 @@ public:
      * 
      * @return MessagePtr protobuf协议对象的智能指针 
      */
-    MessagePtr Message()
-    { return m_message; }
+    // MessagePtr Message() = delete;
 
 
 
@@ -116,7 +115,7 @@ public:
     { return std::make_shared<YProtocolGenerater>(proto,type); }
 
 protected:
-    ProtocolHead m_protocol_head;           //协议头
+    mutable ProtocolHead m_protocol_head;           //协议头
     YRPC_PROTOCOL m_prototype;
     MessagePtr m_message;
 };    

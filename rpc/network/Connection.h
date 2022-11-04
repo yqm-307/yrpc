@@ -125,7 +125,7 @@ public:
 protected:
     //是否已经建立连接
     bool is_connected()
-    {return conn_status_ == connected;}
+    {return m_conn_status == connected;}
 
     void runhandle();
 

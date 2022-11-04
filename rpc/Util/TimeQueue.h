@@ -91,8 +91,8 @@ public:
 public:
     bool operator==(const comparator<clock::Timestamp<ms>>& rvalue) const;
     bool operator>(const comparator<clock::Timestamp<ms>>& rvalue) const;
-private:
     Task(clock::Timestamp<ms>& timepoint,DataObject data);
+private:
     
 
     /**

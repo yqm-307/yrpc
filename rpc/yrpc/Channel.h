@@ -97,7 +97,7 @@ public:
     { m_closecallback = cb; }
     void SetTimeOutCallback(TimeOutCallback cb)
     { m_timeoutcallback = cb; }
-    static ChannelPtr Create(ConnPtr conn);
+    static ChannelPtr Create(ConnPtr conn,Epoller* ep);
 
 
 private:

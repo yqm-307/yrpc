@@ -131,9 +131,9 @@ void Channel::InitFunc()
 
 
 
-Channel::ChannelPtr Channel::Create(ConnPtr conn)
+Channel::ChannelPtr Channel::Create(ConnPtr conn,Epoller* ep)
 {
-    return std::make_shared<Channel>(conn);
+    return std::make_shared<Channel>(conn,ep);
 }
 
 void Channel::EpollerSend(const char *data, size_t len)
