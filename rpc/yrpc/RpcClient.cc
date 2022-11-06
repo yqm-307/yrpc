@@ -18,6 +18,11 @@ RpcClient::RpcClient(std::string ip,int port)
 }
 
 
+RpcClient::~RpcClient()
+{
+    
+}
+
 
 bool RpcClient::IsConnected()
 {

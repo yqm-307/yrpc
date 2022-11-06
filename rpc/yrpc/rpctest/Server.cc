@@ -1,5 +1,5 @@
 #include "../RpcServer.h"
-#include "../../proto/AddAndStr.pb.h"
+#include "../../proto/test_protocol/AddAndStr.pb.h"
 // #include "AddAndStr.pb.h"
 using namespace yrpc;
 using namespace yrpc::util;

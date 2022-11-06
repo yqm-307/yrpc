@@ -16,10 +16,10 @@ public:
     {
         while(queue_.ThreadSleepFor(tick_))
         {
-            std::vector<std::string*> strs;
+            std::vector<YTimer<std::string*>::Ptr> strs;
             queue_.GetAllTimeoutTask(strs);
             for(auto p : strs)
-                printf("触发事件: %s\n",p->c_str());            
+                printf("触发事件: %s\n",p->Data()->c_str());            
         }
     }
 
