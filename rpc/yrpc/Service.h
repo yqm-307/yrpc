@@ -4,12 +4,19 @@
 #include "../protocol/ProtocolUtil.h"
 #include "../Util/all.h"
 #include "../protocol/ErrCode.h"
+#include "../protocol/YProtocolResolver.h"
+#include "../protocol/YProtocolGenerater.h"
 
 
 namespace yrpc::rpc::detail
 {
 class CallCenter
 {
+    typedef yrpc::detail::protocol::YProtocolGenerater  Generater;
+    typedef yrpc::detail::protocol::YProtocolResolver   Resolver;
+    typedef google::protobuf::Message                   Message;
+    typedef std::shared_ptr<Message>                    MessagePtr;
+    
 public:
     CallCenter(){}
     ~CallCenter(){}

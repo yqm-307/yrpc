@@ -3,7 +3,7 @@
 #include "../servicemap.h"
 #include "../../protocol/proto.h"
 #include "../../protocol/Codec.h"
-#include "./addr.pb.h"
+#include "../../proto/test_protocol/addr.pb.h"
 using namespace yrpc::detail;
 
 #define tuple_begin class alltuple\

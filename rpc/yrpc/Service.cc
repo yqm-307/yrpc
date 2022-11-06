@@ -1,7 +1,7 @@
 #include "Service.h"
 #include "../protocol/all.h"
-#include "../proto/s2c.pb.h"
-#include "../proto/c2s.pb.h"
+#include "../proto/yrpc_core_protocol/s2c.pb.h"
+#include "../proto/yrpc_core_protocol/c2s.pb.h"
 using namespace yrpc::rpc::detail;
 using namespace yrpc::err;
 
@@ -11,7 +11,7 @@ using namespace yrpc::err;
 
 std::string CallCenter::Service(const std::string_view& bytes)
 {
-    yrpc::detail::protocol::YProtocolResolver rsp(yrpc::detail::protocol::define::type_S2C_RPC_CALL_RSP,bytes);   // 解析bytes
+    yrpc::detail::protocol::YProtocolResolver rsp(bytes);   // 解析bytes
     uint32_t uid = rsp.GetProtoID();
     uint16_t id = rsp.GetProtoType();
 
@@ -68,10 +68,10 @@ void AppendBKDRToArray(std::string& str,const char*data,uint32_t len)
 
 int CallCenter::ErrCodeToByteArray(uint32_t id,uint32_t uid,int err,std::string& bytearray,std::string info)
 {
-    S2C_RPC_ERROR pck;
-    pck.set_errnocode(err);
-    pck.set_info(info);
-    yrpc::detail::protocol::YProtocolGenerater req(&pck,yrpc::detail::protocol::define::type_S2C_RPC_ERROR);
+    auto pck = std::make_shared<S2C_RPC_ERROR>();
+    pck->set_errnocode(err);
+    pck->set_info(info);
+    yrpc::detail::protocol::YProtocolGenerater req(pck,yrpc::detail::protocol::define::type_S2C_RPC_ERROR);
     req.SetProtoID(uid);
     req.ToByteArray(bytearray);
     

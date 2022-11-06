@@ -1,5 +1,5 @@
 #include "../RpcClient.h"
-#include "../../proto/AddAndStr.pb.h"
+#include "../../proto/test_protocol/AddAndStr.pb.h"
 using namespace yrpc;
 using namespace yrpc::util;
 using namespace yrpc::util::clock;

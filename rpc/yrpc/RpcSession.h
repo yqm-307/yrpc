@@ -56,7 +56,7 @@ public:
     typedef std::function<void(std::string&)>    DispatchCallback;
 public:
     RpcSession(ChannelPtr channel,Epoller* loop);
-    ~RpcSession();
+    ~RpcSession(){}
 
 
 

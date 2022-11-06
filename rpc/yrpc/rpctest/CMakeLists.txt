@@ -1,6 +1,6 @@
 
 
-set(ProtoFile ../../proto/AddAndStr.pb.cc ../../proto/AddAndStr.pb.h)
+set(ProtoFile ../../proto/test_protocol/AddAndStr.pb.cc ../../proto/test_protocol/AddAndStr.pb.h)
  
  
 add_executable(RpcServer_test  Server.cc ${ProtoFile})

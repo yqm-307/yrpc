@@ -43,7 +43,7 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
 
 
 
-__YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ChannelPtr ptr)
+__YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ConnPtr connptr)
 {
     /**
      * 建立新连接
@@ -51,7 +51,9 @@ __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::
      * 建立新连接，并保存在Manager中，注意注册超时、关闭时回调
      */
     lock_guard<Mutex> lock(m_mutex_sessions);
-    auto sessionptr = RpcSession::Create(ptr,m_sub_loop[BalanceNext]);
+    auto nextloop = m_sub_loop[BalanceNext];
+    auto channelptr = Channel::Create(connptr,nextloop);
+    auto sessionptr = RpcSession::Create(channelptr,m_sub_loop[BalanceNext]);
     // 创建并初始化新Session
     sessionptr->SetCloseFunc([this](const yrpc::detail::shared::errorcode& e,const yrpc::detail::net::YAddress& addr){
         // 连接断开，从SessionMap中删除此Session
@@ -62,7 +64,7 @@ __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::
         sessionptr->Close();    // 触发 CloseCallback
     });
 
-    m_sessions.insert(std::make_pair(AddressToID(ptr->GetConnInfo()->GetPeerAddress()),sessionptr));        // session 映射
+    m_sessions.insert(std::make_pair(AddressToID(channelptr->GetConnInfo()->GetPeerAddress()),sessionptr));        // session 映射
     return sessionptr;
 }
 
@@ -90,13 +92,13 @@ void __YRPC_SessionManager::RunInSubLoop(Epoller* lp)
     lp->Loop();
 }
 
-void __YRPC_SessionManager::OnAccept(Channel::ChannelPtr newchannel,void* ep)
-{
-    /**
-     * 被连接后,注册到SessionMap中
-     */
-    AddNewSession(newchannel);
-}
+// void __YRPC_SessionManager::OnAccept(Channel::ChannelPtr newchannel,void* ep)
+// {
+//     /**
+//      * 被连接后,注册到SessionMap中
+//      */
+//     AddNewSession(newchannel);
+// }
 
 
 
@@ -140,9 +142,8 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
                 // 构造新的Session
                 if(e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
                 {
-                    auto channelptr = Channel::Create(conn);    // 建立通信信道
                     // 更新SessionMap
-                    auto newSession = this->AddNewSession(channelptr);
+                    auto newSession = this->AddNewSession(conn);
                     {// clean 连接等待队列，处理回调任务
                         auto it = _connect_async_wait_queue.find(AddressToID(conn->GetPeerAddress()));
                         if (it == _connect_async_wait_queue.end())

@@ -44,6 +44,8 @@ ssize_t YRRead(Socket &socket, void *buf, size_t len);
 
 ssize_t YRSend(Socket &socket, const void *buf, size_t len, const int flags);
 
+ssize_t YRWrite(Socket &socket, const void *buf, size_t len);
+
 int YRClose(Socket &socket);
 
 void YRSetConnectTimeout(Socket &socket, const int connect_timeout_ms);

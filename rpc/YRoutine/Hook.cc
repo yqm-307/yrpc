@@ -232,6 +232,21 @@ ssize_t YRSend(Socket &socket, const void *buf, size_t len, const int flags)
 }
 
 
+ssize_t YRWrite(Socket &socket, const void *buf, size_t len)
+{
+    int nbytes = ::write(socket.sockfd_,buf,len);
+    if(nbytes<0 && errno == EAGAIN)
+    {
+        int rev = 0;
+        if(YRPoll(&socket,EPOLLOUT,&rev,-1)>=0)
+            nbytes = ::write(socket.sockfd_,buf,len);
+        else
+            nbytes = -1;
+    }
+    return nbytes;
+}
+
+
 int YRClose(Socket &socket)
 {
     if(socket.timetask_.use_count() >= 2)

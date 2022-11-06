@@ -50,7 +50,9 @@ ServerSingle::ServerSingle(yrpc::coroutine::poller::Epoller* scheduler,int port,
     assert(scheduler_!=nullptr);
     //注册onconnect回调
     //启动监听套接字
-    acceptor_.setOnConnect(std::bind(&ServerSingle::OnConnHandle,this,yrpc::detail::net::_1,yrpc::detail::net::_2));
+    acceptor_.setOnConnect([this](const yrpc::detail::shared::errorcode&e,yrpc::detail::net::ConnectionPtr conn){
+        this->OnConnHandle(conn,nullptr);
+    });
     
 }
 
@@ -108,7 +110,7 @@ void ServerSingle::OnConnHandle(const yrpc::detail::net::ConnectionPtr&conn,void
         memset(buf,'\0',sizeof(buf));
         static int a=0;
         int ret = conn->recv(buf,4096);
-        package.Save(buf,ret);
+        package.Append(buf,ret);
 
         if(ret <= 0)    //读取错误，等待下次循环检查isclosed
             continue;   
@@ -116,7 +118,7 @@ void ServerSingle::OnConnHandle(const yrpc::detail::net::ConnectionPtr&conn,void
 
         while(true)
         {
-            std::string data = package.GetAReq();
+            std::string data = package.GetAPck();
 
             if (data.size() != 0)
             {

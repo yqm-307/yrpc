@@ -10,7 +10,10 @@ enable_language(C CXX)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g -w")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)   #可执行文件目录
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)      #库输出路径
-include_directories(${PROJECT_BINARY_DIR}/rpc)
+include_directories(
+    ${PROJECT_BINARY_DIR}/rpc
+    ${PROJECT_BINARY_DIR}/rpc/proto
+)
 
 
 add_definitions(-Dcmakebuild) 
@@ -58,7 +61,8 @@ file(GLOB SRC_FILE
     rpc/msg/*.cc
     rpc/network/*.cc
     rpc/protocol/*.cc
-    rpc/proto/*.cc      # protobuf 生成头文件
+    # rpc/proto/*.cc      # protobuf 生成头文件
+    rpc/proto/*/*.cc
     rpc/yrpc/*.cc
 )
 

@@ -9,8 +9,9 @@
  * 
  */
 #pragma once
-#include <thread>
 #include "TimeQueue.h"
+#include <assert.h>
+#include <thread>
 #include <memory>
 
 namespace yrpc::util::clock
