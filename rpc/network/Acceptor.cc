@@ -35,6 +35,16 @@ Acceptor::~Acceptor()
 void Acceptor::listen()
 {
     while(!close_)
+        listen_once();
+    //退出，关闭
+    INFO("Acceptor::listen() , acceptor closed!");
+}
+
+
+
+void Acceptor::listen_once()
+{
+    if (!close_)
     {
         /*监听到新的socket连接，创建conn，并注册 协程任务*/
         struct sockaddr_in cliaddr;
@@ -59,12 +69,9 @@ void Acceptor::listen()
                 this->onconnection_(e,newconn);
             },args_);
         }
-        //todo 注册协程任务
-        //新连接到达时的处理协程
     }
-    //退出，关闭
-    INFO("Acceptor::listen() , acceptor closed!");
 }
+
 
 void Acceptor::CreateListenSocket()
 {
@@ -82,6 +89,14 @@ void Acceptor::ReleaseListenSocket()
         ERROR("Acceptor::RelaseListenSocket() error , listen socket fd = %d error\n",fd_);
     ::close(fd_);
 }
+
+void Acceptor::start_once()
+{
+    scheduler_->AddTask([this](void*){
+        this->listen_once();
+    });
+}
+
 
 
 }

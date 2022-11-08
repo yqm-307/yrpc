@@ -15,13 +15,17 @@ int main()
     rpc::RpcClient client("127.0.0.1",12020);
     
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));   // 休眠1s
-    if( client.IsConnected() )
+    while(1)
     {
-        printf("连接成功\n");
-    }
-    else
-    {
-        printf("连接失败\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        if(client.IsConnected())
+        {
+            printf("连接成功!\n");
+            break;
+        }
+        else
+            printf("尚未成功!\n");
+
     }
 
 }

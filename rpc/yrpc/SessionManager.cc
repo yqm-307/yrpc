@@ -14,9 +14,11 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     m_connector(m_main_loop)
 {
     // 初始化 main eventloop，但是不运行
-    m_main_loop->RunForever();
-    m_main_loop->AddTask([this](void*){ RunInMainLoop(); },nullptr);            // 注册任务
-    m_main_thread = new std::thread([this](){this->m_main_loop->Loop();});      // 线程运行
+    m_main_thread = new std::thread([this](){
+        m_main_loop->RunForever();
+        m_main_loop->AddTask([this](void*){ RunInMainLoop(); },nullptr);            // 注册任务 
+        this->m_main_loop->Loop();
+    });      // 线程运行
 
     // 初始化 sub eventloop，并运行（由于队列为空，都挂起）
     assert(Nthread>=2);
@@ -53,7 +55,7 @@ __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::
     lock_guard<Mutex> lock(m_mutex_sessions);
     auto nextloop = m_sub_loop[BalanceNext];
     auto channelptr = Channel::Create(connptr,nextloop);
-    auto sessionptr = RpcSession::Create(channelptr,m_sub_loop[BalanceNext]);
+    auto sessionptr = RpcSession::Create(channelptr,*m_sub_loop+BalanceNext);
     // 创建并初始化新Session
     sessionptr->SetCloseFunc([this](const yrpc::detail::shared::errorcode& e,const yrpc::detail::net::YAddress& addr){
         // 连接断开，从SessionMap中删除此Session
@@ -129,14 +131,14 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
         lock_guard<Mutex> lock(_lock);
         auto iter = _connect_async_wait_queue.find(id);
         if(iter == _connect_async_wait_queue.end())
-        {// 第二种情况
+        {// 第二种情况:尚未开始连接
             std::queue<OnSession> queue;
             queue.push(onsession);
             _connect_async_wait_queue.insert(std::make_pair(id,queue));
 
             // 初始化套接字，并注册回调。回调需要在完成连接之后，清除连接等待队列、更新SessionMap   &_connect_async_wait_queue,&_lock,
             RoutineSocket* socket = Connector::CreateSocket();
-
+            
             // 回调
             m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,const ConnectionPtr& conn){
                 // 构造新的Session
@@ -202,7 +204,7 @@ __YRPC_SessionManager::SessionID __YRPC_SessionManager::AddressToID(const Addres
     int j=0;
     for(int i =0;i<str.size();++i)
     {
-        if(str[i] >= '0' || str[i] <= '9')
+        if(str[i] >= '0' && str[i] <= '9')
         {
             id[j++] = str[i];
         }

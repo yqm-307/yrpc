@@ -7,7 +7,8 @@ using namespace yrpc::rpc::detail;
 
 RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
     :m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
-    m_can_used(true)
+    m_can_used(true),
+    m_channel(channel)
 {
     InitFunc();
 }

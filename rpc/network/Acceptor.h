@@ -21,13 +21,14 @@ public:
     Acceptor(yrpc::coroutine::poller::Epoller* loop,int port,int socket_timeout_ms,int connect_timeout_ms);
     ~Acceptor();
 
-
-    //协程任务
+    void start_once();
     void listen();
+    void listen_once();
     void close(){ close_.exchange(true); }
     void setOnConnect(OnConnectHandle&& conn,void*args=nullptr)
     { onconnection_ = conn; args_ = args;}
 protected:
+
     void CreateListenSocket();
     void ReleaseListenSocket();
 private:

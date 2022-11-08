@@ -47,6 +47,7 @@ void Connector::onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnCon
         ConnectionPtr conn = std::make_shared<Connection>(scheduler_,servfd_,servaddr_);
         if(onconnect_)
         {
+            e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OK);
             e.setinfo("Connector::connect() ,connet success peer %s",conn->StrIPPort().c_str());
             onconnect_(e,conn);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
         }
