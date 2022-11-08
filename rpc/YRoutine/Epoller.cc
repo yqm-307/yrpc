@@ -55,7 +55,7 @@ void Epoller::AddTask_Unsafe(yrpc::coroutine::context::YRoutineFunc func,void* a
 
 bool Epoller::YieldTask()
 {
-    this->runtime_.Yield(); //当前运行协程 yield
+    return this->runtime_.Yield(); //当前运行协程 yield
 }
 
 
@@ -113,16 +113,23 @@ void Epoller::DoTimeoutTask()
 {
     // 定时协程任务 coroutine
     {
+        std::vector<NormalTaskPtr> nqueue;
         std::vector<TTaskPtr> queue;
         {// 减小临界区
             lock_guard<Mutex> lock(mutex_timer_);
             timer_.GetAllTimeoutTask(queue);
+            normal_timer_.GetAllTimeoutTask(nqueue);
         }
 
         for (auto && task : queue )   // 处理超时任务
         {
             task->Data()->eventtype_ = EpollREvent_Timeout;
             runtime_.Resume(task->Data()->routine_index_); // 唤醒超时唤醒协程
+        }
+        for (auto && task : nqueue )    // 回调
+        {
+            assert(task->Data()!=nullptr);
+            task->Data()(); //回调
         }
     }
 
@@ -138,6 +145,9 @@ void Epoller::DoTimeoutTask()
             task->Data()->eventtype_ = EpollREvent_Timeout;
             task->Data()->socket_timeout_(task->Data());    // callback
         }
+    }
+    {
+
     }
 }
 
@@ -191,6 +201,18 @@ int Epoller::AddTimer(RoutineSocket* socket,yrpc::util::clock::Timestamp<yrpc::u
         return 0;
     else
         return -1;
+}
+
+int Epoller::AddTimer(TimerTaskFunc&& func,int timeout_ms,int reset_time,int max_trigget_times)
+{
+    lock_guard<Mutex> lock(mutex_timer_);
+    auto first_trigger_timepoint = yrpc::util::clock::nowAfter<yrpc::util::clock::ms>(yrpc::util::clock::ms(timeout_ms));
+    auto task = TimeTask<TimerTaskFunc>::CreateTaskSlotWithSharedOfThis(
+                                first_trigger_timepoint,
+                                func,
+                                reset_time,
+                                max_trigget_times);
+    return normal_timer_.AddTask(task);
 }
 
 

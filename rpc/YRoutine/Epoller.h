@@ -51,18 +51,19 @@ enum EpollREventStatus  : int32_t
     EpollREvent_Close = -2,
 };
 
+
+
 struct RoutineSocket
 {
 private:
     typedef int YRoutine_t;
     typedef std::function<void(RoutineSocket*)> ConnTimeOut;
     typedef std::function<void(RoutineSocket*)> SocketTimeOut;
-
 public:
     Epoller* scheduler; // 所属eventloop
 
     int             eventtype_;         //Epoll Event Type 不是事件类型，而是错误码
-    struct epoll_event event_;      // epoll event 对象
+    struct epoll_event event_;          // epoll event 对象
     int             sockfd_;            // socket fd
     int             epollfd_;           // 所属 epoll fd
     YRoutine_t      routine_index_;     // 协程id
@@ -74,7 +75,6 @@ public:
     int             socket_timeout_ms_;
     ConnTimeOut     conn_timeout_;
     SocketTimeOut   socket_timeout_;
-
     
     time_t          last_recv_time;     // 最后一次接受数据时间
     /**
@@ -85,19 +85,26 @@ public:
 };
 
 
-typedef yrpc::coroutine::context::YRoutineFunc TaskFunc;
-
-
-
 
 
 class Epoller final:util::noncopyable::noncopyable 
 {
-    typedef yrpc::util::lock::Mutex     Mutex;
+    
+    template<typename DataObj>
+    using TimeTask = yrpc::util::clock::Task<DataObj>;
 
+    template<typename Obj>
+    using TimerQueue = yrpc::util::clock::YTimer<Obj>;
+    
     template<typename Lock_> 
     using lock_guard = yrpc::util::lock::lock_guard<Lock_>;
+
+    typedef yrpc::util::lock::Mutex     Mutex;
+    typedef std::function<void()>       TimerTaskFunc;
+    typedef yrpc::util::clock::YTimer<RoutineSocket*>::Ptr      TTaskPtr;
+    typedef yrpc::util::clock::YTimer<TimerTaskFunc>::Ptr       NormalTaskPtr;
 public:
+    typedef yrpc::coroutine::context::YRoutineFunc TaskFunc;
     /**
      * @brief 构造一个Epoller对象
      * 
@@ -136,8 +143,6 @@ public:
      * @param args 任务函数的参数
      */
     void AddTask(yrpc::coroutine::context::YRoutineFunc func,void* args = nullptr);
-    
-
     void AddTask_Unsafe(yrpc::coroutine::context::YRoutineFunc func,void* args = nullptr);
 
     
@@ -186,19 +191,23 @@ public:
      * 
      * @param socket 套接字
      * @param timeout 超时时间 ms
-     * @return int 0 成功; -1 失败 
+     * @return int  0 成功; -1 失败 
      */
     int AddTimer(RoutineSocket* socket,yrpc::util::clock::Timestamp<yrpc::util::clock::ms> timeout);        //添加定时任务
-
+    int AddTimer(RoutineSocket* socket,int timeoutms);
 
     /**
-     * @brief 添加一个定时任务
+     * @brief 添加一个定时回调任务(thread unsafe)
      * 
-     * @param socket 套接字
-     * @param timeoutms 超时时间 ms
-     * @return int 
+     * @param func          超时任务
+     * @param timeout_ms    首次超时时间(ms)
+     * @param reset_time    首次触发之后重复触发时间间隔,-1 表示只触发一次
+     * @param max_trigget_times     最大触发次数,-1无穷
+     * @return  int         如果返回: 0 成功; -1 失败
      */
-    int AddTimer(RoutineSocket* socket,int timeoutms);
+    int AddTimer(TimerTaskFunc&& func,int timeout_ms,int reset_time = -1,int max_trigget_times = 1);
+
+
 
 
 
@@ -242,8 +251,7 @@ public:
     size_t Size();
 
 private:
-    typedef yrpc::util::clock::YTimer<RoutineSocket*>::Ptr TTaskPtr;
-    
+
     
     /**
      * @brief 当前其他任务，注册到线程调度器中
@@ -272,23 +280,25 @@ private:
     void WakeUpSuspend();
 
 private:
-    typedef std::pair<TaskFunc,void*> Task;
-    typedef std::queue<Task> TaskQueue;             //新任务队列
+    typedef std::pair<TaskFunc,void*> PendingTask;
+    typedef std::queue<PendingTask> PendingTaskQueue;             //新任务队列
     typedef std::queue<YRoutine_t> SuspendQueue;    //挂起协程队列
 
     SuspendQueue                suspend_queue_;     //协程挂起队列
-    TaskQueue                   pending_tasks_;     //待处理任务
+    PendingTaskQueue                   pending_tasks_;     //待处理任务
     Mutex                       m_lock;             // thread safe addtask
     int                         max_size_;          //待处理任务队列长度
     detail::Scheduler           runtime_;           //协程调度
 
 
+    // 
+    TimerQueue<RoutineSocket*>      timer_;             // 协程定时事件
+    TimerQueue<TimerTaskFunc>       normal_timer_;      // 超时回调任务
+    Mutex                           mutex_timer_;       
 
-    yrpc::util::clock::YTimer<RoutineSocket*>   timer_;         //定时事件队列
-    Mutex                                       mutex_timer_;   
-    yrpc::util::clock::YTimer<RoutineSocket*>   socket_timer_;  //定时事件队列
-    Mutex                                       mutex_socket_timer_;   
-
+    /// 单独加锁,比较频繁
+    TimerQueue<RoutineSocket*>      socket_timer_;      // socket定时
+    Mutex                           mutex_socket_timer_;   
 
     int         epollfd_;               
     bool        close_;   

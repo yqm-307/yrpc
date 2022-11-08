@@ -13,6 +13,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)      #库输出路径
 include_directories(
     ${PROJECT_BINARY_DIR}/rpc
     ${PROJECT_BINARY_DIR}/rpc/proto
+    ${PROJECT_BINARY_DIR}
+    /home/yqm/test/git/libphxali/rpc/proto
 )
 
 

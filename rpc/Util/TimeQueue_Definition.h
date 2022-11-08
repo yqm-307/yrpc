@@ -40,13 +40,22 @@ int YTimer<TaskObject>::ThreadSleepUntil(Timestamp<ms> timepoint)
 }
 
 template<class TaskObject>
-typename YTimer<TaskObject>::Ptr YTimer<TaskObject>::AddTask(Timestamp<ms> expired,TaskObject socket_t)
+typename YTimer<TaskObject>::Ptr YTimer<TaskObject>::AddTask(Timestamp<ms> expired,TaskObject data)
 {
     //if(clock::expired(expired)) //超时任务，创建失败
     //    return NULL;
-    Ptr slot =TaskSlot::CreateTaskSlotWithSharedOfThis(expired,socket_t);
+    Ptr slot =TaskSlot::CreateTaskSlotWithSharedOfThis(expired,data);
     min_heap_.push(slot);
     return slot;
+}
+
+template<class TaskObject>
+bool YTimer<TaskObject>::AddTask(Ptr task)
+{
+    if (task == nullptr)
+        return false;
+    min_heap_.push(task);
+    return true;
 }
 
 template<class TaskObject>
@@ -65,7 +74,6 @@ void YTimer<TaskObject>::GetAllTimeoutTask(std::vector<Ptr>& sockets)
     while(!min_heap_.empty() && clock::expired<ms>(min_heap_.top()->GetValue()))
         if( !(p = PopTimeTask())->Is_Canceled())  //不是被取消的
             sockets.push_back(p);
-
 }
 
 template<class TaskObject>
@@ -76,11 +84,9 @@ typename YTimer<TaskObject>::Ptr YTimer<TaskObject>::PopTimeTask()
         return nullptr;
     auto p = min_heap_.top();
     min_heap_.pop();
-    if( p->GetReset() > 0 )
-    {
-        p->Reset();
-    }
-    min_heap_.push(p);
+
+    if (p->Reset()) // 重复触发      
+        min_heap_.push(p);
     return p;
 }
 
@@ -122,22 +128,24 @@ void YTimer<TaskObject>::GetAllTask(std::vector<Ptr>& sockets)
 ///////////////////////////////////###    TimeTask    ###///////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
 template<typename DataObject>
-Task<DataObject>::Task(clock::Timestamp<ms> &timepoint, DataObject data)
-    : data_(data),
-      is_canceled_(false),
-      trigger_interval_(-1)
+Task<DataObject>::Task(clock::Timestamp<ms>& timepoint,DataObject data,int trigger,int max_times)
+    :data_(data),
+    is_canceled_(false),
+    trigger_interval_(trigger),
+    max_trigger_times_(max_times)
 {
     this->SetValue(timepoint);
 }
 
 
+
 template<typename DataObject>
-typename Task<DataObject>::Ptr Task<DataObject>::CreateTaskSlotWithSharedOfThis(clock::Timestamp<ms> &tp, DataObject data_)
+typename Task<DataObject>::Ptr Task<DataObject>::CreateTaskSlotWithSharedOfThis(clock::Timestamp<ms>&timepoint,DataObject data,int trigger,int max_times)
 {
-    return std::make_shared<Task>(tp, data_);
+    return std::make_shared<Task>(timepoint,data,trigger,max_times);
 }
+
 
 template<typename DataObject>
 bool Task<DataObject>::operator>(const comparator<clock::Timestamp<ms>> &rvalue) const
@@ -185,10 +193,40 @@ int Task<DataObject>::GetReset()
 
 
 template<typename DataObject>
-void Task<DataObject>::Reset()
+bool Task<DataObject>::Reset()
 {
-    assert(trigger_interval_ >= 0);
+    if ( trigger_interval_ < 0)
+        return false;
+
     it_ = it_ + yrpc::util::clock::ms(trigger_interval_);
+
+    if (max_trigger_times_<0)
+        return true;
+    else if( max_trigger_times_ == 0 )
+        return false;
+    else
+        max_trigger_times_--;
+    
+    return true;
+}
+
+
+template<typename DataObject>
+Task<DataObject>::Task(const Task& r)
+{
+    this->data_ = r->data_;
+    this->is_canceled_ = r->is_canceled_;
+    this->it_ = r->it_;
+    this->trigger_interval_ = r->trigger_interval_;
+}
+
+template<typename DataObject>
+Task<DataObject>::Task(const Task&& r)
+{
+    this->data_ = r->data_;
+    this->is_canceled_ = r->is_canceled_;
+    this->it_ = r->it_;
+    this->trigger_interval_ = r->trigger_interval_;
 }
 
 

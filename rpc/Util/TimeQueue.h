@@ -43,16 +43,20 @@ public:
 
 
     ~Task(){} 
-
+    Task(const Task& r);
+    Task(const Task&& r);
 
     /**
-     * @brief Create a Task Slot With Shared Of This object
+     * @brief 创建一个智能指针对象的 TimeTask
      * 
-     * @param tp 下一次超时时间
-     * @param data_ 数据对象
-     * @return Ptr 智能指针
+     * @param timepoint     第一次超时时间点
+     * @param data          Task 保存对象
+     * @param trigger       触发间隔
+     * @param max_times     触发次数
+     * @return Ptr 
      */
-    static Ptr CreateTaskSlotWithSharedOfThis(clock::Timestamp<ms>&tp,DataObject data_);
+    static Ptr CreateTaskSlotWithSharedOfThis(clock::Timestamp<ms>&timepoint,DataObject data,int trigger=-1,int max_times=1);
+
     
 
     /**
@@ -91,7 +95,7 @@ public:
 public:
     bool operator==(const comparator<clock::Timestamp<ms>>& rvalue) const;
     bool operator>(const comparator<clock::Timestamp<ms>>& rvalue) const;
-    Task(clock::Timestamp<ms>& timepoint,DataObject data);
+    Task(clock::Timestamp<ms>& timepoint,DataObject data,int trigger=-1,int max_times=0);
 private:
     
 
@@ -104,16 +108,29 @@ private:
 
     /**
      * @brief 自动重置超时时间
+     * 
+     * @return true 重置成功；false 重置失败
      */
-    void Reset();
+    bool Reset();
 
 protected:
     bool            is_canceled_;       
     int             trigger_interval_;  // 触发间隔
+    int             max_trigger_times_; // 最大触发次数(最小为0)，超过此次数就不再触发了。注意，如果定时器被取消，这个属性失去意义
     DataObject      data_;
     //Timestamp timeout;    基类元素
 };
 
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -152,6 +169,13 @@ public:
      */
     Ptr AddTask(clock::Timestamp<ms> expired,TaskObject socket_t);
 
+    /**
+     * @brief 添加定时器事件
+     * 
+     * @return true 成功
+     * @return false 失败
+     */
+    bool AddTask(Ptr);
 
 
     /**
