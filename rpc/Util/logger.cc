@@ -261,7 +261,7 @@ void Logger::Log(LOGLEVEL level ,const std::string str)
 
 std::string yrpc::util::logger::format(const char* fmt, ...)
 {
-    char        data[128];
+    char        data[1024];
     size_t      i = 0;
     va_list     ap;
 

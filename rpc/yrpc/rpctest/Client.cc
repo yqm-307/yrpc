@@ -12,7 +12,7 @@ using namespace yrpc::util::clock;
 int main()
 {   
 
-    rpc::RpcClient client("127.0.0.1",8888);
+    rpc::RpcClient client("127.0.0.1",12020);
     
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));   // 休眠1s
     if( client.IsConnected() )

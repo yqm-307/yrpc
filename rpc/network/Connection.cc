@@ -198,7 +198,8 @@ void Connection::TimeOut(RoutineSocket* socket)
 {
     // 超时被调用,做超时处理
     // 网络层不做处理，交给上层处理超时的连接
-    m_timeoutcb();  
+    if (m_timeoutcb != nullptr)
+        m_timeoutcb();  
 }
 }
 

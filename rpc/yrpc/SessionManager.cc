@@ -37,7 +37,7 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
         m_loop_latch.down();
     }
 
-    INFO("%s:%s , info: SessionManager Init Success!",__FUNCTION__,__LINE__);
+    INFO("__YRPC_SessionManager()  , info: SessionManager Init Success!");
     
 }
 
