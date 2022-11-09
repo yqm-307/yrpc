@@ -25,7 +25,7 @@ namespace yrpc::rpc
 /**
  * @brief RpcClient 是调用方最重要的类，通过该类才可以发起调用
  */
-class RpcClient
+class RpcClient:std::enable_shared_from_this<RpcClient>
 {
     typedef detail::__YRPC_SessionManager                   SessionManager;
     typedef detail::__YRPC_SessionManager::SessionID        SessionID;

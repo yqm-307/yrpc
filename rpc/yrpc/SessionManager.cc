@@ -133,7 +133,7 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
         if(iter == _connect_async_wait_queue.end())
         {// 第二种情况:尚未开始连接
             std::queue<OnSession> queue;
-            queue.push(onsession);
+            queue.push(std::move(onsession));
             _connect_async_wait_queue.insert(std::make_pair(id,queue));
 
             // 初始化套接字，并注册回调。回调需要在完成连接之后，清除连接等待队列、更新SessionMap   &_connect_async_wait_queue,&_lock,
@@ -152,10 +152,12 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
                         {
                             DEBUG("线程安全问题");
                         }
-                        auto conncb_queue = _connect_async_wait_queue.erase(it)->second;
+                        _connect_async_wait_queue.erase(it);
+                        auto&& conncb_queue = std::move(it->second);
                         while(!conncb_queue.empty())    // 回调通知
                         {
-                            conncb_queue.front().operator()(newSession);
+                            auto callback = conncb_queue.front();
+                            callback(newSession);
                         }
                     }
                 }

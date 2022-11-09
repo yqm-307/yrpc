@@ -17,6 +17,14 @@ RpcClient::RpcClient(std::string ip,int port)
 
 }
 
+RpcClient::RpcClient(yrpc::detail::net::YAddress servaddr_)
+    :m_addr(servaddr_),
+    m_session(nullptr)
+{
+
+}
+
+
 
 RpcClient::~RpcClient()
 {
@@ -34,6 +42,7 @@ bool RpcClient::IsConnected()
 
 void RpcClient::OnConnect(SessionPtr newsession)
 {
+    assert(this);
     if (newsession != nullptr)
     {
         m_session = newsession;
