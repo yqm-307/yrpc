@@ -117,9 +117,10 @@ __YRPC_SessionManager *__YRPC_SessionManager::GetInstance(int n)
 void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
 {
     using namespace yrpc::detail::net;
-    
-    static std::map<SessionID,std::queue<OnSession>> _connect_async_wait_queue;
+    static std::map<SessionID,std::vector<OnSession>> _connect_async_wait_queue;
     static Mutex _lock;
+
+    // onsession(nullptr); // 这里还是好好的
     
     SessionID id = AddressToID(peer);
     auto it = m_sessions.find(id);
@@ -132,8 +133,8 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
         auto iter = _connect_async_wait_queue.find(id);
         if(iter == _connect_async_wait_queue.end())
         {// 第二种情况:尚未开始连接
-            std::queue<OnSession> queue;
-            queue.push(std::move(onsession));
+            std::vector<OnSession> queue;
+            queue.push_back(std::move(onsession));
             _connect_async_wait_queue.insert(std::make_pair(id,queue));
 
             // 初始化套接字，并注册回调。回调需要在完成连接之后，清除连接等待队列、更新SessionMap   &_connect_async_wait_queue,&_lock,
@@ -152,13 +153,10 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
                         {
                             DEBUG("线程安全问题");
                         }
+                        // auto&& conncb_queue = it->second;
+                        for(auto && func : it->second)    // 回调通知
+                            func(newSession);
                         _connect_async_wait_queue.erase(it);
-                        auto&& conncb_queue = std::move(it->second);
-                        while(!conncb_queue.empty())    // 回调通知
-                        {
-                            auto callback = conncb_queue.front();
-                            callback(newSession);
-                        }
                     }
                 }
                 else
@@ -169,7 +167,7 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
         }
         else
         {// 连接正在进行中
-            iter->second.push(onsession);
+            iter->second.push_back(onsession);
         }
         return;
 
@@ -184,7 +182,7 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
         {   // 注册了，但是尚未连接成功
             lock_guard<Mutex> lock(_lock);
             auto iter = _connect_async_wait_queue.find(id);
-            iter->second.push(onsession);
+            iter->second.push_back(onsession);
         }
         else
         {   // 注册了，且Session已经在了，直接返回

@@ -113,7 +113,7 @@ public:
      * @param logpath   日志名
      * @param protect   是否启用内存保护
      */
-    Epoller(size_t stacksize,int maxqueue,std::string logpath = "server.log",bool protect = true);
+    Epoller(size_t stacksize,int maxqueue,std::string logpath = "yrpc_core.log",bool protect = true);
     ~Epoller();
     
 

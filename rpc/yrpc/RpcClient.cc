@@ -6,7 +6,6 @@ namespace yrpc::rpc
 
 
 
-
 RpcClient::RpcClient(std::string ip,int port)
     :m_addr(ip,port),
     m_session(nullptr)
@@ -21,7 +20,6 @@ RpcClient::RpcClient(yrpc::detail::net::YAddress servaddr_)
     :m_addr(servaddr_),
     m_session(nullptr)
 {
-
 }
 
 
@@ -71,7 +69,7 @@ void RpcClient::OnPckHandler(std::string&/*字节流*/ pck)
 
 
 
-int RpcClient::Call(CallObj::Ptr&& call)
+int RpcClient::Call(detail::CallObj::Ptr&& call)
 {
     yrpc::util::lock::lock_guard<Mutex> lock(m_mutex);
     auto res = m_callmap.insert(std::make_pair(call->GetID(),call));
@@ -81,6 +79,4 @@ int RpcClient::Call(CallObj::Ptr&& call)
     call->GetRequest().ToByteArray(bytes);
     m_session->Append(bytes);
 }
-
-
 }

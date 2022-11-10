@@ -35,7 +35,7 @@ public:
      * @return ssize_t 接收长度 
      */
     ssize_t Append(const char* data,size_t len)
-    { buffer.WriteString(data,len); }
+    { return buffer.WriteString(data,len); } 
 
 
     /**

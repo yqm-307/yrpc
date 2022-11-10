@@ -10,23 +10,22 @@
 
 
 #pragma once
-#include "../msg/servicemap.h"
 #include "./Service.h"
 #include "./RpcSession.h"
-#include "./CallResult.h"
-// #include "./RpcClientSession.h"
 #include "./SessionManager.h"
 #include "./Define.h"
-#include "CallObj.h"
+#include "./CallObjFactory.h"
 
 namespace yrpc::rpc
 {
 
+
 /**
  * @brief RpcClient 是调用方最重要的类，通过该类才可以发起调用
  */
-class RpcClient:std::enable_shared_from_this<RpcClient>
+class RpcClient
 {
+    // friend class detail::CallObj;
     typedef detail::__YRPC_SessionManager                   SessionManager;
     typedef detail::__YRPC_SessionManager::SessionID        SessionID;
     typedef detail::RpcSession                              RpcSession;
@@ -35,7 +34,7 @@ class RpcClient:std::enable_shared_from_this<RpcClient>
     typedef yrpc::util::lock::Mutex                         Mutex;
     typedef std::shared_ptr<RpcSession>                     SessionPtr;
     typedef google::protobuf::Message                       Message;
-    typedef std::map<uint64_t,CallObj::Ptr>                 CallObjMap;      
+    typedef std::map<uint64_t,detail::CallObj::Ptr>         CallObjMap;      
     typedef yrpc::detail::protocol::YProtocolGenerater  Generater;  // 存储 request 并提供序列化
     typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化         
 public:
@@ -70,7 +69,7 @@ public:
      * @param call 调用
      * @return int 
      */
-    int Call(CallObj::Ptr&& call);
+    int Call(detail::CallObj::Ptr&& call);
 
 private:
     /**

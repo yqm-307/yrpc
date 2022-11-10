@@ -16,8 +16,16 @@ class CallObjFactory
     typedef std::unordered_map<int,DeCodeFunc>      DeCodeMap;
 public:
 
+    static CallObjFactory* GetInstance()
+    {
+        static CallObjFactory* _instance = nullptr;
+        if(_instance == nullptr)
+            _instance = new CallObjFactory();
+        return _instance;
+    }
+
     template<typename ReqType,typename RspType>
-    CallObj::Ptr Create(std::shared_ptr<ReqType> msgptr,CallObj::CallResultFunc func);
+    detail::CallObj::Ptr Create(std::shared_ptr<ReqType> msgptr,detail::CallObj::CallResultFunc func);
 
     // void test()
     // {
@@ -39,7 +47,7 @@ std::atomic_int  CallObjFactory::global_id = 1;
 
 
 template<typename ReqType,typename RspType>
-CallObj::Ptr CallObjFactory::Create(std::shared_ptr<ReqType> msgptr,CallObj::CallResultFunc func)
+detail::CallObj::Ptr CallObjFactory::Create(std::shared_ptr<ReqType> msgptr,detail::CallObj::CallResultFunc func)
 {
     static int local_id = 0;  // 静态变量有妙用,用来判断是否第一次进入函数,第一次进入执行一下注册操作
     if (local_id == 0)
@@ -47,12 +55,12 @@ CallObj::Ptr CallObjFactory::Create(std::shared_ptr<ReqType> msgptr,CallObj::Cal
         local_id = global_id;
         global_id.fetch_add(2);
         // 注册类型到工厂
-        ProtocolFactroy::GetInstance()->Insert(
+        ProtocolFactroy::GetInstance()->Insert({
             YRPC_PROTO_REGISTER( local_id , ReqType ),
             YRPC_PROTO_REGISTER( (local_id+1) , RspType ),
-        );
+        });
     }
-    return CallObj::Create<MsgType>(msgptr,local_id,func);
+    return detail::CallObj::Create<ReqType>(msgptr,local_id,func);
 }
 
 

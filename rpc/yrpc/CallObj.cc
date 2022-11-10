@@ -1,6 +1,6 @@
 #include "CallObj.h"
 
-using namespace yrpc::rpc;
+using namespace yrpc::rpc::detail;
 
 CallObj::CallObj(MessagePtr ptr, int id, CallResultFunc func)
     : m_req(ptr, yrpc::detail::protocol::define::type_C2S_RPC_CALL_REQ),
