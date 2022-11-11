@@ -7,7 +7,7 @@ enable_language(C CXX)
 
 #自定义变量 环境选项
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g -w")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g -w")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g -Wall")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)   #可执行文件目录
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)      #库输出路径
 include_directories(
@@ -16,7 +16,6 @@ include_directories(
     ${PROJECT_BINARY_DIR}
     /home/yqm/test/git/libphxali/rpc/proto
 )
-
 
 add_definitions(-Dcmakebuild) 
 

@@ -30,7 +30,7 @@ public:
     std::string& GetReq()
     { return req_bytes_; }
 private:
-    yrpc::coroutine::poller::Epoller* scheduler_;
+    [[maybe_unused]] yrpc::coroutine::poller::Epoller* scheduler_;
     yrpc::socket::Epoll_Cond_t cond;    
     std::string req_bytes_;
     std::string sdata_{""};
@@ -40,12 +40,12 @@ typedef std::shared_ptr<SCallObj> CallPtr;
 
 ServerSingle::ServerSingle(yrpc::coroutine::poller::Epoller* scheduler,int port,
                             int socket_timeout_ms,int connect_timeout_ms,yrpc::util::threadpool::ThreadPool<WorkFunc>* threadpool,int stack_size)
-    :connect_timeout_ms_(connect_timeout_ms),
-    socket_timeout_ms_(socket_timeout_ms),
+    :socket_timeout_ms_(socket_timeout_ms),
+    connect_timeout_ms_(connect_timeout_ms),
     scheduler_(scheduler),
+    t_pool_(threadpool),
     acceptor_(scheduler_,port,socket_timeout_ms_,connect_timeout_ms_),
-    closed_(false),
-    t_pool_(threadpool)
+    closed_(false)
 {
     assert(scheduler_!=nullptr);
     //注册onconnect回调
@@ -67,7 +67,7 @@ void ServerSingle::run()
 
 void ServerSingle::close()
 {
-    closed_ == true;
+    closed_ = true;
 }
 
 void ServerSingle::OnSendHandle(const yrpc::detail::net::ConnectionPtr&conn,void*args)
@@ -82,10 +82,11 @@ void ServerSingle::OnConnHandle(const yrpc::detail::net::ConnectionPtr&conn,void
     //协程局部变量
 
     yrpc::util::buffer::Buffer bytes_;
-    std::mutex lock;
+    [[maybe_unused]] std::mutex lock;
     yrpc::socket::Epoll_Cond_t cond;
-    std::atomic_bool task_is_done_{false};
-    char *buf = (char *)malloc(4096 * 2); //一条连接独占4kb缓冲
+    [[maybe_unused]] std::atomic_bool task_is_done_{false};
+    const int buffersize = 4096;
+    char *buf = (char *)malloc(buffersize * 2); //一条连接独占4kb缓冲
     yrpc::detail::net::SessionBuffer package;
 
     // scheduler_->AddTask([this,conn](void*args){
@@ -107,9 +108,9 @@ void ServerSingle::OnConnHandle(const yrpc::detail::net::ConnectionPtr&conn,void
 
 
         //接受原始数据并加入到pkg管理中        
-        memset(buf,'\0',sizeof(buf));
-        static int a=0;
-        int ret = conn->recv(buf,4096);
+        memset(buf,'\0',buffersize);
+        [[maybe_unused]] static int a=0;
+        int ret = conn->recv(buf,buffersize);
         package.Append(buf,ret);
 
         if(ret <= 0)    //读取错误，等待下次循环检查isclosed
@@ -129,10 +130,10 @@ void ServerSingle::OnConnHandle(const yrpc::detail::net::ConnectionPtr&conn,void
                 {
                     scheduler_->AddTask([call, &conn](void *args)
                                         {
-                        auto ptr = (yrpc::util::buffer::Buffer*)args;
+                        // auto ptr = (yrpc::util::buffer::Buffer*)args;
                         call->Wait();   //等待 Service 结束
-                        static uint64_t nbyte=0;
-                        int n = conn->send(call->GetBytes().c_str(),call->GetBytes().size());
+                        // static uint64_t nbyte=0;
+                        [[maybe_unused]] int n = conn->send(call->GetBytes().c_str(),call->GetBytes().size());
                         //DEBUG("总发送: %ld\n",nbyte+=n); 
                     },&bytes_);
 
@@ -145,7 +146,7 @@ void ServerSingle::OnConnHandle(const yrpc::detail::net::ConnectionPtr&conn,void
                 else
                 {
                     std::string tmp = caller_.Service(data);
-                    int n = conn->send(tmp.data(), tmp.size());
+                    [[maybe_unused]] int n = conn->send(tmp.data(), tmp.size());
                     // DEBUG("发送L %ld\n",n);
                 }
             }

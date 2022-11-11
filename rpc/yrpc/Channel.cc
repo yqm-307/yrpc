@@ -4,7 +4,7 @@
 using namespace yrpc::rpc::detail;
 
 // 是否正在写
-#define IsWriting(status) (!(status&Writing == 0)) 
+#define IsWriting(status) (!((status&Writing) == 0)) 
 // 是否正在读
 #define IsReading(status) (!(status&Reading == 0))
 #define SetNoWriting(status) (status^Writing)
@@ -45,8 +45,8 @@ Channel::Channel()
 }
 
 Channel::Channel(ConnPtr newconn,Epoller* ep)
-    :m_conn(newconn),
-    m_eventloop(ep)
+    :m_eventloop(ep),
+    m_conn(newconn)
 {
     assert(m_eventloop != nullptr);
     InitFunc();
@@ -84,7 +84,7 @@ bool Channel::IsClosed()
 
 bool Channel::IsAlive()
 {
-    
+    return !m_conn->IsClosed();
 }
 
 

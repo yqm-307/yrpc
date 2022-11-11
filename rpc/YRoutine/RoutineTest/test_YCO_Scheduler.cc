@@ -36,7 +36,7 @@ void execute(YCO_Scheduler & runtime, size_t count) {
         }
         , &(args[i]) );}
     
-    int n = 0;
+    // int n = 0;
     //随机唤醒协程
     while( ! runtime.Empty() ) 
     {

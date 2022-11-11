@@ -6,12 +6,12 @@ using namespace yrpc::rpc::detail;
 
 
 __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
-    :port(7912),
+    :m_main_loop(new Epoller(64*1024,65535)),
+    m_main_acceptor(m_main_loop,8121,2000,1000),
+    m_connector(m_main_loop),
     m_sub_loop_size(Nthread-1),
     m_loop_latch(Nthread-1),
-    m_main_loop(new Epoller(64*1024,65535)),
-    m_main_acceptor(m_main_loop,8121,2000,1000),
-    m_connector(m_main_loop)
+    port(7912)
 {
     // 初始化 main eventloop，但是不运行
     m_main_thread = new std::thread([this](){
@@ -24,15 +24,15 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     assert(Nthread>=2);
     m_sub_loop = new Epoller*[Nthread-1];
     m_sub_threads = new std::thread*[Nthread-1];
-    for (int i=1;i<Nthread;++i)
+    for (int i=0;i<Nthread;++i)
     {
-        auto tmp = m_sub_loop[i-1];
-        tmp = new Epoller(64*1024,4096);
+        m_sub_loop[i] = new Epoller(64*1024,4096);
+        auto& tmp = m_sub_loop[i];
         tmp->RunForever();
         tmp->AddTask([this](void* ep){
             this->RunInSubLoop((Epoller*)ep);
         },tmp);
-        m_sub_threads[i-1] = new std::thread([this,tmp](){
+        m_sub_threads[i] = new std::thread([this,tmp](){
             this->m_loop_latch.wait();
             tmp->Loop();
         });
@@ -62,7 +62,7 @@ __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::
         this->DelSession(addr);
     });
 
-    sessionptr->SetTimeOutFunc([this,sessionptr](){
+    sessionptr->SetTimeOutFunc([sessionptr](){
         sessionptr->Close();    // 触发 CloseCallback
     });
 

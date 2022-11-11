@@ -71,7 +71,7 @@ int CallCenter::ErrCodeToByteArray(uint32_t id,uint32_t uid,int err,std::string&
     auto pck = std::make_shared<S2C_RPC_ERROR>();
     pck->set_errnocode(err);
     pck->set_info(info);
-    yrpc::detail::protocol::YProtocolGenerater req(pck,yrpc::detail::protocol::define::type_S2C_RPC_ERROR);
+    yrpc::detail::protocol::YProtocolGenerater req(pck,0,yrpc::detail::protocol::define::type_S2C_RPC_ERROR);
     req.SetProtoID(uid);
     req.ToByteArray(bytearray);
     

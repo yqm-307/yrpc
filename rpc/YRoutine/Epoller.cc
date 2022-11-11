@@ -15,9 +15,9 @@ using namespace yrpc::coroutine::poller;
 
 
 Epoller::Epoller(size_t stacksize,int maxqueue,std::string logpath,bool protect)
-    :timer_(),
-    max_size_(maxqueue),
+    :max_size_(maxqueue),
     runtime_(stacksize,protect),
+    timer_(),
     epollfd_(epoll_create(max_size_)),
     close_(false),
     forever_(false)

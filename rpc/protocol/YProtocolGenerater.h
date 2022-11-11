@@ -24,8 +24,8 @@ public:
     typedef typename std::shared_ptr<YProtocolGenerater> Ptr;
     
 
-        
-    YProtocolGenerater(MessagePtr req,YRPC_PROTOCOL prototype);
+    // 库自用的service id 为0  
+    YProtocolGenerater(MessagePtr req,uint32_t serviceid,YRPC_PROTOCOL prototype);
 
     virtual ~YProtocolGenerater(){}    
 
@@ -111,8 +111,8 @@ public:
      * @param ProtobufRsp proto 
      * @return Ptr 智能指针 
      */
-    static Ptr Create(YRPC_PROTOCOL type,MessagePtr proto = nullptr)
-    { return std::make_shared<YProtocolGenerater>(proto,type); }
+    static Ptr Create(YRPC_PROTOCOL type,uint32_t sid,MessagePtr proto = nullptr)
+    { return std::make_shared<YProtocolGenerater>(proto,sid,type); }
 
 protected:
     mutable ProtocolHead m_protocol_head;           //协议头

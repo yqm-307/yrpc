@@ -4,10 +4,10 @@ namespace yrpc::detail::net
 {
 
 Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,RoutineSocket* sockfd,const YAddress& cli)
-    :m_conn_status(connecting),
+    :m_socket(sockfd),
     m_schedule(scheduler),
-    m_cliaddr(cli),
-    m_socket(sockfd)
+    m_conn_status(connecting),
+    m_cliaddr(cli)
 {
     m_conn_status = connected;
     m_socket->socket_timeout_ = [this](RoutineSocket* socket){TimeOut(socket);};
@@ -50,7 +50,7 @@ size_t Connection::send(const char* data,size_t len)
 
 size_t Connection::send(const Buffer& data)
 {
-    send(data.peek(),data.ReadableBytes());
+    return send(data.peek(),data.ReadableBytes());
 }
 
 

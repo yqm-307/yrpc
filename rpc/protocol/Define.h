@@ -94,11 +94,15 @@ protected:
      */
     virtual bool Encode(ProtobufMsg* proto,std::string& msg) const 
     {
-        if(proto != nullptr)
-            if (yrpc::detail::Codec::Serialize<ProtobufMsg>(proto,msg))
-                return true;
-        else
-            return false;
+        bool result{false};
+        do{
+            if( proto == nullptr )
+                break;
+            if ( yrpc::detail::Codec::Serialize<ProtobufMsg>(proto,msg) )
+                result = true;
+        }while(0);
+
+        return result;
     }
    
     /**
@@ -136,72 +140,74 @@ protected:
 /**
  * 
  * 
- *  |               |               |                       |                     |
- *  | length(16bit) |  type(16bit)  | protocol id(32bit)    | protobuf bytes(data)|    
- *  |               |               |                       |                     |
+ *  |               |               |                       |                   |                    |
+ *  | length(16bit) |  type(16bit)  | protocol id(32bit)    | BKDR ID(32bit)    |protobuf bytes(data)|    
+ *  |               |               |                       |                   |                    |
  *   包长度 2 字节  ,  范围 1-65535     整条协议，包括协议头长度
- *   协议类型 2 字节 , 范围 1-65535     定义在 YRPC_PROTOCOL 
+ *   协议类型 2 字节,  范围 1-65535     定义在 YRPC_PROTOCOL 
+ *   服务名 4 字节  ,  范围 1-42E       通过BKDR生成
  *   协议id 4 字节  ,  范围 1-42E       id generate 产生
  */
-#define ProtocolHeadSize (sizeof(uint16_t)+sizeof(uint16_t)+sizeof(uint32_t))
-#define ProtocolMaxSize  UINT16_MAX
+#define ProtocolHeadSize (sizeof(uint16_t)+sizeof(uint16_t)+sizeof(uint32_t)+sizeof(uint32_t))
+#define ProtocolMaxSize UINT16_MAX
 struct ProtocolHead
 {
-    ProtocolHead():m_type(0),m_length(0),m_id(yrpc::util::id::GenerateID::GetIDuint32()){}
-    ProtocolHead(uint16_t type,uint16_t len,uint32_t id = yrpc::util::id::GenerateID::GetIDuint32())
-        :m_type(type),m_length(len),m_id(id) {}
-    ProtocolHead(const ProtocolHead& p):m_type(p.m_type),m_length(p.m_length),m_id(p.m_id) {}
-    ~ProtocolHead(){}
+    ProtocolHead() 
+        : m_length(0), m_type(0),m_serviceid(0),m_id(yrpc::util::id::GenerateID::GetIDuint32()) {}
+    ProtocolHead(uint16_t type, uint16_t len,uint32_t sid,uint32_t id = yrpc::util::id::GenerateID::GetIDuint32())
+        : m_length(len), m_type(type),m_serviceid(sid) ,m_id(id) {}
+    ProtocolHead(const ProtocolHead &p) 
+        : m_length(p.m_length), m_type(p.m_type), m_serviceid(p.m_serviceid) , m_id(p.m_id) {}
+    ~ProtocolHead() {}
 
-    ProtocolHead& operator=(const ProtocolHead&p)
-    { m_type = p.m_type;m_length=p.m_length;m_id=p.m_id; }
-
-
-    /**
-     * @brief 转换为byte流
-     * 
-     * @return std::string 
-     */
-    bool ToByteArray(char* start)
+    ProtocolHead &operator=(const ProtocolHead &p)
     {
-        memcpy(start,(void*)&m_type,sizeof(uint16_t));  // 2 byte
-        memcpy(start+sizeof(uint16_t),(void*)&m_length,sizeof(uint16_t)); // 2 byte
-        memcpy(start+2*sizeof(uint16_t),(void*)&m_id,sizeof(uint32_t));     // 4 byte
-        return true;
+        m_type = p.m_type;
+        m_length = p.m_length;
+        m_serviceid = p.m_serviceid;
+        m_id = p.m_id;
+        return *this;
     }
 
     /**
-     * @brief 自动将比特流解析出结果
-     * 
-     * @param const char* start 起始数据 
+     * @brief 将 ProtocolHead 编码为字节流到 start 中
+     *
+     * @return std::string start至少长 sizeof(ProtocolHead)
      */
-    void SetByteArray(const char* start) const 
+    void EnCode(char *start) const
     {
-        memcpy((void*)&m_type,start,sizeof(uint16_t));
-        memcpy((void*)&m_length,start+sizeof(uint16_t),sizeof(uint16_t));
-        memcpy((void*)&m_id,start+sizeof(uint16_t)*2,sizeof(uint32_t));
+        memcpy(start                        ,(void *)&m_length      ,sizeof(uint16_t)); // 2 byte  [length]
+        memcpy(start + sizeof(uint16_t)     ,(void *)&m_type        ,sizeof(uint16_t));                      // 2 byte  [type]
+        memcpy(start + sizeof(uint16_t)*2   ,(void*)&m_serviceid    ,sizeof(uint32_t));  // 4 bytes [service id]
+        memcpy(start + 4 * sizeof(uint16_t) ,(void *)&m_id          ,sizeof(uint32_t)); // 4 byte  [package id]
+    }
+
+    /**
+     * @brief 将start 解码到ProtocolHead
+     *
+     * @param const char* start 至少长 sizeof(ProtocolHead) 字节流
+     */
+    void DeCode(const char *start) const
+    {
+        memcpy((void *)&m_length            ,start                          ,sizeof(uint16_t));  // 2 bytes   [length]
+        memcpy((void *)&m_type              ,start + sizeof(uint16_t)       ,sizeof(uint16_t));                       // 2 bytes   [type]
+        memcpy((void *)&m_serviceid         ,start + sizeof(uint16_t) * 2   ,sizeof(uint32_t));
+        memcpy((void *)&m_id                ,start + sizeof(uint16_t) * 4   ,sizeof(uint32_t));  // 4 bytes   [package id]
     }
 
     /**
      * @brief 转换为字符串
-     * 
-     * @return std::string 
+     *
+     * @return std::string
      */
     std::string ToString() const
     {
-        return std::to_string(m_type)+std::to_string(m_length)+std::to_string(m_id);
+        return std::to_string(m_type) + std::to_string(m_length) +std::to_string(m_serviceid)+ std::to_string(m_id);
     }
 
-
-
-    uint16_t m_type;      /* 协议类型 */
-    uint16_t m_length;    /* 包长 */
-    uint32_t m_id;        /* id */
+    uint16_t m_length; /* 包长 */
+    uint16_t m_type;   /* 协议类型 */
+    uint32_t m_serviceid;   /* 服务id */
+    uint32_t m_id;     /* id */
 };
-
-
-
-
-
-
 }

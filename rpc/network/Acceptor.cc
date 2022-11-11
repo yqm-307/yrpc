@@ -11,8 +11,8 @@ namespace yrpc::detail::net
 
 Acceptor::Acceptor(yrpc::coroutine::poller::Epoller* loop,int port,int socket_timeout_ms,int connect_timeout_ms)
     :scheduler_(loop),
-    close_(false),
     listenfd_(nullptr),
+    close_(false),
     connect_timeout_ms_(connect_timeout_ms),
     socket_timeout_ms_(socket_timeout_ms)
 {

@@ -82,7 +82,7 @@ private:
 
 private:
     yrpc::coroutine::poller::Epoller& loop_;
-    yrpc::socket::Socket* socket_;
+    // yrpc::socket::Socket* socket_;
     yrpc::socket::Socket* listen_;
     struct sockaddr_in addr_;
 };

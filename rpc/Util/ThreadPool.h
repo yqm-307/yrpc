@@ -36,11 +36,59 @@ template<typename TaskFunc>
 class ThreadPool
 {
 public:
-	ThreadPool(int thnum,int maxqueuesize = 65535,const ThreadInitCallback& cb=nullptr)
+	ThreadPool(int thnum,int maxqueuesize = 65535,const ThreadInitCallback& cb=nullptr);
+	//线程池析构并不是热点操作，所以没有性能要求
+	~ThreadPool();
+
+	//添加一个task
+	ThreadPoolErrnoCode AddTask(const TaskFunc& task);
+	ThreadPoolErrnoCode AddTask(TaskFunc&& task);
+
+	int RunThreadNum()
+	{ return _run_num; }
+	int TaskNum()
+	{
+		std::unique_lock<std::mutex> lock(_lock);
+		return _taskqueue.size();
+	}
+private:
+	//终止线程池
+	void stop();
+	//唤醒一个线程,目前是遍历
+	bool WakeUpOne();
+private:
+
+	const int _threadnum;					//初始线程数量
+	const int _initqueuesize;				//初始队列长度，不是硬性的
+	typedef std::vector<Thread*> ThreadList;	//加锁
+	std::atomic_bool _pool_is_in_run;		//是否正在运行
+	ThreadList _threads;					//线程
+	std::queue<TaskFunc> _taskqueue;		//任务队列
+	std::mutex _lock;
+	std::atomic_int _run_num;				//正在运行数量
+	//net::TimerQueue _timer;					//每个线程记录空闲时间
+};
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+///////////////////////   私有函数实现   //////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+
+template<typename TaskFunc>
+ThreadPool<TaskFunc>::ThreadPool(int thnum,int maxqueuesize,const ThreadInitCallback& cb)
 		:_threadnum(thnum),
 		_initqueuesize(maxqueuesize),
-		_threads(thnum,nullptr),
 		_pool_is_in_run(true),
+		_threads(thnum,nullptr),
 		_run_num(thnum)
 	{
 		for(int i=0;i<_threadnum;++i)
@@ -51,7 +99,6 @@ public:
 			ptr->Start([this]()->ThreadStatus{
 				if(!_pool_is_in_run)
 					return Stop;
-				int freetime=0;
 				{//进入临界区
 					std::unique_lock<std::mutex> lock(_lock);
 					if(_taskqueue.empty())	//队列空，阻塞
@@ -68,118 +115,103 @@ public:
 			});
 		}
 	}
-	//线程池析构并不是热点操作，所以没有性能要求
-	~ThreadPool()
-	{
-		stop();
-		for(auto ptr : _threads)
-		{
-			delete ptr;
-		}
-	}
 
-	//添加一个task
-	ThreadPoolErrnoCode AddTask(const TaskFunc& task)
-	{
-		if(_pool_is_in_run)	//线程池在运行中
-		{
-			int queuesize=0;
-			ThreadPoolErrnoCode ret = Success;
-			{//进入临界区
-				std::unique_lock<std::mutex> lock(_lock);
-				if(queuesize >= _initqueuesize)	//超出任务数
-				{
-					ret = TaskQueueFull;
-				}
-				_taskqueue.push(task);	//插入任务队列
-			
-				if(_run_num<_threadnum)	//当前有挂起的线程,唤醒一个线程
-				{
-					WakeUpOne();
-				}
-			}
-		
-			
-			return ret;
-		}
-		return PoolStop;	//线程池停止运行
-	}
-	ThreadPoolErrnoCode AddTask(TaskFunc&& task)
-	{
-		if(_pool_is_in_run)	//线程池在运行中
-		{
-			int queuesize=0;
-			ThreadPoolErrnoCode ret = Success;
-			{//进入临界区
-				std::unique_lock<std::mutex> lock(_lock);
-				if(queuesize >= _initqueuesize)	//超出任务数
-				{
-					ret = TaskQueueFull;
-				}
-				_taskqueue.push(std::move(task));	//插入任务队列
-				if(_run_num<_threadnum)	//当前有挂起的线程,唤醒一个线程
-			
-				WakeUpOne();
-			
-			}
-			
-			
-			
-			return ret;
-		}
-		return PoolStop;	//线程池停止运行
-	}
 
-	int RunThreadNum()
-	{ return _run_num; }
-	int TaskNum()
+
+
+template<typename TaskFunc>
+ThreadPool<TaskFunc>::~ThreadPool()
+{
+	stop();
+	for(auto ptr : _threads)
 	{
-		std::unique_lock<std::mutex> lock(_lock);
-		return _taskqueue.size();
+		delete ptr;
 	}
-private:
+}
 
-	//终止线程池
-	void stop()
+template<typename TaskFunc>
+ThreadPoolErrnoCode ThreadPool<TaskFunc>::AddTask(const TaskFunc &task)
+{
+	if (_pool_is_in_run) // 线程池在运行中
 	{
-		_pool_is_in_run = false;	//拒绝新的task
-
-		for (size_t i = 0; i < _threadnum;)	//等待所有thread完成当前任务
-		{
-			if(!_threads[i]->isRun())	//线程已经stop，下一个
-				++i;
-			else if(_threads[i]->isBlock())	//线程阻塞，唤醒
+		int queuesize = 0;
+		ThreadPoolErrnoCode ret = Success;
+		{ // 进入临界区
+			std::unique_lock<std::mutex> lock(_lock);
+			if (queuesize >= _initqueuesize) // 超出任务数
 			{
-				_threads[i]->ReStart();
+				ret = TaskQueueFull;
 			}
-		}
-	}
-	//唤醒一个线程,目前是遍历
-	bool WakeUpOne()
-	{
-		//遍历所有线程
-		assert(_threads[0]!=nullptr);
-		for(int i=0;i<_threadnum;++i)
-		{
-			if(_threads[i]->isBlock()){
-				_threads[1]->ReStart();
-				++_run_num;
-				return true;
-			}
-		}
-		return false;	//唤醒失败
-	}
+			_taskqueue.push(task); // 插入任务队列
 
-	const int _threadnum;					//初始线程数量
-	const int _initqueuesize;				//初始队列长度，不是硬性的
-	typedef std::vector<Thread*> ThreadList;	//加锁
-	std::atomic_bool _pool_is_in_run;		//是否正在运行
-	ThreadList _threads;					//线程
-	std::queue<TaskFunc> _taskqueue;		//任务队列
-	std::mutex _lock;
-	std::atomic_int _run_num;				//正在运行数量
-	//net::TimerQueue _timer;					//每个线程记录空闲时间
-};
+			if (_run_num < _threadnum) // 当前有挂起的线程,唤醒一个线程
+			{
+				WakeUpOne();
+			}
+		}
+
+		return ret;
+	}
+	return PoolStop; // 线程池停止运行
+}
+
+
+template<typename TaskFunc>
+ThreadPoolErrnoCode ThreadPool<TaskFunc>::AddTask(TaskFunc &&task)
+{
+	if (_pool_is_in_run) // 线程池在运行中
+	{
+		int queuesize = 0;
+		ThreadPoolErrnoCode ret = Success;
+		{ // 进入临界区
+			std::unique_lock<std::mutex> lock(_lock);
+			if (queuesize >= _initqueuesize) // 超出任务数
+			{
+				ret = TaskQueueFull;
+			}
+			_taskqueue.push(std::move(task)); // 插入任务队列
+			if (_run_num < _threadnum)		  // 当前有挂起的线程,唤醒一个线程
+
+				WakeUpOne();
+		}
+
+		return ret;
+	}
+	return PoolStop; // 线程池停止运行
+}
+
+template<typename TaskFunc>
+void ThreadPool<TaskFunc>::stop()
+{
+	_pool_is_in_run = false; // 拒绝新的task
+
+	for (size_t i = 0; i < _threadnum;) // 等待所有thread完成当前任务
+	{
+		if (!_threads[i]->isRun()) // 线程已经stop，下一个
+			++i;
+		else if (_threads[i]->isBlock()) // 线程阻塞，唤醒
+		{
+			_threads[i]->ReStart();
+		}
+	}
+}
+
+template<typename TaskFunc>
+bool ThreadPool<TaskFunc>::WakeUpOne()
+{
+	// 遍历所有线程
+	assert(_threads[0] != nullptr);
+	for (int i = 0; i < _threadnum; ++i)
+	{
+		if (_threads[i]->isBlock())
+		{
+			_threads[1]->ReStart();
+			++_run_num;
+			return true;
+		}
+	}
+	return false; // 唤醒失败
+}
 }
 
 

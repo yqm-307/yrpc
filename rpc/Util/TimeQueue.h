@@ -27,7 +27,6 @@ namespace yrpc::util::clock
 {
 
 typedef uintptr_t ttask_t;
-typedef struct Socket;
 
 
 template<class TaskObject>

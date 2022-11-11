@@ -11,9 +11,9 @@ void test(void*args)
     
     for(int i=0;i<10;++i)
     {
-        printf("开始休眠 : %d:%d:%d\n",minute(),second(),millisecond());
+        printf("开始休眠 : %ld:%ld:%ld\n",minute(),second(),millisecond());
         YRSleep(loop,1000);
-        printf("休眠结束 : %d:%d:%d\n",minute(),second(),millisecond());
+        printf("休眠结束 : %ld:%ld:%ld\n",minute(),second(),millisecond());
     }
 
 }
@@ -63,7 +63,7 @@ void test3( yrpc::coroutine::poller::Epoller* sche)
         th.detach();
     }
     sche->AddTimer([value](){
-        printf("once : %d\n",value->load());
+        printf("once : %ld\n",value->load());
     },1000,1000,-1);
     printf("启动50个线程\n");
 }

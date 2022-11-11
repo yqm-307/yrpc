@@ -93,7 +93,7 @@ void calltest1(int a,int b)
 
     auto msg = std::any_cast<std::shared_ptr<addreq>>(args);
 
-    auto str = ServiceMap::GetInstance()->NameToService("add")->first(msg);
+    ServiceMap::GetInstance()->NameToService("add")->first(msg);
 
 }
 

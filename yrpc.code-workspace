@@ -6,6 +6,7 @@
 	],
 	"settings": {
 		"files.associations": {
+			"*.csv": "csv (equals)",
 			"array": "cpp",
 			"*.tcc": "cpp",
 			"functional": "cpp",
@@ -62,7 +63,8 @@
 			"new": "cpp",
 			"stdexcept": "cpp",
 			"cinttypes": "cpp",
-			"typeinfo": "cpp"
+			"typeinfo": "cpp",
+			"cassert": "cpp"
 		}
 	}
 }

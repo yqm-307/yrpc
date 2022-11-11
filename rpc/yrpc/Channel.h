@@ -73,10 +73,10 @@ public:
     ////////////////////////
     //////  IO接口  ////////
     ////////////////////////
-    /* send data to peer (thread unsafe) */
+    /* send data to peer (thread safe) */
     size_t Send(const Buffer& data);
 
-    /* send len byte to peer (thread unsafe)*/
+    /* send len byte to peer (thread safe)*/
     size_t Send(const char* data,size_t len);
     
 

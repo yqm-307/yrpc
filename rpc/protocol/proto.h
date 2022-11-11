@@ -73,7 +73,7 @@ std::any ParseMessage(const Message& message,const Reflection* ref,const FieldDe
  * @return T 
  */
 template<typename T>
-T BytesToType(const char* data)
+auto BytesToType(const char* data)
 {
     T tmp;
     memcpy(&tmp,data,sizeof(T));

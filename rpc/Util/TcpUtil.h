@@ -5,11 +5,14 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <cassert>
 #include "logger.h"
 
 namespace yrpc::util::tcp
 {
 
+
+[[maybe_unused]]
 static int SetNonBlockFd(int fd)
 {
     int oldopt = ::fcntl(fd,F_GETFL);
@@ -21,6 +24,9 @@ static int SetNonBlockFd(int fd)
     }
     return oldopt;
 }
+
+
+[[maybe_unused]]
 static int SetNoDelay(int fd,bool flag)
 {
     int tmp = flag ? 1:0;
@@ -32,6 +38,7 @@ static int SetNoDelay(int fd,bool flag)
     return ret==0;
 }
 
+[[maybe_unused]]
 static int GetSockErrCode(int socket)
 {
     int retcode;

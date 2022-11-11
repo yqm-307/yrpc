@@ -130,10 +130,10 @@ void YTimer<TaskObject>::GetAllTask(std::vector<Ptr>& sockets)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename DataObject>
 Task<DataObject>::Task(clock::Timestamp<ms>& timepoint,DataObject data,int trigger,int max_times)
-    :data_(data),
-    is_canceled_(false),
+    :is_canceled_(false),
     trigger_interval_(trigger),
-    max_trigger_times_(max_times)
+    max_trigger_times_(max_times),
+    data_(data)
 {
     this->SetValue(timepoint);
 }

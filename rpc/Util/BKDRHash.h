@@ -18,15 +18,27 @@ public:
     {
         uint32_t seed = 1313; /* 31 131 1313 13131 131313 etc.. */
         uint32_t hash = 0;
-        uint32_t i = 0;
 
-        for (i = 0; i < length; ++str, ++i)
+        for (uint32_t i = 0; i < length; ++str, ++i)
         {
             hash = (hash * seed) + (*str);
         }
 
         return hash;
     }
-    
+
+    template<typename String>
+    static uint32_t BKDRHash(String&& data)
+    {
+        uint32_t seed = 1313; /* 31 131 1313 13131 131313 etc.. */
+        uint32_t hash = 0;
+
+        for( auto&& c : data )
+        {
+            hash =  (hash * seed) + (c);
+        }
+
+        return hash;
+    }
 };
 }

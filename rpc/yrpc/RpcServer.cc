@@ -3,14 +3,14 @@
 using namespace yrpc::rpc;
 
 RpcServer::RpcServer(int port,size_t threadnum,std::string logpath,int socket_timeout_ms,int connect_timeout_ms,int stack_size,int maxqueue)
-    :socket_timeout_ms_(socket_timeout_ms),
+    :port_(port),
+    socket_timeout_ms_(socket_timeout_ms),
     connect_timeout_ms_(connect_timeout_ms),
-    scheduler_(new yrpc::coroutine::poller::Epoller(64*1024,65535,logpath)),
-    MainServer_(new detail::ServerSingle(scheduler_,port,connect_timeout_ms_,socket_timeout_ms_,t_pool_,stack_size)),
     thread_num_(threadnum),
+    scheduler_(new yrpc::coroutine::poller::Epoller(64*1024,65535,logpath)),
+    MainServer_(new detail::ServerSingle(scheduler_,port,connect_timeout_ms_,socket_timeout_ms_,nullptr,stack_size)),
     SubServers_(threadnum),
-    Threads_(threadnum),
-    port_(port)
+    Threads_(threadnum)
 {
     assert(scheduler_);
 

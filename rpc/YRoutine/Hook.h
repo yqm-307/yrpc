@@ -66,9 +66,9 @@ Socket *YRCreateSocket();
 
 void YRWait(Socket &socket, const int timeout_ms);
 
-void YRLazyDestory(Socket &socket);
+// void YRLazyDestory(Socket &socket);
 
-bool YRDestory(Socket &socket);
+// bool YRDestory(Socket &socket);
 
 int YRSleep(yrpc::coroutine::poller::Epoller* poll, int sleep_ms); //挂起当前协程指定时间
 

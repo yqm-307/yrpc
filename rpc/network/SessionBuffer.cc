@@ -5,7 +5,7 @@ using namespace yrpc::detail::net;
 std::string SessionBuffer::GetAPck()
 {
     //包头
-    int msglength = yrpc::util::protoutil::BytesToType<int>(buffer.peek());
+    auto msglength = yrpc::util::protoutil::BytesToType<uint16_t>(buffer.peek());
     msglength = (uint16_t)(msglength);
 
     std::string reqbyte{""};

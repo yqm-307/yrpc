@@ -43,7 +43,7 @@ private:
     
 
 private:
-    yrpc::coroutine::poller::Epoller* scheduler_;
+    [[maybe_unused]] yrpc::coroutine::poller::Epoller* scheduler_;
 };
 
 } // namespace yrpc

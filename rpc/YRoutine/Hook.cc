@@ -298,15 +298,16 @@ Socket *YRCreateSocket()
 //     return socket.args;
 // }
 
-void YRLazyDestory(Socket &socket)
-{
-    socket.routine_index_ = -1;
-}
+// void YRLazyDestory(Socket &socket)
+// {
+//     socket.routine_index_ = -1;
+// }
 
-bool YRDestory(Socket &socket)
-{
-    socket.routine_index_ == -1;
-}
+// bool YRDestory(Socket &socket)
+// {
+//     socket.routine_index_ = -1;
+//     return true;
+// }
 
 
 
@@ -364,33 +365,45 @@ int Epoll_Cond_t::Notify()
 
 
 //如何实现协程的sleep,如果是注册在pendinglist 中的任务，是没有办法让他不执行的，所以要将任务切换到timeoutlist中，这样就不会在loop中执行，且超时resume
-int YRSleep(yrpc::coroutine::poller::Epoller* poll,int sleep_ms)
-{   
+int YRSleep(yrpc::coroutine::poller::Epoller *poll, int sleep_ms)
+{
     int ret{-1};
-    yrpc::coroutine::poller::RoutineSocket* socket = poll->CreateSocket(-1);
-
-    if(socket==nullptr)
-        return -2;
-    socket->routine_index_ = socket->scheduler->GetCurrentRoutine();
-
-
-    if(sleep_ms < 0)
-        return -3;
-    else
+    yrpc::coroutine::poller::RoutineSocket *socket = poll->CreateSocket(-1);
+    do
     {
-        auto p = yrpc::util::clock::now<yrpc::util::clock::ms>();
-        auto k = YRAfter(sleep_ms);
-        socket->scheduler->AddTimer(socket,k);
-    }    
 
-    //等待超时，resume
-    socket->scheduler->YieldTask(); //处理协程任务
-    
-    if(socket->eventtype_ == yrpc::coroutine::poller::EpollREvent_Timeout)
-        return 0;
+        if (socket == nullptr)
+        {
+            ret = -2;
+            break;
+        }
+        socket->routine_index_ = socket->scheduler->GetCurrentRoutine();
+
+        if (sleep_ms < 0)
+        {
+            ret = -3;
+            break;
+        }
+        else
+        {
+            auto k = YRAfter(sleep_ms);
+            socket->scheduler->AddTimer(socket, k);
+        }
+        // 等待超时，resume
+        socket->scheduler->YieldTask(); // 处理协程任务
+
+        if (socket->eventtype_ == yrpc::coroutine::poller::EpollREvent_Timeout)
+        {
+            ret = 0;
+            break;
+        }
+        else
+            ret = -4;
+    } while (0);
+
+
+    return ret;
 }
-
-
 
 #ifdef YRAfter
 #undef YRAFter

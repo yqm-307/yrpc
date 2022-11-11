@@ -19,7 +19,7 @@ class YProtocolResolver: public Base_Msg<google::protobuf::Message>
 
 public:
     
-    YProtocolResolver(std::string_view bytes):m_bytes(bytes) {}
+    YProtocolResolver(std::string_view bytes);
     YProtocolResolver(){};
 
     YProtocolResolver(const YProtocolResolver& p);
@@ -39,7 +39,7 @@ public:
 
 
     /**
-     * @brief 返回协议proto id
+     * @brief 返回协议proto id(需要先DeCode)
      * 
      * @return uint32_t 协议id
      */
@@ -47,9 +47,18 @@ public:
     { return m_protocol_head.m_id; }
 
 
+    /**
+     * @brief 获取服务id(需要先DeCode)
+     * 
+     * @return uint32_t 
+     */
+    uint32_t GetServiceID() const
+    { return m_protocol_head.m_serviceid; }
+
+
 
     /**
-     * @brief 获取协议类型
+     * @brief 获取协议类型(需要先DeCode)
      * 
      * @return YRPC_PROTOCOL 协议类型枚举 
      */
@@ -67,13 +76,16 @@ public:
 
 
     /**
-     * @brief 是否为空
+     * @brief 待解析字节流是否为空
      * 
      * @return true 
      * @return false 
      */
     bool IsEmpty()
     { return m_bytes.size() == 0; }
+protected:
+    void ParseHead();
+
 protected:
     // 32位长
     ProtocolHead        m_protocol_head;   //协议头

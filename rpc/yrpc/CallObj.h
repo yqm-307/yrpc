@@ -49,10 +49,10 @@ public:
     TYPE GetResult(MessagePtr);
 
     template<typename MsgType>
-    static Ptr Create(std::shared_ptr<MsgType>,int,CallResultFunc=nullptr);
+    static Ptr Create(std::shared_ptr<MsgType>,int,uint32_t,CallResultFunc=nullptr);
     
     
-    CallObj(MessagePtr ptr,int id,CallResultFunc func=nullptr);
+    CallObj(MessagePtr ptr,int id,uint32_t sid,CallResultFunc func=nullptr);
 private:
     CallObj() = delete;
 
@@ -77,6 +77,7 @@ private:
     Resolver        m_rsp;
     std::string     m_rsq_bytearray;
     int             m_type_id;  // 类型id
+    uint32_t        m_service_id;   // 服务名
     const CallResultFunc    m_callback; // 异步调用
     Sem_t           m_cond_t; // 通知用户完成
     Mutex           m_lock;
@@ -87,9 +88,9 @@ private:
 
 
 template <typename MsgType>
-CallObj::Ptr CallObj::Create(std::shared_ptr<MsgType> ptr,int id,CallResultFunc func)
+CallObj::Ptr CallObj::Create(std::shared_ptr<MsgType> ptr,int id,uint32_t name,CallResultFunc func)
 {
-    return std::make_shared<CallObj>(std::static_pointer_cast<Message>(ptr),id,func);
+    return std::make_shared<CallObj>(std::static_pointer_cast<Message>(ptr),id,name,func);
 }
 
 

@@ -26,7 +26,8 @@ int main()
             printf("连接成功!\n");
             auto req = std::make_shared<EchoReq>();
             req->set_str("hello world");
-            auto call = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(req,[&](std::shared_ptr<google::protobuf::Message> rsp){
+            auto call = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(req,"Echo",
+            [&](std::shared_ptr<google::protobuf::Message> rsp){
                 std::shared_ptr<EchoRsp> result =  std::static_pointer_cast<EchoRsp>(rsp);
                 printf("async call :  %s\n",result->str().c_str());
                 flag = false;

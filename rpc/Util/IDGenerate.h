@@ -5,13 +5,19 @@
 namespace yrpc::util::id
 {
 
-#define Second_NS 1000000000 
+#define Second_NS (1000000000) 
 #define Minute_NS (Second_NS*60)
 #define Hours_NS  (Minute_NS*60)
 
-#define Second_US 1000000
+#define Second_US (1000000)
 #define Minute_US (Second_US*60)
 #define Hours_US  (Minute_US*60)
+
+
+#define Second_MS (1000)
+#define Minute_MS (Second_MS*60)
+#define Hours_MS  (Minute_MS*60)
+
 
 class GenerateID
 {
@@ -33,7 +39,7 @@ static uint64_t GetIDuint64()
         id = id/*24小时有效*/+index++;
     else
     {//下一个时间段
-        per == id;
+        per = id;
         index=0;
     }
     return id;
@@ -47,14 +53,14 @@ static uint64_t GetIDuint64()
 static uint32_t GetIDuint32()
 {
     auto p = yrpc::util::clock::now<yrpc::util::clock::ns>();
-    static uint32_t per = (p.time_since_epoch().count())/1000%Hours_NS;  //当前小时
+    static uint32_t per = (p.time_since_epoch().count())/1000%Hours_MS;  //当前小时
     static int index=0;
-    uint32_t id = (p.time_since_epoch().count())/1000%Hours_NS;
+    uint32_t id = (p.time_since_epoch().count())/1000%Hours_MS;
     if(per == id)
-        id = index >= Hours_NS ? 0 : id+10*Minute_US/*10分钟*/+index++;
+        id = index >= Hours_MS ? 0 : id+10*Minute_MS/*10分钟*/+index++;
     else
     {//下一个时间段
-        per == id;
+        per = id;
         index=0;
     }
     return id;
@@ -77,7 +83,7 @@ static uint32_t GetIDuint32_unsafe()
         now_ms = index >= 7*24*60*60*1000 ? 0 : now_ms+(7*24*60*60*1000)+index++;
     else
     {//下一个时间段
-        per == now_ms;
+        per = now_ms;
         index=0;
     }
     return now_ms;

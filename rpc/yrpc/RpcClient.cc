@@ -7,8 +7,8 @@ namespace yrpc::rpc
 
 
 RpcClient::RpcClient(std::string ip,int port)
-    :m_addr(ip,port),
-    m_session(nullptr)
+    :m_session(nullptr),
+    m_addr(ip,port)
 {
     SessionManager::GetInstance()->AsyncConnect(m_addr,[this](SessionPtr ptr){
         this->OnConnect(ptr);
@@ -17,8 +17,8 @@ RpcClient::RpcClient(std::string ip,int port)
 }
 
 RpcClient::RpcClient(yrpc::detail::net::YAddress servaddr_)
-    :m_addr(servaddr_),
-    m_session(nullptr)
+    :m_session(nullptr),
+    m_addr(servaddr_)
 {
 }
 
@@ -77,6 +77,6 @@ int RpcClient::Call(detail::CallObj::Ptr&& call)
         return -1;
     std::string bytes;
     call->GetRequest().ToByteArray(bytes);
-    m_session->Append(bytes);
+    return m_session->Append(bytes);
 }
 }

@@ -16,7 +16,7 @@ namespace yrpc::util::protoutil
 
 Argspkg* InitArgs()
 {
-    Argspkg* args = (Argspkg*)calloc(1,sizeof(Argspkg));
+    return (Argspkg*)calloc(1,sizeof(Argspkg));
 }
 
 

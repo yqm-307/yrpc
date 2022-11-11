@@ -6,9 +6,9 @@ using namespace yrpc::rpc::detail;
 
 
 RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
-    :m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
-    m_can_used(true),
-    m_channel(channel)
+    :m_channel(channel),
+    m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
+    m_can_used(true)
 {
     InitFunc();
 }
@@ -87,7 +87,7 @@ size_t RpcSession::Append(const std::string_view pck)
     if(pck.size() == 0)
         return 0;
 
-    lock_guard<Mutex> lock(m_push_mutex);
+    // lock_guard<Mutex> lock(m_push_mutex);
     m_channel->Send(pck.data(),pck.size()); // 可能多线程同时send,需要加锁
     return pck.size();
 }
@@ -151,6 +151,7 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
     {        
 #ifdef YRPC_DEBUG
         m_byterecord.Addsend_bytes(len);
+        DEBUG("RpcSession::SendFunc()  , info: send succ %ld bytes!",len);
 #endif
     }
     else
