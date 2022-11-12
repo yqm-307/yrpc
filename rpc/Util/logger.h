@@ -49,14 +49,7 @@ enum LOGLEVEL : int32_t
     LOG_FATAL,          //致命错误
 };
 
-static const char* LeveL[6]{
-    " [TRACE] ",
-    " [DEBUG] ",
-    " [INFO] ",
-    " [WARN] ",
-    " [ERROR] ",
-    " [FATAL] ",
-};
+
 
 //缓冲日志
 

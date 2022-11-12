@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2) #最低版本号2.6
-project(yqmnet)           
+project(libyrpc)           
 #SET(CMAKE_BUILD_TYPE "Release")
 #工程名和工程语言
 enable_language(C CXX)
@@ -7,16 +7,17 @@ enable_language(C CXX)
 
 #自定义变量 环境选项
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g -w")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g -Wall")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)   #可执行文件目录
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)      #库输出路径
 include_directories(
-    ${PROJECT_BINARY_DIR}/rpc
-    ${PROJECT_BINARY_DIR}/rpc/proto
     ${PROJECT_BINARY_DIR}
-    /home/yqm/test/git/libphxali/rpc/proto
+    ${PROJECT_BINARY_DIR}/rpc
+    ## 下面两个都 include ，为了兼容 vscode cmake tools
+    ${PROJECT_BINARY_DIR}/rpc/proto     
+    ${PROJECT_BINARY_DIR}/../rpc/proto
 )
-
+message( "这是主目录 :" ${PROJECT_BINARY_DIR} )
 add_definitions(-Dcmakebuild) 
 
 
@@ -62,8 +63,7 @@ file(GLOB SRC_FILE
     rpc/msg/*.cc
     rpc/network/*.cc
     rpc/protocol/*.cc
-    # rpc/proto/*.cc      # protobuf 生成头文件
-    rpc/proto/*/*.cc
+    rpc/proto/*/*.cc        # protobuf 生成头文件
     rpc/yrpc/*.cc
 )
 

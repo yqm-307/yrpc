@@ -13,6 +13,14 @@ using namespace yrpc::util::logger;
 
 
 
+static const char* LeveL[6]{
+    " [TRACE] ",
+    " [DEBUG] ",
+    " [INFO] ",
+    " [WARN] ",
+    " [ERROR] ",
+    " [FATAL] ",
+};
 
 
 Logger* Logger::GetInstance(std::string name)
