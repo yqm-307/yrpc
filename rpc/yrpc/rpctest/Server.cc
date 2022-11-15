@@ -33,6 +33,6 @@ int main()
     server.SetThreadPool(tp);
     server.register_service<AddReq,AddRsp>("add",AddHandle);
     server.register_service<EchoReq,EchoRsp>("Echo",EchoHandle);
-    server.start();
+    server.Start();
 }
 

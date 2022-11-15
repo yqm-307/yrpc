@@ -56,7 +56,7 @@ void RpcSession::ProtocolMultiplexing()
             {// c2s 请求
                 proto.t = Protocol::type::req;
                 if(m_ctoserver != nullptr)
-                    m_ctoserver(proto.data);
+                    m_ctoserver(proto.data,shared_from_this());
                 else    // 没有服务提供者的处理函数，返回错误信息
                     NoneServerHandler();    
 
@@ -65,7 +65,7 @@ void RpcSession::ProtocolMultiplexing()
             {// s2c 响应
                 proto.t = Protocol::type::rsp;
                 if (m_stoclient != nullptr)
-                    m_stoclient(proto.data);
+                    m_stoclient(proto.data,shared_from_this());
                 else    // 没有客户端处理函数？存在这种可能吗。但是加上以防万一
                     NoneClientHandler();
             }

@@ -10,7 +10,6 @@ class SCallObj
 {
 public:
     SCallObj(yrpc::coroutine::poller::Epoller* sche)
-        :scheduler_(sche)
     {
         cond.Init(sche);
     };
@@ -30,7 +29,6 @@ public:
     std::string& GetReq()
     { return req_bytes_; }
 private:
-    [[maybe_unused]] yrpc::coroutine::poller::Epoller* scheduler_;
     yrpc::socket::Epoll_Cond_t cond;    
     std::string req_bytes_;
     std::string sdata_{""};

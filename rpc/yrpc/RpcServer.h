@@ -1,6 +1,6 @@
 #pragma once
 #include "ServerSingle.h"
-
+#include "SessionManager.h"
 namespace yrpc::rpc
 {
 
@@ -13,16 +13,19 @@ namespace yrpc::rpc
  */
 class RpcServer
 {
-typedef yrpc::detail::ServiceFunc ServiceFunc;
-typedef yrpc::detail::CodecFunc CodecFunc;
-typedef std::function<void()> WorkFunc;
-template<class Req>
-using ReqPtr = std::shared_ptr<Req>;
-template<class Rsp>
-using RspPtr = std::shared_ptr<Rsp>;
+    typedef yrpc::detail::ServiceFunc           ServiceFunc;
+    typedef yrpc::detail::CodecFunc             CodecFunc;
+    typedef std::function<void()>               WorkFunc;
+    typedef yrpc::detail::net::YAddress         Address;
 
+    template <class Req>
+    using ReqPtr = std::shared_ptr<Req>;
+    template <class Rsp>
+    using RspPtr = std::shared_ptr<Rsp>;
 public:
     typedef yrpc::util::threadpool::ThreadPool<WorkFunc> ThreadPool;
+
+
     RpcServer(int port,size_t threadnum,std::string logpath = "server.log",int socket_timeout_ms=5000,int connect_timeout_ms=3000,int stack_size=64*1024,int maxqueue=65535);
     RpcServer()=delete;
     ~RpcServer();
@@ -53,35 +56,28 @@ public:
     void register_service(std::string name,int id,ServiceFunc func);
 
 
+    void SetThreadPool(ThreadPool* pool);
+
+
+    void Start()
+    {while(!m_stop.load())std::this_thread::sleep_for(yrpc::util::clock::ms(100));}
+
+
+    void Stop()
+    { m_stop.store(true); }
+private:    
     /**
-     * @brief server eventloop 开始
+     * @brief 处理一个完整的package
+     *  
+     * @param bytearray 一个完整的package的bytearray
      */
-    void start();
-
-    int SetThreadPool(yrpc::util::threadpool::ThreadPool<WorkFunc>*);
-
-    const yrpc::util::threadpool::ThreadPool<WorkFunc>* GetThreadPool();
-
-protected:
-
-    /*一个线程一个scheduler、一个Acceptor、每个线程都是平行的，listen套接字设置 reuseaddr，内核负责负载均衡到来的连接*/
-    void CreateSubServerThread(int stack_size,int maxqueue);
+    void Dispatch(std::string& bytearray,detail::RpcSession::SessionPtr sess);
 
 
 private:
-    int port_;
-    int socket_timeout_ms_;
-    int connect_timeout_ms_;
-    const int thread_num_;
-    
-    yrpc::coroutine::poller::Epoller* scheduler_;
-    detail::ServerSingle* MainServer_;
-
-    std::vector<yrpc::coroutine::poller::Epoller*> sches_;  // 
-    std::vector<detail::ServerSingle*> SubServers_; // 子服务器
-    std::vector<std::thread*> Threads_;     // 
-
-    yrpc::util::threadpool::ThreadPool<WorkFunc>* t_pool_ = nullptr; 
+    Address         m_serv_addr;    // 服务器监听地址
+    ThreadPool*     m_pool;         // 线程池
+    std::atomic_bool    m_stop{false};  //
 };
 
 // auto RpcServer::func = nullptr;   

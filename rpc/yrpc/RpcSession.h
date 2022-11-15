@@ -18,7 +18,7 @@ class SessionManager;
  * 4、从属epoll就是 m 个连接在一个epoll里面，就是协程了。
  * 5、buffer 就设置在Session里面吧
  */
-class RpcSession
+class RpcSession : std::enable_shared_from_this<RpcSession>
 {
     friend SessionManager;
     
@@ -40,20 +40,20 @@ class RpcSession
     typedef yrpc::util::lock::Mutex             Mutex;
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::detail::net::SessionBuffer    SessionBuffer;
-    typedef std::shared_ptr<RpcSession>         SessionPtr;
 
 
     
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
+    typedef std::shared_ptr<RpcSession>         SessionPtr;
     typedef session_detail_protocol             Protocol;
     typedef std::queue<Protocol>                PckQueue;
     typedef std::function<void(
         const yrpc::detail::shared::errorcode&,
         const yrpc::detail::net::YAddress&)>   SessionCloseCallback;
 
-    typedef std::function<void(std::string&)>    DispatchCallback;
+    typedef std::function<void(std::string&,SessionPtr)>    DispatchCallback;
 public:
     RpcSession(ChannelPtr channel,Epoller* loop);
     ~RpcSession(){}
@@ -75,9 +75,10 @@ public:
     // thread safe,向output追加数据
     size_t Append(const Buffer& bytearray);
 
-
+    // 将 pck 给 client
     void SetToClientCallback(DispatchCallback cb)
     { m_stoclient = cb; }
+    // 将 pck 给 server
     void SetToServerCallback(DispatchCallback cb)
     { m_ctoserver = cb; }
 
@@ -146,7 +147,6 @@ private:
     Mutex           m_input_mutex;
     PckQueue        m_pck_queue;
     Mutex           m_mutex_pck;
-
     /// 统计，debug使用
 #ifdef YRPC_DEBUG
     yrpc::util::statistics::ByteRecord m_byterecord;

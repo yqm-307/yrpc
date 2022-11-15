@@ -16,7 +16,7 @@ class __YRPC_SessionManager : yrpc::util::noncopyable::noncopyable
 public:
     typedef std::shared_ptr<RpcSession>         SessionPtr;
     typedef uint64_t SessionID;
-    typedef std::function<void(SessionPtr)>    OnSession;
+    typedef std::function<void(SessionPtr)>     OnSession;
 private:
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::util::lock::CountDownLatch    CountDownLatch;
@@ -39,24 +39,21 @@ public:
      * 这里有点东西的，主要是我搞了个协议复用，本质上就是想让两个服务器之间互相提供服务
      * 不去建立两条TCP信道，而是复用一条信道，所以加了一系列复杂机制。
      * 
-     * RpcClient 这里分几种情况：
-     * 1、如果连接在AddressMap中不存在，说明没有本条连接，则需要重新建立
-     * 2、如果连接在AddressMap中，直接返回 RpcSession ，RpcSession 本身就已经可以做到协议分解了，RpcClient就可以持有
-     *    RpcSession 进行可靠的通信。
-     * 3、如果 多个 RpcClient 同时调用AsyncConnect，就会导致注册多个两机之间的TCP连接。（待解决，标志位或者更好的办法）
-     *    这里思考主要是要不要允许可以创建多个rpcclient，指向同一个连接。如果可以那么RpcSession就需要加锁。
-     * 
      * 解决方案：
      *    通过两个Map  address to id 和 id to session 区分已建立连接和尚未建立完毕。其实是个简单的状态，如果存在于
      * addressid但是不存在与SessionMap中，说明正在建立连接，连接尚未完成。但是删除连接是完整的删除。建立连接分两阶段:
-     *      1、注册连接建立。 address : id
-     *      2、建立连接完毕。 id : session
+     *      1、如果已经正在Connect中，则返回false
      *    删除还是一个完整的原子操作。好处就是可以通过id去索引 RpcClinet 注册的回调.
      */
-    void AsyncConnect(Address peer,OnSession onsession);
+    bool AsyncConnect(Address peer,OnSession onsession);
 
     
-    
+    /**
+     * 创建服务器地址，设置服务提供方处理函数
+     * 
+     * Todo : 被连接也要保存到SessionMap 
+     */
+    void AsyncAccept(Address peer,RpcSession::DispatchCallback dspcb);
 private:
     __YRPC_SessionManager(int Nthread);  
 
@@ -84,9 +81,27 @@ private:
     SessionPtr AddNewSession(Channel::ConnPtr newconn);
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(const Address&);
+
+
+    struct Service_Impl
+    {
+        
+        void Init(RpcSession::DispatchCallback callback)
+        { m_dispatch = callback;  m_started.store(true); }
+
+        bool IsServiceSupplier()
+        { return m_started.load(); }
+
+        auto GetDispatchHandler()
+        { return m_dispatch; }
+
+        std::atomic_bool                m_started{false};
+        RpcSession::DispatchCallback    m_dispatch;
+    };
+
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
-    Acceptor            m_main_acceptor;    // listen 
+    Acceptor*           m_main_acceptor;    // listen 
     Connector           m_connector;        
     Epoller**           m_sub_loop;         // sub eventloop
     const size_t        m_sub_loop_size;    // sub eventloop 数量
@@ -107,8 +122,9 @@ private:
     // main loop 控制
     std::atomic_bool    m_run;
 
-    const int port;
+    Service_Impl        m_server;
     
-};
 
+    const int port;  
+};
 }

@@ -7,7 +7,7 @@ using namespace yrpc::rpc::detail;
 
 __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     :m_main_loop(new Epoller(64*1024,65535)),
-    m_main_acceptor(m_main_loop,8121,2000,1000),
+    m_main_acceptor(nullptr),
     m_connector(m_main_loop),
     m_sub_loop_size(Nthread-1),
     m_loop_latch(Nthread-1),
@@ -16,7 +16,6 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     // 初始化 main eventloop，但是不运行
     m_main_thread = new std::thread([this](){
         m_main_loop->RunForever();
-        m_main_loop->AddTask([this](void*){ RunInMainLoop(); },nullptr);            // 注册任务 
         this->m_main_loop->Loop();
     });      // 线程运行
 
@@ -86,7 +85,8 @@ bool __YRPC_SessionManager::DelSession(const Address& id)
 
 void __YRPC_SessionManager::RunInMainLoop()
 {
-    m_main_acceptor.listen();
+    assert(m_main_acceptor != nullptr);
+    m_main_acceptor->listen();
 }
 
 void __YRPC_SessionManager::RunInSubLoop(Epoller* lp)
@@ -114,33 +114,36 @@ __YRPC_SessionManager *__YRPC_SessionManager::GetInstance(int n)
 }
 
 
-void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
+bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
 {
     using namespace yrpc::detail::net;
-    static std::map<SessionID,std::vector<OnSession>> _connect_async_wait_queue;
+    static std::map<SessionID,OnSession> _connect_async_wait_queue;
     static Mutex _lock;
 
-    // onsession(nullptr); // 这里还是好好的
-    
+
+
+
+    bool ret = false;    
     SessionID id = AddressToID(peer);
     auto it = m_sessions.find(id);
 
-    // auto it = m_addrtoid.find(peer.GetIPPort());
+    /**
+     * 1、如果sessions中已经有了该连接，则直接返回即可
+     * 2、如果sessions中没有，则检查是否已经注册连接事件
+     *      (1) 如果 connect async wait queue 中没有对应的用户会话，注册一个新的connect事件
+     *      (2) 如果 connect async wait queue 中有对应的用户会话，返回false
+     */
     if( it == m_sessions.end() )
-    {   // 尚未建立完成，有两种可能:1、已经开始connect;2、尚未开始connect
-
+    {
         lock_guard<Mutex> lock(_lock);
         auto iter = _connect_async_wait_queue.find(id);
         if(iter == _connect_async_wait_queue.end())
-        {// 第二种情况:尚未开始连接
-            std::vector<OnSession> queue;
-            queue.push_back(std::move(onsession));
-            _connect_async_wait_queue.insert(std::make_pair(id,queue));
+        {
+            _connect_async_wait_queue.insert(std::make_pair(id,std::move(onsession)));
 
             // 初始化套接字，并注册回调。回调需要在完成连接之后，清除连接等待队列、更新SessionMap   &_connect_async_wait_queue,&_lock,
             RoutineSocket* socket = Connector::CreateSocket();
             
-            // 回调
             m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,const ConnectionPtr& conn){
                 // 构造新的Session
                 if(e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
@@ -154,8 +157,7 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
                             DEBUG("线程安全问题");
                         }
                         // auto&& conncb_queue = it->second;
-                        for(auto && func : it->second)    // 回调通知
-                            func(newSession);
+                        it->second(newSession);
                         _connect_async_wait_queue.erase(it);
                     }
                 }
@@ -164,37 +166,22 @@ void __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
                     /* todo 错误处理 */
                 }
             });
+            ret = true;
         }
         else
         {// 连接正在进行中
-            iter->second.push_back(onsession);
+            ret = false;
         }
-        return;
 
 
-        
     }
     else
-    {   // 起码已经注册了，但不一定已经建立连接
-
-        auto it_sess = m_sessions.find(AddressToID(id));
-        if (it_sess == m_sessions.end())
-        {   // 注册了，但是尚未连接成功
-            lock_guard<Mutex> lock(_lock);
-            auto iter = _connect_async_wait_queue.find(id);
-            iter->second.push_back(onsession);
-        }
-        else
-        {   // 注册了，且Session已经在了，直接返回
-            onsession(it_sess->second);
-        }
+    {
+        onsession(it->second);
+        ret = true;
     }
 
-    {// 其实可以抽出来写个函数的
-
-    }
-
-
+    return ret;
 }
 
 __YRPC_SessionManager::SessionID __YRPC_SessionManager::AddressToID(const Address& addr)
@@ -221,6 +208,17 @@ void __YRPC_SessionManager::OnConnect(Channel::ChannelPtr conn)
 
 
 
+void __YRPC_SessionManager::AsyncAccept(Address peer,RpcSession::DispatchCallback dspcb)
+{
+    assert(!m_server.IsServiceSupplier());   // 不允许重注册！
+    m_server.Init(dspcb);
+    if(m_main_acceptor != nullptr)
+        delete m_main_acceptor;
+    m_main_acceptor = new Acceptor(m_main_loop,peer.GetPort(),3000,5000);
+    m_main_acceptor->setOnConnect([](){});
+    m_main_loop->AddTask([this](void*){this->RunInMainLoop();});
+
+}
 
 
 

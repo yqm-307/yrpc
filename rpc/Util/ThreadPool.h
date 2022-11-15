@@ -40,8 +40,20 @@ public:
 	//线程池析构并不是热点操作，所以没有性能要求
 	~ThreadPool();
 
-	//添加一个task
+	
+	/**
+	 * @brief 添加一个任务(线程安全的操作)
+	 * 
+	 * @param task 
+	 * @return ThreadPoolErrnoCode 
+	 */
 	ThreadPoolErrnoCode AddTask(const TaskFunc& task);
+	/**
+	 * @brief 添加一个任务(线程安全的操作)
+	 * 
+	 * @param task 
+	 * @return ThreadPoolErrnoCode 
+	 */
 	ThreadPoolErrnoCode AddTask(TaskFunc&& task);
 
 	int RunThreadNum()

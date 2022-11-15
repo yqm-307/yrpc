@@ -90,13 +90,10 @@ void test_2()
     {
         printf("ok!\n");
     }
-
-
 }
 
 
 int main()
 {
     test_1();
-    // test_2();
 }
