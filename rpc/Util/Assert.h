@@ -14,7 +14,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <type_traits>
-
+#include "Type.h"
 
 
 // 运行时断言
@@ -39,3 +39,5 @@
 
 
 // 静态断言 编译期检测
+
+#define Static_Assert_Type_Same(T , U) static_assert(yrpc::util::type::is_same_v<T,U>)

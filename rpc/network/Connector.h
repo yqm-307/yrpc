@@ -22,21 +22,37 @@ namespace yrpc::detail::net
  * 因为想要将 network 抽象出来，但是本人设计水平不高，目前想到的办法就是将 network 部分尽量做纯函数实现，
  * 类似ECS那样，网络库本身不保存数据，数据层在 channel 、 session
  * 
- * 
 */
 class Connector
 {
 public:
+    /**
+     * @brief Construct a new Connector object
+     * 
+     * @param loop 
+     */
     Connector(yrpc::coroutine::poller::Epoller* loop);
     ~Connector();
 
-    void AsyncConnect(RoutineSocket* ,YAddress servaddr,OnConnectHandle conn);
 
-    static RoutineSocket* CreateSocket();
-    static void DestorySocket(RoutineSocket*);
+    /**
+     * @brief 注册一个异步Connect，提供socket，服务端地址，回调。
+     *  完成连接之后会回调通知
+     * 
+     * @param servaddr 服务端地址
+     * @param onconn  连接成功时回调
+     */
+    void AsyncConnect(Socket* socket,YAddress servaddr,OnConnectHandle&& onconn)
+    {   
+        scheduler_->AddTask([=](void*){onConnect(socket,servaddr,onconn);});
+    }
+
+    static Socket* CreateSocket();
+    static void DestorySocket(Socket*);
 
 protected:
-    void onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_);
+
+    void onConnect(Socket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_);
 private:
     yrpc::coroutine::poller::Epoller* scheduler_;
 

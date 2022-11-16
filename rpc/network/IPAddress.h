@@ -34,7 +34,6 @@ protected:
 
 
 
-class Socket;
 
 class YAddress final:public IPAddress 
 {

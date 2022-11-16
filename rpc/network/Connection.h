@@ -16,7 +16,7 @@
 
 namespace yrpc::detail::net
 {
-typedef yrpc::coroutine::poller::RoutineSocket RoutineSocket;
+typedef yrpc::coroutine::poller::RoutineSocket Socket;
 
 
 enum CONN_STATUS : int32_t
@@ -34,7 +34,7 @@ public:
     typedef yrpc::util::buffer::Buffer Buffer;
 public:
 
-    Connection(yrpc::coroutine::poller::Epoller* scheduler,RoutineSocket* sockfd,const YAddress& cli);
+    Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli);
     ~Connection();
 
     // 获取 shared_form_this
@@ -134,10 +134,10 @@ protected:
 
     void recvhandler();
 
-    void TimeOut(RoutineSocket* socket);
+    void TimeOut(Socket* socket);
 protected:
     //todo outputbuffer ，不会让服务的写操作阻塞。但是rpc对于这个有要求吗？毕竟服务完成到返回都可以算作整体，而且有协程，处理完该发不出去还是发不出去
-    RoutineSocket*          m_socket;    
+    Socket*          m_socket;    
     yrpc::coroutine::poller::Epoller* m_schedule;    //由拥有者赋予
     
     CONN_STATUS             m_conn_status;

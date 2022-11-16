@@ -15,13 +15,8 @@ Connector::~Connector()
 
 
 
-void Connector::AsyncConnect(RoutineSocket* socket,YAddress servaddr,OnConnectHandle conn)
-{   
-    scheduler_->AddTask([=](void*){onConnect(socket,servaddr,conn);});
-}
 
-
-void Connector::onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_)
+void Connector::onConnect(Socket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_)
 {
     int n = yrpc::socket::YRConnect(*servfd_,servaddr_.getsockaddr(),servaddr_.getsocklen());
     int connerror=0;
@@ -58,14 +53,14 @@ void Connector::onConnect(RoutineSocket* servfd_,const YAddress& servaddr_,OnCon
 
 
 
-RoutineSocket* Connector::CreateSocket()
+Socket* Connector::CreateSocket()
 {
-    RoutineSocket* socket = new RoutineSocket();
+    Socket* socket = new Socket();
     socket->sockfd_ = ::socket(AF_INET,SOCK_STREAM,0);
     return socket;
 }
 
-void Connector::DestorySocket(RoutineSocket*socket)
+void Connector::DestorySocket(Socket*socket)
 {
     ::close(socket->sockfd_);
     delete socket;

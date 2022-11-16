@@ -3,14 +3,14 @@
 namespace yrpc::detail::net
 {
 
-Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,RoutineSocket* sockfd,const YAddress& cli)
+Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli)
     :m_socket(sockfd),
     m_schedule(scheduler),
     m_conn_status(connecting),
     m_cliaddr(cli)
 {
     m_conn_status = connected;
-    m_socket->socket_timeout_ = [this](RoutineSocket* socket){TimeOut(socket);};
+    m_socket->socket_timeout_ = [this](Socket* socket){TimeOut(socket);};
     m_schedule->AddTask([this](void*ptr){recvhandler();},nullptr);      //  注册recv handler
     m_schedule->AddSocketTimer(m_socket);                               //  注册超时事件
     INFO("Connection::Connection() , info: connect success ! peer addr : %s",cli.GetIPPort().c_str());
@@ -194,7 +194,7 @@ std::string Connection::StrIPPort()
     return m_cliaddr.GetIPPort();
 }
 
-void Connection::TimeOut(RoutineSocket* socket)
+void Connection::TimeOut(Socket* socket)
 {
     // 超时被调用,做超时处理
     // 网络层不做处理，交给上层处理超时的连接

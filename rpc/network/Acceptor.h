@@ -1,6 +1,5 @@
 #pragma once
 #include "Connection.h"
-#include "../Util/Type.h"
 #include "../shared/all.h"
 
 
@@ -39,13 +38,14 @@ public:
     
     /**
      * @brief 上层持有者,通过注册该回调来开始运行
-     * 
-     * @param conn 
-     * @param args 
+     *  (ps:我们希望使用万能引用,因此需要使用模板,但是又想要限定类型,
+     *  因此需要偏特化模板,所以使用 if_same_as )
+     * @param onconn 新连接建立时回调
+     * @param args  函数参数(保留，可能用到)
      */
-    template<typename Func,typename = yrpc::util::type::TypeIs<Func,OnConnectHandle>>
-    void setOnConnect(Func&& conn,void*args=nullptr)
-    { onconnection_ = conn; args_ = args;}
+    template<typename Func,if_same_as(Func,OnConnectHandle)>
+    void setOnConnect(Func&& onconn,void*args=nullptr)
+    { onconnection_ = onconn; args_ = args;}
 protected:
     /* 实际上处理连接事件的函数 */
     void listen_once();
@@ -55,7 +55,7 @@ protected:
     void ReleaseListenSocket();
 private:
     yrpc::coroutine::poller::Epoller* scheduler_;
-    RoutineSocket* listenfd_;
+    Socket* listenfd_;
     int port_;
     int fd_;
     std::atomic_bool close_;
