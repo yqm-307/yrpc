@@ -1,5 +1,8 @@
 #pragma once
-#include "ServerSingle.h"
+#include "../network/TcpServer.h"
+#include "../msg/servicemap.h"
+#include "./Service.h"
+#include "../Util/ThreadPool.h"
 #include "SessionManager.h"
 namespace yrpc::rpc
 {
@@ -59,9 +62,7 @@ public:
     void SetThreadPool(ThreadPool* pool);
 
 
-    void Start()
-    {while(!m_stop.load())std::this_thread::sleep_for(yrpc::util::clock::ms(100));}
-
+    void Start();
 
     void Stop()
     { m_stop.store(true); }
@@ -75,9 +76,9 @@ private:
 
 
 private:
-    Address         m_serv_addr;    // 服务器监听地址
-    ThreadPool*     m_pool;         // 线程池
-    std::atomic_bool    m_stop{false};  //
+    Address                     m_serv_addr;    // 服务器监听地址
+    ThreadPool*                 m_pool;         // 线程池
+    std::atomic_bool            m_stop{false};  //
 };
 
 // auto RpcServer::func = nullptr;   

@@ -1,19 +1,20 @@
-#include "../TypeList.h"
+#include "../Type.h"
 #include <iostream>
 
-using namespace yrpc::detail::type;
+using namespace yrpc::util::type;
 using namespace std;
 
 
+template<class T,typename = TypeIs<T,int>>
+int func1(T val)
+{
+    cout<< "int" <<endl;
+}
+
 int main()
 {
-    if(yrpc::detail::type::same_as<int,bool>)
-    {
-        printf("bad\n");
-    }
+    func1(1);
+    // func1(2.1); //编译不通过，模板参数推导失败
+    
 
-    if(yrpc::detail::type::same_as<int,int>)
-    {
-        printf("good\n");
-    }
 }

@@ -44,7 +44,7 @@ void test(timequeue& timer)
 int main()
 {
     timequeue timer(10ms);
-    printf("now %d:%d:%d:%d\n",hour(),minute(),second(),millisecond());
+    printf("now %ld:%ld:%ld:%ld\n",hour(),minute(),second(),millisecond());
     test(timer);
 }
 

@@ -5,6 +5,12 @@
 #include "../Util/Buffers.h"
 #include "../shared/ErrCode.h"
 
+// 收发超时
+#define SOCKET_TIME_OUT_MS 3000
+
+// 连接超时
+#define SOCKET_CONN_TIME_MS 5000
+
 namespace yrpc::detail::net
 {
 

@@ -22,7 +22,7 @@
 
 
 
-#include "TypeList.h"   // 泛型工具
+#include "Type.h"       // 模板类型工具
 #include "noncopyable.h"    
 #include "comparator.h" 
 

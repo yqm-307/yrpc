@@ -11,33 +11,49 @@ namespace yrpc::detail::net
 
 Acceptor::Acceptor(yrpc::coroutine::poller::Epoller* loop,int port,int socket_timeout_ms,int connect_timeout_ms)
     :scheduler_(loop),
+    port_(port),
     listenfd_(nullptr),
     close_(false),
+    onconnection_(nullptr),
     connect_timeout_ms_(connect_timeout_ms),
     socket_timeout_ms_(socket_timeout_ms)
 {
-    if( yrpc::socket::YRCreateListen(&fd_,port) < 0 )
-        ERROR("Acceptor::Acceptor() error , YRCreateListen call failed!");
     assert(loop!=nullptr);
     assert(fd_>=0);
-    this->CreateListenSocket();
-    //listenfd创建完成
-    scheduler_->AddTask([this](void*){listen();},nullptr);
+    Init();
 }
-
 
 Acceptor::~Acceptor()
 {//释放套接字资源和Socket内存
     this->ReleaseListenSocket();
 }
 
+void Acceptor::Init()
+{
+    if( yrpc::socket::YRCreateListen(&fd_,port_) < 0 )
+        ERROR("Acceptor::Acceptor() error , YRCreateListen call failed!");
+    CreateListenSocket();
+    //listenfd创建完成
+    // scheduler_->AddTask([this](void*){StartListen();},nullptr);
+}
 
-void Acceptor::listen()
+
+int Acceptor::StartListen()
+{
+    if (close_ != false)
+        return -1;
+    if (onconnection_ == nullptr)
+        return -2;
+    assert(this != nullptr);
+    scheduler_->AddTask([this](void*){ListenRunInLoop();},nullptr); // 注册监听任务
+    INFO("Acceptor::listen() , acceptor begin!");
+}
+
+
+void Acceptor::ListenRunInLoop()
 {
     while(!close_)
         listen_once();
-    //退出，关闭
-    INFO("Acceptor::listen() , acceptor closed!");
 }
 
 
@@ -88,13 +104,6 @@ void Acceptor::ReleaseListenSocket()
     if(fd_ < 0 )
         ERROR("Acceptor::RelaseListenSocket() error , listen socket fd = %d error\n",fd_);
     ::close(fd_);
-}
-
-void Acceptor::start_once()
-{
-    scheduler_->AddTask([this](void*){
-        this->listen_once();
-    });
 }
 
 

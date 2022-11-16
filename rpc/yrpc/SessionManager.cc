@@ -86,7 +86,7 @@ bool __YRPC_SessionManager::DelSession(const Address& id)
 void __YRPC_SessionManager::RunInMainLoop()
 {
     assert(m_main_acceptor != nullptr);
-    m_main_acceptor->listen();
+    m_main_acceptor->StartListen();
 }
 
 void __YRPC_SessionManager::RunInSubLoop(Epoller* lp)
@@ -215,7 +215,7 @@ void __YRPC_SessionManager::AsyncAccept(Address peer,RpcSession::DispatchCallbac
     if(m_main_acceptor != nullptr)
         delete m_main_acceptor;
     m_main_acceptor = new Acceptor(m_main_loop,peer.GetPort(),3000,5000);
-    m_main_acceptor->setOnConnect([](){});
+    // m_main_acceptor->setOnConnect([](){});
     m_main_loop->AddTask([this](void*){this->RunInMainLoop();});
 
 }
