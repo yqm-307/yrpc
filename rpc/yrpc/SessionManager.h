@@ -99,6 +99,51 @@ private:
         RpcSession::DispatchCallback    m_dispatch;
     };
 
+
+    /**
+     *  等待连接成功队列
+     */
+    struct ConnectWaitQueue_Impl
+    {
+        /**
+         * @brief 寻找是否有正在连接 key 的任务正在进行
+         * 
+         * @param key   正在进行中的连接任务的地址 
+         * @return auto 
+         */
+        auto Find(const Address &key)
+        {
+            auto id = AddressToID(key);
+            return m_map.find(id);
+        }
+
+        SessionID AddressToID(const Address&key)
+        {
+            auto str = key.GetIPPort();
+            std::string id(19, '0');
+            int j = 0;
+            for (int i = 0; i < str.size(); ++i)
+            {
+                if (str[i] >= '0' && str[i] <= '9')
+                {
+                    id[j++] = str[i];
+                }
+            }
+            return std::stoull(id);
+        }
+
+
+
+
+
+
+
+        std::map<SessionID,OnSession> m_map;
+    };
+
+
+
+
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
     Acceptor*           m_main_acceptor;    // listen 

@@ -42,7 +42,8 @@ public:
      * @param servaddr 服务端地址
      * @param onconn  连接成功时回调
      */
-    void AsyncConnect(Socket* socket,YAddress servaddr,OnConnectHandle&& onconn)
+    template<typename T,if_same_as(T,OnConnectHandle)>
+    void AsyncConnect(Socket* socket,YAddress servaddr,T&& onconn)
     {   
         scheduler_->AddTask([=](void*){onConnect(socket,servaddr,onconn);});
     }

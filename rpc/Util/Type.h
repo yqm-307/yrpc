@@ -43,6 +43,12 @@ using TypeIs = typename TypeIs_Detail<is_same_v<T,U>,U>::type;
     typename = yrpc::util::type::TypeIs<T,U>\
 
 
+/**
+ *  为了支持静态类型推断
+ *  lambda 强转 function，性能没问题，将lambda作为参数传递，接收方为万能引用即可
+ *  function支持移动语义
+ */
+#define functor( lambda ) std::function( lambda )
 
 
 

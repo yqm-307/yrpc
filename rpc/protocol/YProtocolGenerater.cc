@@ -26,8 +26,8 @@ YProtocolGenerater::YProtocolGenerater(MessagePtr req,uint32_t serviceid, YRPC_P
 YProtocolGenerater& YProtocolGenerater::operator=(const YProtocolGenerater &p)
 {
     m_protocol_head = p.m_protocol_head;
-    m_message = m_message;
-    m_prototype = m_prototype;
+    m_message = p.m_message;
+    m_prototype = p.m_prototype;
     return *this;
 }
 

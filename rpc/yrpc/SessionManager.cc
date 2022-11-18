@@ -144,7 +144,7 @@ bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
             // 初始化套接字，并注册回调。回调需要在完成连接之后，清除连接等待队列、更新SessionMap   &_connect_async_wait_queue,&_lock,
             Socket* socket = Connector::CreateSocket();
             
-            m_connector.AsyncConnect(socket,peer,[this](const errorcode& e,ConnectionPtr conn){
+            m_connector.AsyncConnect(socket,peer, functor([this](const errorcode& e,ConnectionPtr conn){
                 // 构造新的Session
                 if(e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
                 {
@@ -165,7 +165,7 @@ bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
                 {
                     /* todo 错误处理 */
                 }
-            });
+            }));
             ret = true;
         }
         else

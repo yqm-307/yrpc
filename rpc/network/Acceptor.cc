@@ -11,8 +11,8 @@ namespace yrpc::detail::net
 
 Acceptor::Acceptor(yrpc::coroutine::poller::Epoller* loop,int port,int socket_timeout_ms,int connect_timeout_ms)
     :scheduler_(loop),
-    port_(port),
     listenfd_(nullptr),
+    port_(port),
     close_(false),
     onconnection_(nullptr),
     connect_timeout_ms_(connect_timeout_ms),
@@ -44,9 +44,9 @@ int Acceptor::StartListen()
         return -1;
     if (onconnection_ == nullptr)
         return -2;
-    assert(this != nullptr);
     scheduler_->AddTask([this](void*){ListenRunInLoop();},nullptr); // 注册监听任务
     INFO("Acceptor::listen() , acceptor begin!");
+    return 0;
 }
 
 
