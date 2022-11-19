@@ -11,7 +11,8 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     m_connector(m_main_loop),
     m_sub_loop_size(Nthread-1),
     m_loop_latch(Nthread-1),
-    port(7912)
+    port(7912),
+    m_conn_queue(std::make_unique<ConnectWaitQueue_Impl>())
 {
     // 初始化 main eventloop，但是不运行
     m_main_thread = new std::thread([this](){
@@ -69,7 +70,7 @@ __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::
     return sessionptr;
 }
 
-bool __YRPC_SessionManager::DelSession(const Address& id)
+bool __YRPC_SessionManager::DelSession(const YAddress& id)
 {    
     lock_guard<Mutex> lock(m_mutex_sessions);
     auto its = m_sessions.find(AddressToID(id));
@@ -114,11 +115,9 @@ __YRPC_SessionManager *__YRPC_SessionManager::GetInstance(int n)
 }
 
 
-bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
+bool __YRPC_SessionManager::AsyncConnect(YAddress peer,OnSession onsession)
 {
     using namespace yrpc::detail::net;
-    static std::map<SessionID,OnSession> _connect_async_wait_queue;
-    static Mutex _lock;
 
 
 
@@ -135,45 +134,38 @@ bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
      */
     if( it == m_sessions.end() )
     {
-        lock_guard<Mutex> lock(_lock);
-        auto iter = _connect_async_wait_queue.find(id);
-        if(iter == _connect_async_wait_queue.end())
+        lock_guard<Mutex> lock(m_conn_queue->m_mutex);
+        Socket* socket = Connector::CreateSocket();
+        auto id = m_conn_queue->FindAndInsert(peer,onsession);
+        if( id < 0 )
         {
-            _connect_async_wait_queue.insert(std::make_pair(id,std::move(onsession)));
-
-            // 初始化套接字，并注册回调。回调需要在完成连接之后，清除连接等待队列、更新SessionMap   &_connect_async_wait_queue,&_lock,
-            Socket* socket = Connector::CreateSocket();
-            
-            m_connector.AsyncConnect(socket,peer, functor([this](const errorcode& e,ConnectionPtr conn){
+            ret = false;
+        }
+        else
+        {
+            m_connector.AsyncConnect(socket, peer, std::function([this](const errorcode &e, ConnectionPtr conn)
+            {
                 // 构造新的Session
                 if(e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
                 {
                     // 更新SessionMap
                     auto newSession = this->AddNewSession(conn);
                     {// clean 连接等待队列，处理回调任务
-                        auto it = _connect_async_wait_queue.find(AddressToID(conn->GetPeerAddress()));
-                        if (it == _connect_async_wait_queue.end())
-                        {
-                            DEBUG("线程安全问题");
-                        }
-                        // auto&& conncb_queue = it->second;
-                        it->second(newSession);
-                        _connect_async_wait_queue.erase(it);
+                        lock_guard<Mutex> lock(m_conn_queue->m_mutex);
+                        auto onsessfunc = this->m_conn_queue->FindAndRemove(conn->GetPeerAddress());
+                        if(onsessfunc != nullptr)
+                           onsessfunc(newSession);
+                        else
+                            ERROR("cannot find register func");
                     }
                 }
                 else
                 {
-                    /* todo 错误处理 */
-                }
+                    /* todo 网络连接失败错误处理 */
+                } 
             }));
             ret = true;
         }
-        else
-        {// 连接正在进行中
-            ret = false;
-        }
-
-
     }
     else
     {
@@ -184,7 +176,7 @@ bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
     return ret;
 }
 
-__YRPC_SessionManager::SessionID __YRPC_SessionManager::AddressToID(const Address& addr)
+__YRPC_SessionManager::SessionID __YRPC_SessionManager::AddressToID(const YAddress& addr)
 {
     auto str = addr.GetIPPort();
     std::string id(19,'0');
@@ -208,7 +200,7 @@ void __YRPC_SessionManager::OnConnect(Channel::ChannelPtr conn)
 
 
 
-void __YRPC_SessionManager::AsyncAccept(Address peer,RpcSession::DispatchCallback dspcb)
+void __YRPC_SessionManager::AsyncAccept(YAddress peer,RpcSession::DispatchCallback dspcb)
 {
     assert(!m_server.IsServiceSupplier());   // 不允许重注册！
     m_server.Init(dspcb);

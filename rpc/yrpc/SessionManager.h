@@ -23,7 +23,7 @@ private:
     typedef yrpc::detail::net::Acceptor         Acceptor;
     typedef yrpc::detail::net::ConnectionPtr    ConnPtr;
     typedef yrpc::util::lock::Mutex             Mutex;
-    typedef yrpc::detail::net::YAddress         Address;
+    typedef yrpc::detail::net::YAddress         YAddress;
     typedef yrpc::detail::net::Connector        Connector;
     // typedef std::unordered_map<std::string,SessionID>       AddressMap;
     // typedef std::pair<SessionID,SessionPtr>     Entry;
@@ -45,7 +45,7 @@ public:
      *      1、如果已经正在Connect中，则返回false
      *    删除还是一个完整的原子操作。好处就是可以通过id去索引 RpcClinet 注册的回调.
      */
-    bool AsyncConnect(Address peer,OnSession onsession);
+    bool AsyncConnect(YAddress peer,OnSession onsession);
 
     
     /**
@@ -53,7 +53,7 @@ public:
      * 
      * Todo : 被连接也要保存到SessionMap 
      */
-    void AsyncAccept(Address peer,RpcSession::DispatchCallback dspcb);
+    void AsyncAccept(YAddress peer,RpcSession::DispatchCallback dspcb);
 private:
     __YRPC_SessionManager(int Nthread);  
 
@@ -71,7 +71,7 @@ private:
     SessionID GetNewID()
     { return (++m_id_key); }
 
-    SessionID AddressToID(const Address&);
+    SessionID AddressToID(const YAddress&);
 private:
 
     /**
@@ -80,7 +80,7 @@ private:
     // 此操作线程安全: 添加一个新的Session 到 SessionMap 中
     SessionPtr AddNewSession(Channel::ConnPtr newconn);
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
-    bool DelSession(const Address&);
+    bool DelSession(const YAddress&);
 
 
     struct Service_Impl
@@ -105,19 +105,51 @@ private:
      */
     struct ConnectWaitQueue_Impl
     {
+        typedef std::unique_ptr<ConnectWaitQueue_Impl> Ptr;
+
         /**
          * @brief 寻找是否有正在连接 key 的任务正在进行
          * 
          * @param key   正在进行中的连接任务的地址 
          * @return auto 
          */
-        auto Find(const Address &key)
+        auto Find(const YAddress &key)
         {
             auto id = AddressToID(key);
             return m_map.find(id);
         }
 
-        SessionID AddressToID(const Address&key)
+        /**
+         * @brief 查找是否已经注册连接任务，如果没有注册则注册任务
+         * 
+         * @param addr  服务端地址
+         * @param func  回调函数
+         * @return int  如果尚未存在则插入并返回 ID，如果已经存在返回-1
+         */
+        template<typename OnSession>
+        uint64_t FindAndInsert(const YAddress& addr,OnSession&& func)
+        {
+            int ret = 0;
+            do
+            {
+                ret = AddressToID(addr);
+                auto it = m_map.find(ret);
+                if (it != m_map.end())
+                {
+                    ret = -1; // 已经存在
+                    break;
+                }
+                else
+                    m_map.insert(std::make_pair(ret, func));
+            } while (0);
+
+            return ret;
+        }
+
+        /**
+         * @brief 将 address 转化为唯一的SessionID并返回
+         */
+        SessionID AddressToID(const YAddress&key)
         {
             auto str = key.GetIPPort();
             std::string id(19, '0');
@@ -133,12 +165,27 @@ private:
         }
 
 
+        OnSession FindAndRemove(const YAddress& key)
+        {
+            FindAndRemove(AddressToID(key));
+        }
+
+
+        OnSession FindAndRemove(SessionID id)
+        {
+            auto it = m_map.find(id);
+            if(it == m_map.end())
+                return nullptr;
+            else
+                return it->second;
+        }
 
 
 
 
 
-        std::map<SessionID,OnSession> m_map;
+        std::map<SessionID,OnSession>   m_map;
+        Mutex                           m_mutex;
     };
 
 
@@ -168,8 +215,9 @@ private:
     std::atomic_bool    m_run;
 
     Service_Impl        m_server;
-    
 
+    ConnectWaitQueue_Impl::Ptr  m_conn_queue;
+    
     const int port;  
 };
 }
