@@ -3,21 +3,19 @@ project(libyrpc)
 #SET(CMAKE_BUILD_TYPE "Release")
 #工程名和工程语言
 enable_language(C CXX)
-# enable_language(C CXX ASM)
 
 #自定义变量 环境选项
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g -w")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g -Wall")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fno-rtti -std=c++17 -g -Wall")
+
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)   #可执行文件目录
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)      #库输出路径
 include_directories(
-    ${PROJECT_BINARY_DIR}
-    ${PROJECT_BINARY_DIR}/rpc
     ## 下面两个都 include ，为了兼容 vscode cmake tools
     ${PROJECT_BINARY_DIR}/rpc/proto     
     ${PROJECT_BINARY_DIR}/../rpc/proto
 )
-message( "这是主目录 :" ${PROJECT_BINARY_DIR} )
 add_definitions(-Dcmakebuild) 
 
 
@@ -58,7 +56,7 @@ set_source_files_properties(${MESSAGE_SRC} ${MESSAGE_HDRS} PROPERTIES GENERATED 
 
 file(GLOB SRC_FILE 
     rpc/YRoutine/*.cc
-    #${PROJECT_BINARY_DIR}/rpc/YRoutine/*.S
+    #${PROJECT_BINARY_DIR}/rpc/YRoutine/*.S  # 暂时没啥用了，安心用boost context
     rpc/Util/*.cc
     rpc/msg/*.cc
     rpc/network/*.cc
@@ -85,10 +83,6 @@ target_link_libraries(yrpc   ${PROTOBUF_LIBRARIES} boost_context pthread)
 install(TARGETS yrpc DESTINATION lib)
 
 install(FILES ${INCLUDE_FILE} DESTINATION include)
-
-# protoc 执行要先于rpc,因为rpc中有默认协议
-# add_subdirectory(message)
-
 
 
 add_subdirectory(rpc)

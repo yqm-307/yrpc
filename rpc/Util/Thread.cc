@@ -36,8 +36,7 @@ bool Thread::Start(std::function<ThreadStatus()> func)
     if(nullptr == func)
         return false;
     
-    _thread = std::thread([this,func]()->ThreadStatus{
-        ThreadStatus state = Running;
+    _thread = std::thread([this,func](){
 
         _running = true;    //运行中
         _run = true;        //运行控制位

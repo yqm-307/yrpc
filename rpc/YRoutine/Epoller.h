@@ -287,7 +287,7 @@ private:
     SuspendQueue                suspend_queue_;     //协程挂起队列
     PendingTaskQueue                   pending_tasks_;     //待处理任务
     Mutex                       m_lock;             // thread safe addtask
-    int                         max_size_;          //待处理任务队列长度
+    size_t                      max_size_;          //待处理任务队列长度
     detail::Scheduler           runtime_;           //协程调度
 
 

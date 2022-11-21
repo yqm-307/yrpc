@@ -45,7 +45,7 @@ public:
     template<typename T,if_same_as(T,OnConnectHandle)>
     void AsyncConnect(Socket* socket,YAddress servaddr,T&& onconn)
     {   
-        scheduler_->AddTask([=](void*){onConnect(socket,servaddr,onconn);});
+        scheduler_->AddTask([this,socket,servaddr,onconn](void*){onConnect(socket,servaddr,onconn);});
     }
 
     static Socket* CreateSocket();

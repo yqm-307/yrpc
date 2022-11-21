@@ -129,7 +129,7 @@ private:
         template<typename OnSession>
         uint64_t FindAndInsert(const YAddress& addr,OnSession&& func)
         {
-            int ret = 0;
+            SessionID ret = 0;
             do
             {
                 ret = AddressToID(addr);
@@ -167,7 +167,7 @@ private:
 
         OnSession FindAndRemove(const YAddress& key)
         {
-            FindAndRemove(AddressToID(key));
+            return FindAndRemove(AddressToID(key));
         }
 
 

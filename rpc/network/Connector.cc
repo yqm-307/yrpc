@@ -40,7 +40,7 @@ void Connector::onConnect(Socket* servfd_,const YAddress& servaddr_,OnConnectHan
     else
     {//成功建立新连接
         ConnectionPtr conn = std::make_shared<Connection>(scheduler_,servfd_,servaddr_);
-        if(onconnect_)
+        if(onconnect_ != nullptr)
         {
             e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OK);
             e.setinfo("Connector::connect() ,connet success peer %s",conn->StrIPPort().c_str());
