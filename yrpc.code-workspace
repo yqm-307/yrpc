@@ -64,7 +64,14 @@
 			"stdexcept": "cpp",
 			"cinttypes": "cpp",
 			"typeinfo": "cpp",
-			"cassert": "cpp"
+			"cassert": "cpp",
+			"charconv": "cpp",
+			"compare": "cpp",
+			"concepts": "cpp",
+			"list": "cpp",
+			"numbers": "cpp",
+			"semaphore": "cpp",
+			"stop_token": "cpp"
 		}
 	}
 }
