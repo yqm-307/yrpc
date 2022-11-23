@@ -16,7 +16,7 @@ Connector::~Connector()
 
 
 
-void Connector::onConnect(Socket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_)
+void Connector::onConnect(Socket* servfd_,const YAddress& servaddr_,const OnConnectHandle& onconnect_)
 {
     int n = yrpc::socket::YRConnect(*servfd_,servaddr_.getsockaddr(),servaddr_.getsocklen());
     int connerror=0;

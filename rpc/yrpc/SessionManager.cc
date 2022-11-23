@@ -11,8 +11,8 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     m_connector(m_main_loop),
     m_sub_loop_size(Nthread-1),
     m_loop_latch(Nthread-1),
-    port(7912),
-    m_conn_queue(std::make_unique<ConnectWaitQueue_Impl>())
+    m_conn_queue(std::make_unique<ConnectWaitQueue_Impl>()),
+    port(7912)
 {
     // 初始化 main eventloop，但是不运行
     m_main_thread = new std::thread([this](){
@@ -143,7 +143,7 @@ bool __YRPC_SessionManager::AsyncConnect(YAddress peer,OnSession onsession)
         }
         else
         {
-            m_connector.AsyncConnect(socket, peer, std::function([this](const errorcode &e, ConnectionPtr conn)
+            m_connector.AsyncConnect(socket, peer, functor([this](const errorcode &e, ConnectionPtr conn)
             {
                 // 构造新的Session
                 if(e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)

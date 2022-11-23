@@ -23,7 +23,7 @@ namespace yrpc::detail::net
  * 类似ECS那样，网络库本身不保存数据，数据层在 channel 、 session
  * 
 */
-class Connector
+class Connector:std::enable_shared_from_this<Connector>
 {
 public:
     /**
@@ -43,17 +43,26 @@ public:
      * @param onconn  连接成功时回调
      */
     template<typename T,if_same_as(T,OnConnectHandle)>
-    void AsyncConnect(Socket* socket,YAddress servaddr,T&& onconn)
+    void AsyncConnect(Socket* socket,YAddress servaddr,const T& onconn)
     {   
-        scheduler_->AddTask([this,socket,servaddr,onconn](void*){onConnect(socket,servaddr,onconn);});
+        auto this_ptr = shared_from_this();
+        scheduler_->AddTask([this_ptr,socket,servaddr,onconn](void*){
+            assert(this_ptr != nullptr);    // 意料之外的致命错误
+            this_ptr->onConnect(socket,servaddr,onconn);
+        });
     }
+    // template<typename T,if_same_as(T,OnConnectHandle)>
+    // void AsyncConnect(Socket* socket,YAddress servaddr,T&& onconn)
+    // {   
+    //     scheduler_->AddTask([this,socket,servaddr,onconn](void*){onConnect(socket,servaddr,onconn);});
+    // }
 
     static Socket* CreateSocket();
     static void DestorySocket(Socket*);
 
 protected:
-
-    void onConnect(Socket* servfd_,const YAddress& servaddr_,OnConnectHandle onconnect_);
+    
+    void onConnect(Socket* servfd_,const YAddress& servaddr_,const OnConnectHandle& onconnect_);
 private:
     yrpc::coroutine::poller::Epoller* scheduler_;
 
