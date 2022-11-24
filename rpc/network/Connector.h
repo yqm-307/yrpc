@@ -45,12 +45,13 @@ public:
     template<typename T,if_same_as(T,OnConnectHandle)>
     void AsyncConnect(Socket* socket,YAddress servaddr,const T& onconn)
     {   
-        auto this_ptr = shared_from_this();
-        scheduler_->AddTask([this_ptr,socket,servaddr,onconn](void*){
-            assert(this_ptr != nullptr);    // 意料之外的致命错误
-            this_ptr->onConnect(socket,servaddr,onconn);
+
+        scheduler_->AddTask([this,socket,servaddr,onconn](void*){
+            this->onConnect(socket,servaddr,onconn);
         });
     }
+
+
     // template<typename T,if_same_as(T,OnConnectHandle)>
     // void AsyncConnect(Socket* socket,YAddress servaddr,T&& onconn)
     // {   
@@ -61,7 +62,10 @@ public:
     static void DestorySocket(Socket*);
 
 protected:
-    
+    auto GetPtr()
+    {
+        return this->shared_from_this();
+    }
     void onConnect(Socket* servfd_,const YAddress& servaddr_,const OnConnectHandle& onconnect_);
 private:
     yrpc::coroutine::poller::Epoller* scheduler_;

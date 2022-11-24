@@ -207,7 +207,9 @@ void __YRPC_SessionManager::AsyncAccept(YAddress peer,RpcSession::DispatchCallba
     if(m_main_acceptor != nullptr)
         delete m_main_acceptor;
     m_main_acceptor = new Acceptor(m_main_loop,peer.GetPort(),3000,5000);
-    // m_main_acceptor->setOnConnect([](){});
+    m_main_acceptor->setOnConnect(functor([](const yrpc::detail::shared::errorcode&e,yrpc::detail::net::ConnectionPtr conn)->void{
+        INFO("OnConnect success!");
+    }),nullptr);
     m_main_loop->AddTask([this](void*){this->RunInMainLoop();});
 
 }

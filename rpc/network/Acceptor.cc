@@ -44,7 +44,7 @@ int Acceptor::StartListen()
         return -1;
     if (onconnection_ == nullptr)
         return -2;
-    scheduler_->AddTask([this](void*){ListenRunInLoop();},nullptr); // 注册监听任务
+    scheduler_->AddTask([this](void*){listen();},nullptr); // 注册监听任务
     INFO("Acceptor::listen() , acceptor begin!");
     return 0;
 }
@@ -53,14 +53,14 @@ int Acceptor::StartListen()
 void Acceptor::ListenRunInLoop()
 {
     while(!close_)
-        listen_once();
+        listen();
 }
 
 
 
-void Acceptor::listen_once()
+void Acceptor::listen()
 {
-    if (!close_)
+    while (!close_)
     {
         /*监听到新的socket连接，创建conn，并注册 协程任务*/
         struct sockaddr_in cliaddr;

@@ -48,7 +48,7 @@ public:
     { onconnection_ = onconn; args_ = args;}
 protected:
     /* 实际上处理连接事件的函数 */
-    void listen_once();
+    void listen();
     void Init();
     void ListenRunInLoop();
     void CreateListenSocket();
