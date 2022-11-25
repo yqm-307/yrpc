@@ -28,11 +28,12 @@ google::protobuf::Message* EchoHandle(std::any args)
 
 int main()
 {
-    yrpc::rpc::RpcServer server(12020,1,"RpcServer.log");
-    auto tp = new rpc::RpcServer::ThreadPool(4);
-    server.SetThreadPool(tp);
-    server.register_service<AddReq,AddRsp>("add",AddHandle);
-    server.register_service<EchoReq,EchoRsp>("Echo",EchoHandle);
-    server.Start();
+    auto sev = yrpc::rpc::RpcServer::GetInstance();
+    sev->SetAddress(yrpc::detail::net::YAddress(12020));
+    sev->SetThreadPool(2);
+
+    sev->register_service<AddReq,AddRsp>("add",AddHandle);
+    sev->register_service<EchoReq,EchoRsp>("Echo",EchoHandle);
+    sev->Start();
 }
 

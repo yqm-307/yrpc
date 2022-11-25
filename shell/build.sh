@@ -30,7 +30,7 @@ function main()
     # 创建目录
     if [ !  -d "../rpc/proto"  ]
     then
-        mkdir ../proto
+        mkdir ../rpc/proto
     fi
 
     getallprotofile

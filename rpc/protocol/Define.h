@@ -22,11 +22,11 @@ namespace yrpc::detail::protocol::define
     // yrpc 错误码
     enum YRPC_ErrCode : int32_t
     {
-        CALL_FATAL_OTHRE = 0,                   // 未知错误
-        CALL_FATAL_SERVICE_ID_IS_BAD    = 1,    //服务不存在或服务id错误
-        CALL_FATAL_SERVICE_MSG_IS_BAD   = 2,    // protobuf message 错误
-        CALL_FATAL_SERVICE_TIMEOUT      = 3,    // service call 超时
-        CALL_FATAL_SERVER_BUSY          = 4     //服务端拒绝调用，服务端繁忙
+        CALL_FATAL_OTHRE = 0,                   //  未知错误
+        CALL_FATAL_SERVICE_ID_IS_BAD    = 1,    //  服务不存在或服务id错误
+        CALL_FATAL_SERVICE_MSG_IS_BAD   = 2,    //  protobuf message 错误
+        CALL_FATAL_SERVICE_TIMEOUT      = 3,    //  service call 超时
+        CALL_FATAL_SERVER_BUSY          = 4     //  服务端拒绝调用，服务端繁忙
 
     };
 

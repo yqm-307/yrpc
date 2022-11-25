@@ -9,6 +9,5 @@
  * 
  */
 
-#include "service.h"        // 服务者
 #include "servicemap.h"     // 服务器服务列表
 #include "ProtocolFactory.h"// 协议中心

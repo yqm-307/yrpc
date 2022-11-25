@@ -12,8 +12,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)   #可执行文件目录
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)      #库输出路径
 include_directories(
     ## 下面两个都 include ，为了兼容 vscode cmake tools
-    ${PROJECT_BINARY_DIR}/rpc/proto     
-    ${PROJECT_BINARY_DIR}/../rpc/proto
+    ${PROJECT_BINARY_DIR}/rpc/proto     # 在主目录构建
+    ${PROJECT_BINARY_DIR}/../rpc/proto  
 )
 add_definitions(-Dcmakebuild) 
 

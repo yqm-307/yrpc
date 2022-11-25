@@ -14,12 +14,15 @@ public:
     explicit
     IPAddress(int port, int opt = INADDR_ANY);
     IPAddress() = default;
-    ~IPAddress(){};
+    virtual ~IPAddress(){};
+    IPAddress(IPAddress&&);
+    IPAddress(const IPAddress&);
 
+public:
     void set(std::string ip,int port);
     void set(sockaddr_in addr);
-    std::string GetIP() const;
-    int GetPort() const;
+    virtual std::string GetIP() const;
+    virtual int GetPort() const;
     const struct sockaddr* getsockaddr() const 
     {   return reinterpret_cast<const sockaddr*>(&_addr);}
     const socklen_t getsocklen() const
@@ -35,19 +38,22 @@ protected:
 
 
 
-class YAddress final:public IPAddress 
+class YAddress final : public IPAddress 
 {
 public:
     YAddress(std::string ip,int Port)
         :IPAddress(ip,Port),is_null(false)
     {
-
     }
+
     YAddress(int port,int opt = INADDR_ANY)
         :IPAddress(port,opt),is_null(false)
     {
-
     }
+
+    YAddress(YAddress&&);
+    YAddress(const YAddress&);
+    
     YAddress():is_null(true){}
     
     explicit operator bool() const
@@ -63,6 +69,8 @@ public:
         return !(*this == oth);
     }
     
+    YAddress& operator=(const YAddress& oth);
+    YAddress& operator=(YAddress&& oth);
 
 
 private:

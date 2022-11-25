@@ -77,3 +77,52 @@ std::string IPAddress::GetIPPort() const
 
     return _ip+":"+std::to_string(_port);
 }
+
+IPAddress::IPAddress(IPAddress &&addr)
+	:_addr(addr._addr),
+	_ip(std::move(addr._ip)),
+	_port(std::move(addr._port))
+{
+	// addr._addr;	// 懒得初始化了，感觉没必要，承诺用不到就行了
+	addr._port = -1;
+}
+
+IPAddress::IPAddress(const IPAddress&addr)
+	:_addr(addr._addr),
+	_ip(addr._ip),
+	_port(addr._port)
+{
+}
+
+
+
+YAddress::YAddress(YAddress&&addr)
+	:IPAddress(std::move(addr)),
+	is_null(addr.is_null)
+{
+	addr.is_null = true;
+}
+
+YAddress::YAddress(const YAddress&addr)
+	:IPAddress(addr),
+	is_null(addr.is_null)
+{
+}
+
+
+YAddress& YAddress::operator=(const YAddress& oth)
+{
+	this->_addr = oth._addr;
+	this->_ip = oth._ip;
+	this->_port = oth._port;
+	this->is_null = this->is_null;
+}
+
+YAddress& YAddress::operator=(YAddress&& oth)
+{
+	this->_addr = oth._addr;
+	this->_ip = std::move(oth._ip);
+	this->_port = oth._port;
+	this->is_null = this->is_null;
+	oth.is_null = true;	// 置空表示，移交所有权
+}

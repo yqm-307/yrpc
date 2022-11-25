@@ -194,7 +194,7 @@ int Logger::flushbuffer(int index)
     //如果当前缓冲区是已满的待处理缓冲区，则移动待处理下标
     if(index == _pendingwriteindex)
         _pendingwriteindex = _buffers[_pendingwriteindex].first;    //向后顺延
-        
+    
     return n==0;
 }
 
@@ -272,12 +272,10 @@ std::string yrpc::util::logger::format(const char* fmt, ...)
     char        data[1024];
     size_t      i = 0;
     va_list     ap;
-
+ 
     va_start(ap, fmt);
-    vsnprintf(data + i, 128 - i, fmt, ap);
+    vsnprintf(data + i, sizeof(data) - i, fmt, ap);
     va_end(ap);
-
+ 
     return std::string(data);
 }
-
-

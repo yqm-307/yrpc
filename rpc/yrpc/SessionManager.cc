@@ -39,6 +39,11 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
         m_loop_latch.down();
     }
 
+
+    // 注册负载均衡器
+    assert(m_main_acceptor != nullptr);
+    m_main_acceptor->setLoadBalancer(functor([this]()->auto {return this->LoadBalancer(); }));
+    
     INFO("__YRPC_SessionManager()  , info: SessionManager Init Success!");
     
 }
@@ -150,6 +155,7 @@ bool __YRPC_SessionManager::AsyncConnect(YAddress peer,OnSession onsession)
                 {
                     // 更新SessionMap
                     auto newSession = this->AddNewSession(conn);
+                    newSession->SetToServerCallback([this](const std::string& pck , SessionPtr ptr){ this->Dispatch(std::forward<const std::string>(pck),ptr); });
                     {// clean 连接等待队列，处理回调任务
                         lock_guard<Mutex> lock(m_conn_queue->m_mutex);
                         auto onsessfunc = this->m_conn_queue->FindAndRemove(conn->GetPeerAddress());
@@ -200,10 +206,8 @@ void __YRPC_SessionManager::OnConnect(Channel::ChannelPtr conn)
 
 
 
-void __YRPC_SessionManager::AsyncAccept(YAddress peer,RpcSession::DispatchCallback dspcb)
+void __YRPC_SessionManager::AsyncAccept(const YAddress& peer)
 {
-    assert(!m_server.IsServiceSupplier());   // 不允许重注册！
-    m_server.Init(dspcb);
     if(m_main_acceptor != nullptr)
         delete m_main_acceptor;
     m_main_acceptor = new Acceptor(m_main_loop,peer.GetPort(),3000,5000);
@@ -211,15 +215,16 @@ void __YRPC_SessionManager::AsyncAccept(YAddress peer,RpcSession::DispatchCallba
         INFO("OnConnect success!");
     }),nullptr);
     m_main_loop->AddTask([this](void*){this->RunInMainLoop();});
-
 }
 
+__YRPC_SessionManager::Epoller* __YRPC_SessionManager::LoadBalancer()
+{
+    return m_sub_loop[BalanceNext];
+}
 
-
-
-
-
-
-
+void __YRPC_SessionManager::Dispatch(const std::string &string, SessionPtr sess)
+{
+    yrpc::rpc::detail::Service_Base::GetInstance()->Dispatch(string, sess);
+}
 
 #undef BalanceNext

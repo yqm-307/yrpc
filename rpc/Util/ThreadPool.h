@@ -103,6 +103,7 @@ ThreadPool<TaskFunc>::ThreadPool(int thnum,int maxqueuesize,const ThreadInitCall
 		_threads(thnum,nullptr),
 		_run_num(thnum)
 	{
+		assert(thnum >= 0);
 		for(int i=0;i<_threadnum;++i)
 		{
 			_threads[i] = new Thread();

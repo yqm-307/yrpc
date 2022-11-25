@@ -44,21 +44,21 @@ int Acceptor::StartListen()
         return -1;
     if (onconnection_ == nullptr)
         return -2;
-    scheduler_->AddTask([this](void*){listen();},nullptr); // 注册监听任务
+    scheduler_->AddTask([this](void*){ListenInEvloop();},nullptr); // 注册监听任务
     INFO("Acceptor::listen() , acceptor begin!");
     return 0;
 }
 
 
-void Acceptor::ListenRunInLoop()
-{
-    while(!close_)
-        listen();
-}
+// void Acceptor::ListenRunInLoop()
+// {
+//     while(!close_)
+//         listen();
+// }
 
 
 
-void Acceptor::listen()
+void Acceptor::ListenInEvloop()
 {
     while (!close_)
     {
@@ -77,13 +77,13 @@ void Acceptor::listen()
             else
                 e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_FAIL);
             //创建socket
+
             Socket* clisock = scheduler_->CreateSocket(newfd,socket_timeout_ms_,connect_timeout_ms_);  //普通连接
             YAddress cli(inet_ntoa(cliaddr.sin_addr),ntohs(len));
-            Connection::ConnectionPtr newconn = std::make_shared<Connection>(scheduler_,clisock,std::move(cli));
+            auto evloop = ( lber_ == nullptr ) ? scheduler_ : lber_();  // 走不走负载均衡，不走就默认在当前线程进行IO
+            Connection::ConnectionPtr newconn = std::make_shared<Connection>(evloop,clisock,std::move(cli));
             //handle(newconn->GetPtr());  //不对，这里如果让出cpu， 程序就会阻塞到执行完，还是要runinloop 在epoll中执行
-            scheduler_->AddTask([this,newconn,e](void*){
-                this->onconnection_(e,newconn);
-            },args_);
+            this->onconnection_(e,newconn); // onconnection 不可以是长时间阻塞的调用
         }
     }
 }

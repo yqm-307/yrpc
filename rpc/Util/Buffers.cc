@@ -12,7 +12,7 @@ const int Buffer::initSize=4096;// 初始长度
 
 
 Buffer::Buffer(size_t size)
-    :bytes(size + headSize),
+    :bytes(size),
     _readIndex(headSize),
     _writeIndex(headSize),
     reservedBytes(HeaderBytes)
@@ -24,6 +24,17 @@ Buffer::Buffer(const Buffer& rval)
     _readIndex(rval._readIndex),
     _writeIndex(rval._writeIndex)
 {}
+
+Buffer::Buffer(Buffer&& rval)
+    :reservedBytes(HeaderBytes),
+    _readIndex(rval._readIndex),
+    _writeIndex(rval._writeIndex)
+{
+    bytes = std::move(rval.bytes);
+    rval.InitAll();
+}
+
+
 
 
 //可读 = 已写 - 已读

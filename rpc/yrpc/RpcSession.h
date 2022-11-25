@@ -53,7 +53,9 @@ public:
         const yrpc::detail::shared::errorcode&,
         const yrpc::detail::net::YAddress&)>   SessionCloseCallback;
 
-    typedef std::function<void(std::string&,SessionPtr)>    DispatchCallback;
+    typedef std::function<void(const std::string&,SessionPtr)>    DispatchCallback_Server;
+    typedef std::function<void(std::string&,SessionPtr)>    DispatchCallback_Client;
+
 public:
     RpcSession(ChannelPtr channel,Epoller* loop);
     ~RpcSession(){}
@@ -76,10 +78,10 @@ public:
     size_t Append(const Buffer& bytearray);
 
     // 将 pck 给 client
-    void SetToClientCallback(DispatchCallback cb)
+    void SetToClientCallback(DispatchCallback_Client cb)
     { m_stoclient = cb; }
     // 将 pck 给 server
-    void SetToServerCallback(DispatchCallback cb)
+    void SetToServerCallback(DispatchCallback_Server cb)
     { m_ctoserver = cb; }
 
 
@@ -159,8 +161,8 @@ private:
     std::atomic_bool    m_can_used; // session是否可用
 
     SessionCloseCallback    m_closecb{nullptr};
-    DispatchCallback        m_stoclient{nullptr};
-    DispatchCallback        m_ctoserver{nullptr};
+    DispatchCallback_Client        m_stoclient{nullptr};
+    DispatchCallback_Server        m_ctoserver{nullptr};
     Channel::TimeOutCallback m_timeoutcallback{nullptr};
 
 };

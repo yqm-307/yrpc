@@ -1,6 +1,7 @@
 // #include "RpcClientSession.h"
 #include "RpcSession.h"
 #include "../network/all.h"
+#include "ServiceModule.h"
 #include <vector>
 #include <map>
 
@@ -51,9 +52,11 @@ public:
     /**
      * 创建服务器地址，设置服务提供方处理函数
      * 
+     * 负载均衡: 轮转法
+     * 
      * Todo : 被连接也要保存到SessionMap 
      */
-    void AsyncAccept(YAddress peer,RpcSession::DispatchCallback dspcb);
+    void AsyncAccept(const YAddress& peer);
 private:
     __YRPC_SessionManager(int Nthread);  
 
@@ -72,6 +75,8 @@ private:
     { return (++m_id_key); }
 
     SessionID AddressToID(const YAddress&);
+
+    Epoller* LoadBalancer();
 private:
 
     /**
@@ -82,22 +87,7 @@ private:
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(const YAddress&);
 
-
-    struct Service_Impl
-    {
-        
-        void Init(RpcSession::DispatchCallback callback)
-        { m_dispatch = callback;  m_started.store(true); }
-
-        bool IsServiceSupplier()
-        { return m_started.load(); }
-
-        auto GetDispatchHandler()
-        { return m_dispatch; }
-
-        std::atomic_bool                m_started{false};
-        RpcSession::DispatchCallback    m_dispatch;
-    };
+    void Dispatch(const std::string &string, SessionPtr sess);
 
 
     /**
@@ -198,7 +188,7 @@ private:
     Epoller**           m_sub_loop;         // sub eventloop
     const size_t        m_sub_loop_size;    // sub eventloop 数量
     CountDownLatch      m_loop_latch;       // 
-    int                 m_balance;          // 新连接轮转负载
+    std::atomic_int     m_balance;          // 新连接轮转负载，跨线程（需要atomic，还需要考虑 memory order）
     
     std::thread*        m_main_thread;      
     std::thread**       m_sub_threads;   
@@ -213,8 +203,6 @@ private:
 
     // main loop 控制
     std::atomic_bool    m_run;
-
-    Service_Impl        m_server;
 
     ConnectWaitQueue_Impl::Ptr  m_conn_queue;
     

@@ -45,7 +45,7 @@ void RpcClient::OnConnect(SessionPtr newsession)
     {
         m_session = newsession;
         assert(m_session != nullptr);
-        m_session->SetToClientCallback([this](std::string& pck,RpcSession::SessionPtr){OnPckHandler(pck);});
+        m_session->SetToClientCallback(functor([this](std::string& pck,RpcSession::SessionPtr){OnPckHandler(pck);}));
     }
     else
     {

@@ -8,7 +8,9 @@ namespace yrpc::detail::net
 
 class Acceptor
 {
-    typedef yrpc::detail::shared::errorcode errorcode;
+    typedef yrpc::coroutine::poller::Epoller    Epoller;
+    typedef std::function<Epoller*()>           LoadBalancer;
+    typedef yrpc::detail::shared::errorcode     errorcode;
 public:
     /**
      * @brief Construct a new Acceptor object
@@ -18,7 +20,7 @@ public:
      * @param socket_timeout_ms socket超时时间 
      * @param connect_timeout_ms 连接超时时间 
      */
-    Acceptor(yrpc::coroutine::poller::Epoller* loop,int port,int socket_timeout_ms = SOCKET_TIME_OUT_MS,int connect_timeout_ms = SOCKET_CONN_TIME_MS);
+    Acceptor(Epoller* loop,int port,int socket_timeout_ms = SOCKET_TIME_OUT_MS,int connect_timeout_ms = SOCKET_CONN_TIME_MS);
     ~Acceptor();
 
 
@@ -46,24 +48,29 @@ public:
     template<typename Func,if_same_as(Func,OnConnectHandle)>
     void setOnConnect(Func&& onconn,void*args=nullptr)
     { onconnection_ = onconn; args_ = args;}
+
+    template<typename LBer,if_same_as(LBer,LoadBalancer)>
+    void setLoadBalancer(const LBer& lber)
+    { lber_ = lber; }
 protected:
     /* 实际上处理连接事件的函数 */
-    void listen();
+    void ListenInEvloop();
     void Init();
-    void ListenRunInLoop();
+    // void ListenRunInLoop();
     void CreateListenSocket();
     void ReleaseListenSocket();
 private:
-    yrpc::coroutine::poller::Epoller* scheduler_;
-    Socket* listenfd_;
-    int port_;
-    int fd_;
-    std::atomic_bool close_;
-    OnConnectHandle onconnection_;  //handle 去解析rpc request ，调用请求的服务
-    void* args_;
+    Epoller*        scheduler_;   // listen所在的evloop
+    LoadBalancer    lber_;   
+    Socket*         listenfd_;
+    int             port_;
+    int             fd_;
+    std::atomic_bool    close_;
+    OnConnectHandle     onconnection_;  //handle 去解析rpc request ，调用请求的服务
+    void*               args_;
 
-    int connect_timeout_ms_;
-    int socket_timeout_ms_;
+    int                 connect_timeout_ms_;
+    int                 socket_timeout_ms_;
 };  
 
 }

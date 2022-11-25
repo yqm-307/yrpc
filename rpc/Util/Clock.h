@@ -23,12 +23,12 @@ namespace yrpc::util::clock
 using namespace std::chrono_literals;
 typedef std::chrono::system_clock system_clock;
 
-typedef std::chrono::nanoseconds ns;
-typedef std::chrono::milliseconds ms;
-typedef std::chrono::microseconds us;
-typedef std::chrono::seconds s;
-typedef std::chrono::minutes min;
-typedef std::chrono::hours h;
+typedef std::chrono::nanoseconds    ns;
+typedef std::chrono::milliseconds   ms;
+typedef std::chrono::microseconds   us;
+typedef std::chrono::seconds        s;
+typedef std::chrono::minutes        min;
+typedef std::chrono::hours          h;
 
 
 /**

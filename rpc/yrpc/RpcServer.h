@@ -14,7 +14,7 @@ namespace yrpc::rpc
  * 2、ThreadPool配置: 是否设置线程池异步执行任务，如果不设置，默认为io线程内执行。
  * 3、
  */
-class RpcServer
+class RpcServer : yrpc::util::noncopyable::noncopyable
 {
     typedef yrpc::detail::ServiceFunc           ServiceFunc;
     typedef yrpc::detail::CodecFunc             CodecFunc;
@@ -29,9 +29,29 @@ public:
     typedef yrpc::util::threadpool::ThreadPool<WorkFunc> ThreadPool;
 
 
-    RpcServer(int port,size_t threadnum,std::string logpath = "server.log",int socket_timeout_ms=5000,int connect_timeout_ms=3000,int stack_size=64*1024,int maxqueue=65535);
-    RpcServer()=delete;
+    RpcServer();
     ~RpcServer();
+
+    /**
+     * @brief 设置服务器地址，一定要在启动前设置(移动语义)
+     */
+    void SetAddress(Address&&);
+    /**
+     * @brief 设置服务器地址，一定要在启动前设置
+     */
+    void SetAddress(const Address&);
+
+
+
+    static RpcServer* GetInstance()
+    {
+        static RpcServer* _istn;
+        if (_istn == nullptr)
+            _istn = new RpcServer();
+        return _istn; 
+    }
+
+
 
     /**
      * @brief 注册Service到ServiceManager
@@ -59,7 +79,7 @@ public:
     void register_service(std::string name,int id,ServiceFunc func);
 
 
-    void SetThreadPool(ThreadPool* pool);
+    void SetThreadPool(int nth);
 
 
     void Start();
@@ -67,17 +87,11 @@ public:
     void Stop()
     { m_stop.store(true); }
 private:    
-    /**
-     * @brief 处理一个完整的package
-     *  
-     * @param bytearray 一个完整的package的bytearray
-     */
-    void Dispatch(std::string& bytearray,detail::RpcSession::SessionPtr sess);
+
 
 
 private:
     Address                     m_serv_addr;    // 服务器监听地址
-    ThreadPool*                 m_pool;         // 线程池
     std::atomic_bool            m_stop{false};  //
 };
 

@@ -11,14 +11,19 @@
 #include <algorithm>
 #include <any>
 #include <vector>
-#include "./service.h"
+#include <iostream>
+#include <google/protobuf/any.h>
 #include "../Util/noncopyable.h"
 
 namespace yrpc::detail
 {
 
 
-
+enum CodeOrService : uint32_t
+{
+    Codec = 0,
+    Service = 1
+};
 
 typedef std::function<void(bool, std::any &, std::any &)> CodecFunc;    // typedef std::function<void(bool, std::any &, std::any &)>  -- codec函数
 typedef std::function<google::protobuf::Message*(const std::any /*req*/)> ServiceFunc; // std::function<google::protobuf::Message*(const std::any /*req*/)>  -- 服务处理函数

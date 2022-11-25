@@ -22,6 +22,9 @@ public:
 
     Buffer(const Buffer& rval);
 
+    Buffer(Buffer&& rval);
+
+
     //常见值的读写
     /* 与buffer交换数据 */
     void swap(Buffer& buffer);          //拷贝一个buffer
