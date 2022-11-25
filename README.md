@@ -71,3 +71,32 @@
 ### 三、测试
 
 ​	目前正在重构，请看doc下面之前版本的测试。
+
+
+
+### 四、项目构建
+
+目前依赖于bbt、boost1.7x、protobuf3.10x
+
+google protobuf 项目地址:
+
+[protocolbuffers/protobuf: Protocol Buffers - Google's data interchange format (github.com)](https://github.com/protocolbuffers/protobuf)
+
+boost 项目地址:
+
+[Boost C++ Libraries](https://www.boost.org/)
+
+bbtools 项目地址:
+
+[yqm-307/biangbiangtools: linux下常用工具库 (github.com)](https://github.com/yqm-307/biangbiangtools)
+
+
+
+安装好依赖之后，执行下列命令：
+
+> git clone https://github.com/yqm-307/yrpc.git
+>
+> cd yrpc/shell
+>
+> ./build.sh
+
