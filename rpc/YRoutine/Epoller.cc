@@ -65,6 +65,7 @@ bool Epoller::Loop()
 
     struct epoll_event* events = (struct epoll_event*)malloc(sizeof(struct epoll_event)*max_size_);
 
+    // while((forever_) || (!runtime_.Empty()))
     while((forever_) || (!runtime_.Empty()))
     {
         int nevents = ::epoll_wait(epollfd_,events,max_size_,2);   
@@ -88,7 +89,7 @@ bool Epoller::Loop()
             DoPendingList();    //处理积压的待处理任务
             DoTimeoutTask();    //处理超时任务
         }
-        else if(errno == EINTR)
+        else if(errno != EINTR)
         {
             ResumeAll(EpollREvent_Error);
             ERROR("Epoller::Loop() error!");
