@@ -36,22 +36,6 @@ LIST(APPEND PROTO_FLAGS -I${CMAKE_CURRENT_SOURCE_DIR})
 #获取需要编译的proto文件
 file(GLOB MSG_PROTOS ${CMAKE_BINARY_DIR}/message/*.proto)   # 搜索所有proto文件
 
-# message("proto搜索结果："  ${MSG_PROTOS})
-set(MESSAGE_SRC "")
-set(MESSAGE_HDRS "")
-foreach(msg ${MSG_PROTOS})
-        get_filename_component(FIL_WE ${msg} NAME_WE)
-
-        list(APPEND MESSAGE_SRC "${PROJECT_BINARY_DIR}/rpc/proto${FIL_WE}.pb.cc")
-        list(APPEND MESSAGE_HDRS "${PROJECT_BINARY_DIR}/rpc/proto${FIL_WE}.pb.h")
-        
-        # 生成源码
-        execute_process(
-            COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} ${PROTO_FLAGS} --cpp_out=${DST_DIR}  ${msg}
-            )
-        message(${msg})
-endforeach()
-set_source_files_properties(${MESSAGE_SRC} ${MESSAGE_HDRS} PROPERTIES GENERATED TRUE)
 
 
 file(GLOB SRC_FILE 
