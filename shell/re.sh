@@ -1,5 +1,7 @@
-## 测试用,可删除
+##
+## 只编译
+##
 
-
-    cd .. && cmake .
-    make -j4
+cd ../build
+cmake ..
+make -j4
