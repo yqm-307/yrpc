@@ -13,6 +13,7 @@ typedef std::shared_ptr<Message>    MessagePtr;
 
 int main()
 {   
+    yrpc::util::logger::Logger::GetInstance("clit.log");
 
     rpc::RpcClient client("127.0.0.1",12020);
     bool flag = true;
@@ -35,14 +36,15 @@ int main()
             client.Call(std::move(call));
             // client.Call();
             while(flag){
-                std::this_thread::sleep_for(std::chrono::microseconds(200));
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                printf("not return!\n");
             }
             break;
         }
         else
             printf("尚未成功!\n");
     }
-
+    printf("over!\n");
     std::shared_ptr<AddReq> req;
     MessagePtr p = req;
 

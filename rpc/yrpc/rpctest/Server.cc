@@ -28,9 +28,10 @@ google::protobuf::Message* EchoHandle(std::any args)
 
 int main()
 {
+    yrpc::util::logger::Logger::GetInstance("sevr.log");
     auto sev = yrpc::rpc::RpcServer::GetInstance();
     sev->SetAddress(yrpc::detail::net::YAddress(12020));
-    sev->SetThreadPool(2);
+    sev->SetThreadPool(0);
 
     sev->register_service<AddReq,AddRsp>("add",AddHandle);
     sev->register_service<EchoReq,EchoRsp>("Echo",EchoHandle);

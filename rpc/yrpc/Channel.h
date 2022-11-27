@@ -87,8 +87,10 @@ public:
 
 
 public:
+
+
     void SetRecvCallback(RecvCallback cb)  
-    { m_recvcallback = cb; }
+    { m_recvcallback = cb;  }
     void SetSendCallback(SendCallback cb)
     { m_sendcallback = cb; }
     void SetErrorCallback(ErrorCallback cb)
@@ -97,6 +99,11 @@ public:
     { m_closecallback = cb; }
     void SetTimeOutCallback(TimeOutCallback cb)
     { m_timeoutcallback = cb; }
+
+    /**
+     *  刷新部分callback 到 connection 中,并注册io协程
+     */
+    void UpdateAllCallbackAndRunInEvloop();
     static ChannelPtr Create(ConnPtr conn,Epoller* ep);
 
 

@@ -10,9 +10,17 @@ RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
     m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
     m_can_used(true)
 {
-    InitFunc();
+    // InitFunc();
 }
 
+RpcSession::~RpcSession()
+{
+    if( !IsClosed() )
+    {
+        Close();
+    }
+    INFO("");
+}
 
 
 
@@ -117,6 +125,13 @@ void RpcSession::InitFunc()
     });
 
 }
+
+void RpcSession::UpdataAllCallbackAndRunInEvloop()
+{
+    InitFunc();
+    m_channel->UpdateAllCallbackAndRunInEvloop();    
+}
+
 
 void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
 {

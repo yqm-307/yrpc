@@ -16,14 +16,17 @@ namespace yrpc::rpc::detail
  *  2、熔断
  *  3、拒绝
  *  4、服务处理错误
+ * 
+ *  Service_Base 是全局单例，是 yrpc 最基础的协议处理机制（兜底的）
+ *  除了系统定义的，
+ * 
+ *  Service_Base 中的 service handle 不会注册在 ServiceMap中。可以理解为这里的Dispatch相当于
+ *  过滤器一般，将正常被用户定义的协议传递给用户，用户没有自定义处理程序的，走yrpc的处理流程
  */
 
 class Service_Base
 {   
     typedef yrpc::detail::protocol::define::YRPC_ErrCode RPC_ERRCODE;
-
-
-
 
     typedef yrpc::detail::ServiceMap ServiceMap;
     typedef yrpc::rpc::detail::RpcSession   RpcSession;
@@ -48,7 +51,7 @@ public:
      * @brief 初始化本地服务,如果不初始化本地服务。则此进程仅被视为
      * 服务调用方，不会被视为服务提供方
      */
-    void InitLocalService();
+    // void InitLocalService();
 private:
 
     /////////////////////////

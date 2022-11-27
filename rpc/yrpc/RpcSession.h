@@ -58,7 +58,7 @@ public:
 
 public:
     RpcSession(ChannelPtr channel,Epoller* loop);
-    ~RpcSession(){}
+    ~RpcSession();
 
 
 
@@ -104,6 +104,8 @@ public:
     void SetTimeOutFunc(Channel::TimeOutCallback f)
     { m_timeoutcallback = f; }
 
+
+    void UpdataAllCallbackAndRunInEvloop();
     
     
 private:

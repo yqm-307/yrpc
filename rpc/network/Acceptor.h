@@ -46,7 +46,7 @@ public:
      * @param args  函数参数(保留，可能用到)
      */
     template<typename Func,if_same_as(Func,OnConnectHandle)>
-    void setOnConnect(Func&& onconn,void*args=nullptr)
+    void setOnAccept(Func&& onconn,void*args=nullptr)
     { onconnection_ = onconn; args_ = args;}
 
     template<typename LBer,if_same_as(LBer,LoadBalancer)>

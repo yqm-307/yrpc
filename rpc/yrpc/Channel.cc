@@ -41,7 +41,6 @@ void Channel::SendInitFunc(const errorcode&e,size_t len)
 Channel::Channel()
     :m_conn(nullptr)
 {
-    InitFunc();
 }
 
 Channel::Channel(ConnPtr newconn,Epoller* ep)
@@ -49,7 +48,6 @@ Channel::Channel(ConnPtr newconn,Epoller* ep)
     m_conn(newconn)
 {
     assert(m_eventloop != nullptr);
-    InitFunc();
     DEBUG("Channel::Channel(), info: construction channel peer:{ip:port} = {%s}",
             newconn->StrIPPort().c_str());
 }
@@ -127,6 +125,8 @@ void Channel::InitFunc()
     m_conn->setOnTimeoutCallback([this](){
         this->m_timeoutcallback();
     });
+
+    m_conn->RunInEvLoop();
 }
 
 
@@ -135,6 +135,13 @@ Channel::ChannelPtr Channel::Create(ConnPtr conn,Epoller* ep)
 {
     return std::make_shared<Channel>(conn,ep);
 }
+
+
+void Channel::UpdateAllCallbackAndRunInEvloop()
+{
+    InitFunc();
+}
+
 
 void Channel::EpollerSend(const char *data, size_t len)
 {

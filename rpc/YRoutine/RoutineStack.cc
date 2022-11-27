@@ -86,7 +86,8 @@ RoutineStack::RoutineStack(const size_t init_stack_size_,const bool memory_prote
         assert(stack_ != nullptr);    
 
         //内存段加锁
-        int ret = mprotect(stack_,pagesize,PROT_NONE);
+        /*int ret =*/ mprotect(stack_,pagesize,PROT_NONE);
+        /* todo 考虑内存申请失败 */
         if(mprotect(stack_,pagesize,PROT_NONE) < 0){
             SYS_LOG("%s , errno : %d",__FUNCTION__)
         }

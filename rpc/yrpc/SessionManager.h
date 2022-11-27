@@ -26,6 +26,8 @@ private:
     typedef yrpc::util::lock::Mutex             Mutex;
     typedef yrpc::detail::net::YAddress         YAddress;
     typedef yrpc::detail::net::Connector        Connector;
+    typedef yrpc::detail::net::errorcode        errorcode;
+    typedef yrpc::detail::net::ConnectionPtr    ConnectionPtr;
     // typedef std::unordered_map<std::string,SessionID>       AddressMap;
     // typedef std::pair<SessionID,SessionPtr>     Entry;
     typedef std::unordered_map<SessionID,SessionPtr>   SessionMap;
@@ -66,10 +68,13 @@ private:
     void RunInMainLoop();
     // 运行在 sub loop 中的，只做io、协议解析
     void RunInSubLoop(Epoller*);
-    // 被连接后,
-    // void OnAccept(Channel::ChannelPtr,void*);
-    // 连接建立
-    void OnConnect(Channel::ChannelPtr);
+    
+    
+    // 被连接后
+    void OnAccept(const errorcode &e, ConnectionPtr conn);
+    void OnConnect(const errorcode &e, ConnectionPtr conn);
+    
+
     // 注意这是线程不安全的,获取一个新的session uid
     SessionID GetNewID()
     { return (++m_id_key); }
@@ -82,7 +87,7 @@ private:
     /**
      * 建立新连接多阶段操作
      */
-    // 此操作线程安全: 添加一个新的Session 到 SessionMap 中
+    // thread unsafe: 添加一个新的Session 到 SessionMap 中
     SessionPtr AddNewSession(Channel::ConnPtr newconn);
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(const YAddress&);

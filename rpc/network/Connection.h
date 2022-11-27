@@ -87,8 +87,8 @@ public:
     void setOnTimeoutCallback(OnTimeoutCallback cb);
 
 
-    // 设置完回调一定要更新
-    void update();
+    // 初始化并设置完成所有选项，需要注册协程到evloop
+    void RunInEvLoop();
 
     /**
      * @brief 
@@ -132,7 +132,7 @@ protected:
     void initclosehandler(ConnectionPtr conn)
     { DEBUG("client :%s , info: connection close!",conn->StrIPPort().c_str()); }
 
-    void recvhandler();
+    void RunInEvloop();
 
     void TimeOut(Socket* socket);
 protected:
@@ -140,7 +140,7 @@ protected:
     Socket*          m_socket;    
     yrpc::coroutine::poller::Epoller* m_schedule;    //由拥有者赋予
     
-    CONN_STATUS             m_conn_status;
+    volatile CONN_STATUS             m_conn_status;
     YAddress                m_cliaddr;
 
     bool                    m_Reading;

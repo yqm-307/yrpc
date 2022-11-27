@@ -145,12 +145,12 @@ private:
 std::string format(const char* fmt, ...);
 
 
-#define TRACE(fmt, ...)     yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_TRACE, yrpc::util::logger::format(fmt,##__VA_ARGS__))
-#define DEBUG(fmt, ...)     yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_DEBUG, yrpc::util::logger::format(fmt,##__VA_ARGS__))
-#define INFO(fmt, ...)      yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_INFO,  yrpc::util::logger::format(fmt,##__VA_ARGS__))
-#define WARN(fmt, ...)      yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_WARN,  yrpc::util::logger::format(fmt,##__VA_ARGS__))
-#define ERROR(fmt, ...)     yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_ERROR, yrpc::util::logger::format(fmt,##__VA_ARGS__))
-#define FATAL(fmt, ...)     yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_FATAL, yrpc::util::logger::format(fmt,##__VA_ARGS__))
+#define TRACE(fmt, ...)     yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_TRACE, yrpc::util::logger::format(yrpc::util::logger::format("[%s:%d] %s",__func__,__LINE__,fmt).c_str(),##__VA_ARGS__))
+#define DEBUG(fmt, ...)     yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_DEBUG, yrpc::util::logger::format(yrpc::util::logger::format("[%s:%d] %s",__func__,__LINE__,fmt).c_str(),##__VA_ARGS__))
+#define INFO(fmt, ...)      yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_INFO,  yrpc::util::logger::format(yrpc::util::logger::format("[%s:%d] %s",__func__,__LINE__,fmt).c_str(),##__VA_ARGS__))
+#define WARN(fmt, ...)      yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_WARN,  yrpc::util::logger::format(yrpc::util::logger::format("[%s:%d] %s",__func__,__LINE__,fmt).c_str(),##__VA_ARGS__))
+#define ERROR(fmt, ...)     yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_ERROR, yrpc::util::logger::format(yrpc::util::logger::format("[%s:%d] %s",__func__,__LINE__,fmt).c_str(),##__VA_ARGS__))
+#define FATAL(fmt, ...)     yrpc::util::logger::Logger::GetInstance()->Log(yrpc::util::logger::LOG_FATAL, yrpc::util::logger::format(yrpc::util::logger::format("[%s:%d] %s",__func__,__LINE__,fmt).c_str(),##__VA_ARGS__))
 
 
 

@@ -6,9 +6,12 @@ using namespace yrpc::rpc::detail;
 
 
 Service_Base::Service_Base(bool b,int n)
-    :m_pool(std::make_unique<ThreadPool>(n,65535)),
-    m_canToService(b)
+    :m_canToService(b)
 {
+    if ( n <= 0)
+        m_pool = nullptr;
+    else
+        m_pool = std::make_unique<ThreadPool>(n,65535);
 }
 
 Service_Base::~Service_Base()
@@ -86,10 +89,15 @@ std::string Service_Base::DoErrHandler(RPC_ERRCODE type,const std::string& info)
 
 Service_Base* Service_Base::GetInstance(bool open,int ths)
 {
+
     static Service_Base* ptr = nullptr;
+
     if(ptr == nullptr)
     {
-        ptr = new Service_Base(open,ths);
+        if (ths <= 0)
+            ptr = new Service_Base(open,0);
+        else
+            ptr = new Service_Base(open,ths);
     }
     return ptr;
 }

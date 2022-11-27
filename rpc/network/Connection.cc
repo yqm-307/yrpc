@@ -11,7 +11,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
 {
     m_conn_status = connected;
     m_socket->socket_timeout_ = [this](Socket* socket){TimeOut(socket);};
-    m_schedule->AddTask([this](void*ptr){recvhandler();},nullptr);      //  注册recv handler
+    // m_schedule->AddTask([this](void*ptr){RunInEvloop();},nullptr);      //  注册recv handler
     m_schedule->AddSocketTimer(m_socket);                               //  注册超时事件
     INFO("Connection::Connection() , info: connect success ! peer addr : %s",cli.GetIPPort().c_str());
 }
@@ -115,7 +115,7 @@ void runhandle()
 }
 
 
-void Connection::recvhandler()
+void Connection::RunInEvloop()
 {
 
     yrpc::util::buffer::Buffer buffer;
@@ -124,7 +124,7 @@ void Connection::recvhandler()
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
 
-    while(m_conn_status)
+    while(m_conn_status == connected)
     {
         memset(array,'\0',sizeof(buffer));
         int n = recv(array,sizeof(buffer));
@@ -153,7 +153,7 @@ Connection::ConnectionPtr Connection::GetPtr()
 void Connection::setOnRecvCallback(OnRecvHandle cb)
 {
     m_onrecv = cb;
-    update();
+    // update();
 }
 
 void Connection::setOnCloseCallback(ConnCloseHandle cb)
@@ -167,10 +167,10 @@ void Connection::setOnTimeoutCallback(OnTimeoutCallback cb)
 }
 
 
-void Connection::update()
+void Connection::RunInEvLoop()
 {
     m_schedule->AddTask([this](void *)
-                       { recvhandler(); },
+                       { RunInEvloop(); },
                        nullptr);
 }
 
