@@ -21,14 +21,17 @@ namespace yrpc::detail
 
 enum CodeOrService : uint32_t
 {
-    Codec = 0,
-    Service = 1
+    EnCode = 0, // 将arg1(Message*)序列化到arg2(string)
+    Decode = 1, // arg2(Message)是解析结果，arg1(string)是参数
 };
 
-typedef std::function<void(bool, std::any &, std::any &)> CodecFunc;    // typedef std::function<void(bool, std::any &, std::any &)>  -- codec函数
-typedef std::function<google::protobuf::Message*(const std::any /*req*/)> ServiceFunc; // std::function<google::protobuf::Message*(const std::any /*req*/)>  -- 服务处理函数
-
 typedef std::shared_ptr<google::protobuf::Message> ProtoMsgPtr; // std::shared_ptr<protobuf::message*>  -- 包装裸指针
+
+typedef std::function<void(ProtoMsgPtr)>    SendPacketFunc;
+
+typedef std::function<void(bool, ProtoMsgPtr &, std::string_view &)> CodecFunc;    // typedef std::function<void(bool, std::any &, std::any &)>  -- codec函数
+typedef std::function<void(const ProtoMsgPtr/*req*/,SendPacketFunc&&)> ServiceFunc; // std::function<google::protobuf::Message*(const std::any /*req*/)>  -- 服务处理函数
+
 typedef std::pair<ServiceFunc, CodecFunc> ServiceHandles;       // std::pair<ServiceFunc, CodecFunc>    -- service handler函数和codec函数
 
 
@@ -61,9 +64,9 @@ public:
      * @param code service codec handlers
      * @return uint32_t 返回 service id，service id 等于 0 说明错误
      */
-    uint32_t insert(std::string name, ServiceFunc service ,CodecFunc code);
+    uint32_t insert(std::string name, const ServiceFunc& service ,const CodecFunc& code);
 
-    uint32_t insert(std::string name, uint32_t id, ServiceFunc service ,CodecFunc code);
+    uint32_t insert(std::string name, uint32_t id,const ServiceFunc& service ,const CodecFunc& code);
     
 
     /**

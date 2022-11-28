@@ -91,6 +91,13 @@ public:
         return t->AppendToString(&bytes);
     }
 
+    template<class MsgType,class Str>
+    static bool Serialize(std::shared_ptr<google::protobuf::Message> msg,Str&& bytes)
+    {
+        // std::shared_ptr<MsgType> t = static_cast<std::shared_ptr<MsgType>>(msg);
+        return msg->AppendToString(&bytes);
+    }
+
 
 };
 

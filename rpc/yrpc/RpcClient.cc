@@ -1,5 +1,5 @@
 #include "RpcClient.h"
-
+#include <algorithm>
 
 namespace yrpc::rpc
 {
@@ -26,6 +26,7 @@ RpcClient::RpcClient(yrpc::detail::net::YAddress servaddr_)
 
 RpcClient::~RpcClient()
 {
+    m_callmap.clear();
     
 }
 
@@ -64,12 +65,13 @@ void RpcClient::OnPckHandler(std::string&/*字节流*/ pck)
         ERROR("RpcClient::OnPckHandler() , info: cann`t find package id");
     }
     it->second->SetResult(rsl);     //设置结果
+    m_callmap.erase(it);
 }
 
 
 
 
-int RpcClient::Call(detail::CallObj::Ptr&& call)
+int RpcClient::Call(detail::CallObj::Ptr call)
 {
     yrpc::util::lock::lock_guard<Mutex> lock(m_mutex);
     auto res = m_callmap.insert(std::make_pair(call->GetID(),call));

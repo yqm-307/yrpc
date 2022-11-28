@@ -28,7 +28,7 @@ public:
      * @param std::string_view(const)   入参 bytes 是 yrpc protocol 原始比特流
      * @return std::string 
      */
-    static std::string Service(const std::string_view& bytes);
+    [[maybe_unused]] static std::string Service(const std::string_view& bytes);
 
 
     

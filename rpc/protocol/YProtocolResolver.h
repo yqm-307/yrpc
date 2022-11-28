@@ -83,6 +83,10 @@ public:
      */
     bool IsEmpty()
     { return m_bytes.size() == 0; }
+
+
+    const ProtocolHead& GetProtocolHead() const
+    { return m_protocol_head; }
 protected:
     void ParseHead();
 

@@ -69,7 +69,7 @@ public:
      * @param call 调用
      * @return int 
      */
-    int Call(detail::CallObj::Ptr&& call);
+    int Call(detail::CallObj::Ptr call);
 
 private:
     /**

@@ -33,8 +33,7 @@ int main()
                 printf("async call :  %s\n",result->str().c_str());
                 flag = false;
             });
-            client.Call(std::move(call));
-            // client.Call();
+            client.Call(call);
             while(flag){
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 printf("not return!\n");
@@ -45,7 +44,4 @@ int main()
             printf("尚未成功!\n");
     }
     printf("over!\n");
-    std::shared_ptr<AddReq> req;
-    MessagePtr p = req;
-
 }

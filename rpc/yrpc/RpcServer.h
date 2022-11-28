@@ -4,6 +4,7 @@
 #include "./Service.h"
 #include "../Util/ThreadPool.h"
 #include "SessionManager.h"
+#include "../msg/ProtocolFactory.h"
 namespace yrpc::rpc
 {
 
@@ -20,6 +21,8 @@ class RpcServer : yrpc::util::noncopyable::noncopyable
     typedef yrpc::detail::CodecFunc             CodecFunc;
     typedef std::function<void()>               WorkFunc;
     typedef yrpc::detail::net::YAddress         Address;
+    typedef google::protobuf::Message           Message;
+    typedef std::shared_ptr<Message>            MessagePtr;
 
     template <class Req>
     using ReqPtr = std::shared_ptr<Req>;
@@ -105,16 +108,21 @@ private:
 template<class ParamPackType,class ReturnPackType>
 void RpcServer::register_service(std::string name,ServiceFunc func)
 {
+    // 一、注册service handler 和 decode、encode
     uint32_t ret = yrpc::detail::ServiceMap::GetInstance()->insert(name,func,
     /*解析：字节流转化为message对象。 序列化：message对象转化为字节流*/
-    [](bool is_parse,std::any& arg1,std::any& arg2){
+    [](bool is_parse,MessagePtr& packet,std::string_view& bytes){
         if(is_parse)
-            arg2 = yrpc::detail::Codec::ParseToMessage<ParamPackType>(std::any_cast<std::string_view&>(arg1));
+            packet = yrpc::detail::Codec::ParseToMessage<ParamPackType>(bytes);
         else //序列化
         {
-            yrpc::detail::Codec::Serialize<ReturnPackType>(std::any_cast<google::protobuf::Message*>(arg1),std::any_cast<std::string&>(arg2));
+            yrpc::detail::Codec::Serialize<ReturnPackType>(packet,std::string(bytes.data(),bytes.size()));
         }
     });
+
+    // 二、注册 req 、rsp 到protocol packet 工厂
+    // yrpc::rpc::ProtocolFactroy::GetInstance()->Insert();
+
     assert(ret >= 0);   //服务注册失败，大概率注册时导致的服务名冲突
 }
 

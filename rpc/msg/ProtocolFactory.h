@@ -5,6 +5,7 @@
 #include <memory>
 #include <initializer_list>
 #include "../Util/noncopyable.h"
+#include "../Util/Assert.h"
 #include "../proto/yrpc_core_protocol/c2s.pb.h"
 #include "../proto/yrpc_core_protocol/s2c.pb.h"
 #include <google/protobuf/any.h>
@@ -13,7 +14,17 @@ namespace yrpc::rpc
 {
 typedef std::function<std::shared_ptr<google::protobuf::Message>()> CreateFunc;
 
-#define YRPC_PROTO_REGISTER( ProtoID , ProtoType )  { ProtoID , []()->std::shared_ptr<google::protobuf::Message>{return std::make_shared<ProtoType>();}}
+#define YRPC_PROTO_REGISTER( ProtoID , ProtoType )  { ProtoID , \
+    []()->std::shared_ptr<google::protobuf::Message> \
+    { \
+        return std::make_shared<ProtoType>(); \
+    } \
+}
+
+
+
+
+
 
 class ProtocolFactroy : yrpc::util::noncopyable::noncopyable
 {
@@ -29,17 +40,25 @@ public:
         return m_instance;
     }
 
-    void Insert(std::initializer_list<std::pair<ProtoID,CreateFunc>> args)
+    bool Insert(std::initializer_list<std::pair<ProtoID,CreateFunc>> args)
     {
+        bool ret{true};
         for(auto a: args)
         {
-            m_cfactory.insert(a);
+            auto result = m_cfactory.insert(a);
+            if (!result.second)
+            {
+                ret = false;
+                break;
+            }
         }
+        return ret;
     }
 
-    void Insert(std::pair<ProtoID,CreateFunc>& pair)
+    bool Insert(std::pair<ProtoID,CreateFunc>& pair)
     {
-        m_cfactory.insert(pair);
+        auto result = m_cfactory.insert(pair);
+        return result.second;
     }
 
 

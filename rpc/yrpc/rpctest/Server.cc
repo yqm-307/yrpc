@@ -1,29 +1,31 @@
 #include "../RpcServer.h"
 #include "../../proto/test_protocol/AddAndStr.pb.h"
 // #include "AddAndStr.pb.h"
+#include <memory>
 using namespace yrpc;
 using namespace yrpc::util;
+typedef std::function<void(std::shared_ptr<google::protobuf::Message>)> SendPacket;
+typedef std::shared_ptr<google::protobuf::Message> MessagePtr;
 
 
-google::protobuf::Message* AddHandle(std::any args)
+
+void AddHandle(MessagePtr args,SendPacket&& onsend)
 {
-    auto ptr = std::any_cast<std::shared_ptr<AddReq>>(args);
-    AddReq* req = (AddReq*)(ptr.get());
+    std::shared_ptr<AddReq> req = std::static_pointer_cast<AddReq>(args);
     int rval =  req->a();
     int lval = req->b();
-    auto rsp = new AddRsp();
+    auto rsp = std::make_shared<AddRsp>();
     rsp->set_result(rval+lval);
-    return rsp;
+    onsend(rsp);
 }
 
-google::protobuf::Message* EchoHandle(std::any args)
+void EchoHandle(const MessagePtr args,SendPacket&& onsend)
 {
-    auto ptr = std::any_cast<std::shared_ptr<EchoReq>>(args);
-    EchoReq * req = (EchoReq*)(ptr.get());
+    const std::shared_ptr<EchoReq> req = std::static_pointer_cast<EchoReq>(args);
     std::string str = req->str();
-    auto rsp = new EchoRsp();
+    auto rsp = std::make_shared<EchoRsp>();
     rsp->set_str(str);
-    return rsp;
+    onsend(rsp);
 }
 
 int main()

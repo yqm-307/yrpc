@@ -34,6 +34,7 @@ class CallObj
     typedef yrpc::util::lock::Mutex         Mutex;
     typedef yrpc::detail::protocol::YProtocolGenerater  Generater;  // 存储 request 并提供序列化
     typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化
+    typedef yrpc::detail::protocol::define::YRPC_PROTOCOL   YRPC_PROTOCOL;
     typedef yrpc::rpc::detail::RPC_CALL_TYPE    TYPE;
 public:
     typedef std::shared_ptr<CallObj>        Ptr;
@@ -49,10 +50,10 @@ public:
     TYPE GetResult(MessagePtr);
 
     template<typename MsgType>
-    static Ptr Create(std::shared_ptr<MsgType>,int,uint32_t,CallResultFunc=nullptr);
+    static Ptr Create(std::shared_ptr<MsgType>,int,uint32_t,YRPC_PROTOCOL,CallResultFunc=nullptr);
     
     
-    CallObj(MessagePtr ptr,int id,uint32_t sid,CallResultFunc func=nullptr);
+    CallObj(MessagePtr ptr,int id,uint32_t sid,YRPC_PROTOCOL type,CallResultFunc func=nullptr);
 private:
     CallObj() = delete;
 
@@ -78,6 +79,7 @@ private:
     std::string     m_rsq_bytearray;
     int             m_type_id;  // 类型id
     uint32_t        m_service_id;   // 服务名
+    YRPC_PROTOCOL m_call_type{YRPC_PROTOCOL::type_YRPC_PROTOCOL_Done};
     const CallResultFunc    m_callback; // 异步调用
     Sem_t           m_cond_t; // 通知用户完成
     Mutex           m_lock;
@@ -88,9 +90,9 @@ private:
 
 
 template <typename MsgType>
-CallObj::Ptr CallObj::Create(std::shared_ptr<MsgType> ptr,int id,uint32_t name,CallResultFunc func)
+CallObj::Ptr CallObj::Create(std::shared_ptr<MsgType> ptr,int id,uint32_t name,YRPC_PROTOCOL type,CallResultFunc func)
 {
-    return std::make_shared<CallObj>(std::static_pointer_cast<Message>(ptr),id,name,func);
+    return std::make_shared<CallObj>(std::static_pointer_cast<Message>(ptr),id,name,type,func);
 }
 
 

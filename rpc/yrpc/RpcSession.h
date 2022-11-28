@@ -18,7 +18,7 @@ class SessionManager;
  * 4、从属epoll就是 m 个连接在一个epoll里面，就是协程了。
  * 5、buffer 就设置在Session里面吧
  */
-class RpcSession : std::enable_shared_from_this<RpcSession>
+class RpcSession : public std::enable_shared_from_this<RpcSession>
 {
     friend SessionManager;
     
@@ -98,6 +98,7 @@ public:
     static SessionPtr Create(ChannelPtr channel,Epoller* ep)
     { return std::make_shared<RpcSession>(channel,ep); }
 
+    const Channel::Address& GetPeerAddress();
         
     void SetCloseFunc(SessionCloseCallback f)
     { m_closecb = f; }  

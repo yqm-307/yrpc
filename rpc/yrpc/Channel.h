@@ -36,7 +36,7 @@ public:
     typedef std::function<void()>                                         TimeOutCallback;
     typedef std::shared_ptr<Channel>                        ChannelPtr;
     typedef yrpc::util::lock::Mutex                         Mutex;
-    
+    typedef yrpc::detail::net::YAddress                     Address;
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
     enum ChannelStatus : int32_t

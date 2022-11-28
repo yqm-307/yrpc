@@ -119,16 +119,16 @@ void Connection::RunInEvloop()
 {
 
     yrpc::util::buffer::Buffer buffer;
-
+    const int init_buffsize{4096};
     char* array = new char[4096];
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
 
     while(m_conn_status == connected)
     {
-        memset(array,'\0',sizeof(buffer));
-        int n = recv(array,sizeof(buffer));
-        buffer.WriteString(array);        
+        memset(array,'\0',init_buffsize);
+        int n = recv(array,init_buffsize);
+        buffer.WriteString(array,n);        
         if(n > 0) 
         {
             e.setcode(yrpc::detail::shared::ERR_NETWORK_RECV_OK);

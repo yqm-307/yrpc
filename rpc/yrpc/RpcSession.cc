@@ -58,7 +58,10 @@ void RpcSession::ProtocolMultiplexing()
             Protocol proto;
             proto.data = m_input_buffer.GetAPck();
             if (proto.data.size() == 0)
-                DEBUG("RpcSession::ProtocolMultiplexing(), info: GetAPck error!");
+            {
+                DEBUG("GetAPck error!");
+                continue;
+            }
             yrpc::detail::protocol::YProtocolResolver resolver(proto.data);
             if ( resolver.GetProtoType() < type_YRPC_PROTOCOL_CS_LIMIT )
             {// c2s 请求
@@ -138,6 +141,7 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
     // 将数据保存到Buffer里
     if(e.err() == yrpc::detail::shared::ERR_NETWORK_RECV_OK)    // 正常接收
     {
+        DEBUG(" recv successfully! %d bytes",buff.DataSize());
         lock_guard<Mutex> lock(m_input_mutex);
         Input(buff.peek(),buff.ReadableBytes());
         ProtocolMultiplexing();     // 进行一次协议解析        
@@ -236,4 +240,9 @@ void RpcSession::NoneServerHandler()
 void RpcSession::NoneClientHandler()
 {
 
+}
+
+const Channel::Address& RpcSession::GetPeerAddress()
+{
+    return m_channel->GetConnInfo()->GetPeerAddress();
 }

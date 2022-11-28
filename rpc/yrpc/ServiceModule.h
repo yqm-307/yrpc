@@ -27,13 +27,15 @@ namespace yrpc::rpc::detail
 class Service_Base
 {   
     typedef yrpc::detail::protocol::define::YRPC_ErrCode RPC_ERRCODE;
+    typedef yrpc::detail::protocol::define::YRPC_PROTOCOL   YRPC_PROTOCOL;
 
-    typedef yrpc::detail::ServiceMap ServiceMap;
-    typedef yrpc::rpc::detail::RpcSession   RpcSession;
-    typedef std::shared_ptr<RpcSession>     RpcSessionPtr;
-    typedef yrpc::detail::protocol::YProtocolGenerater  Generater;
-    typedef yrpc::detail::protocol::YProtocolResolver   Resolver;
+    typedef std::shared_ptr<RpcSession>                     RpcSessionPtr;
+    typedef std::shared_ptr<google::protobuf::Message>      MessagePtr;
+    typedef yrpc::detail::ServiceMap                        ServiceMap;
+    typedef yrpc::detail::protocol::YProtocolGenerater      Generater;
+    typedef yrpc::detail::protocol::YProtocolResolver       Resolver;
     typedef yrpc::util::threadpool::ThreadPool<std::function<void()>> ThreadPool;
+    typedef yrpc::detail::protocol::ProtocolHead            ProtocolHead;
 public:
     Service_Base(bool,int);
     ~Service_Base();
@@ -47,6 +49,8 @@ public:
      */
     void Dispatch(const std::string& ,RpcSessionPtr);
 
+    void SendPacket(RpcSessionPtr,MessagePtr,const ProtocolHead&,YRPC_PROTOCOL);
+
     /**
      * @brief 初始化本地服务,如果不初始化本地服务。则此进程仅被视为
      * 服务调用方，不会被视为服务提供方
@@ -57,7 +61,7 @@ private:
     /////////////////////////
     ////// 错误处理函数///////
     /////////////////////////
-    std::string DoErrHandler(RPC_ERRCODE,const std::string& info = "");
+    MessagePtr DoErrHandler(RPC_ERRCODE,const std::string& info = "");
 
 private:
     // servicemap 单例

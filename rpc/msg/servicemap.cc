@@ -22,7 +22,7 @@ ServiceMap::~ServiceMap()
     }
 }
 
-uint32_t ServiceMap::insert(std::string name, ServiceFunc service,CodecFunc code)
+uint32_t ServiceMap::insert(std::string name,const ServiceFunc& service,const CodecFunc& code)
 {
     if(NameToId_.find(name) != NameToId_.end())
     {//服务名冲突
@@ -39,7 +39,7 @@ uint32_t ServiceMap::insert(std::string name, ServiceFunc service,CodecFunc code
     return ret;
 }
 
-uint32_t ServiceMap::insert(std::string name, uint32_t id, ServiceFunc service ,CodecFunc code)
+uint32_t ServiceMap::insert(std::string name, uint32_t id,const ServiceFunc& service ,const CodecFunc& code)
 {
     if(NameToId_.find(name) != NameToId_.end())
     {

@@ -26,6 +26,7 @@ public:
 
     // 库自用的service id 为0  
     YProtocolGenerater(MessagePtr req,uint32_t serviceid,YRPC_PROTOCOL prototype);
+    YProtocolGenerater(MessagePtr req,const ProtocolHead& head,YRPC_PROTOCOL prototype);
 
     virtual ~YProtocolGenerater(){}    
 
@@ -62,7 +63,7 @@ public:
      * @param type YRPC_PROTOCOL 枚举值
      */
     void SetProtoType(YRPC_PROTOCOL type)
-    { m_prototype = type; }
+    { m_protocol_head.m_type = type; }
 
 
 
@@ -105,18 +106,8 @@ public:
 
 
 
-    /**
-     * @brief 创建一个 Request 对象
-     * 
-     * @param ProtobufRsp proto 
-     * @return Ptr 智能指针 
-     */
-    static Ptr Create(YRPC_PROTOCOL type,uint32_t sid,MessagePtr proto = nullptr)
-    { return std::make_shared<YProtocolGenerater>(proto,sid,type); }
-
 protected:
     mutable ProtocolHead m_protocol_head;           //协议头
-    YRPC_PROTOCOL m_prototype;
     MessagePtr m_message;
 };    
 

@@ -4,9 +4,16 @@ using namespace yrpc::detail::protocol;
 
 YProtocolGenerater::YProtocolGenerater(const YProtocolGenerater &p)
     :m_protocol_head(p.m_protocol_head),
-    m_prototype(p.m_prototype),
     m_message(p.m_message)
 {
+}
+
+
+YProtocolGenerater::YProtocolGenerater(MessagePtr req,const ProtocolHead& head,YRPC_PROTOCOL prototype)
+    :m_protocol_head(head),
+    m_message(req)
+{
+    m_protocol_head.m_type = prototype;
 }
 
 // YProtocolGenerater::YProtocolGenerater()
@@ -15,10 +22,10 @@ YProtocolGenerater::YProtocolGenerater(const YProtocolGenerater &p)
 // }
 
 YProtocolGenerater::YProtocolGenerater(MessagePtr req,uint32_t serviceid, YRPC_PROTOCOL prototype)
-    : m_prototype(prototype),
-      m_message(req)
+    : m_message(req)
 {
     m_protocol_head.m_serviceid = serviceid;
+    m_protocol_head.m_type = prototype;
     assert(m_message);
 }
 
@@ -27,7 +34,6 @@ YProtocolGenerater& YProtocolGenerater::operator=(const YProtocolGenerater &p)
 {
     m_protocol_head = p.m_protocol_head;
     m_message = p.m_message;
-    m_prototype = p.m_prototype;
     return *this;
 }
 

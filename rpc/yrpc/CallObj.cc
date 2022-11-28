@@ -2,14 +2,15 @@
 
 using namespace yrpc::rpc::detail;
 
-CallObj::CallObj(MessagePtr ptr, int id,uint32_t sid, CallResultFunc func)
+CallObj::CallObj(MessagePtr ptr, int id,uint32_t sid,YRPC_PROTOCOL type, CallResultFunc func)
     : m_req(ptr, sid,yrpc::detail::protocol::define::type_C2S_RPC_CALL_REQ),
       m_type_id(id),
       m_service_id(sid),
+      m_call_type(type),
       m_callback(func)
 {
     // 危险操作，临时使用原始指针
-    yrpc::detail::protocol::YProtocolGenerater generater(ptr,m_service_id, yrpc::detail::protocol::define::type_C2S_RPC_CALL_REQ);
+    yrpc::detail::protocol::YProtocolGenerater generater(ptr,m_service_id, m_call_type);
     generater.ToByteArray(m_req_bytearray);
 }
 
