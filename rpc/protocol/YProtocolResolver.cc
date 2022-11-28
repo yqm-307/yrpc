@@ -14,7 +14,8 @@ YProtocolResolver::YProtocolResolver(std::string_view bytes):m_bytes(bytes)
 
 YProtocolResolver::YProtocolResolver(const YProtocolResolver &p)
     :m_protocol_head(p.m_protocol_head),
-    m_prototype(p.m_prototype)
+    // m_prototype(p.m_prototype)
+    m_bytes(p.m_bytes)
 {
 }
 
@@ -24,6 +25,12 @@ YProtocolResolver::~YProtocolResolver()
 {
 }
 
+
+YProtocolResolver::YProtocolResolver(YProtocolResolver&& rval)
+    :m_protocol_head(std::move(rval.m_protocol_head)),
+    m_bytes(std::move(rval.m_bytes))
+{
+}
 
 
 bool YProtocolResolver::ToProtoMsg(MessagePtr message) const
@@ -37,3 +44,20 @@ void YProtocolResolver::ParseHead()
 {
     m_protocol_head.DeCode(m_bytes.c_str());
 }
+
+
+
+YProtocolResolver &YProtocolResolver::operator=(YProtocolResolver&& rval)
+{
+    m_protocol_head = std::move(rval.m_protocol_head);
+    m_bytes = std::move(rval.m_bytes);
+}
+
+
+
+YProtocolResolver &YProtocolResolver::operator=(const YProtocolResolver& rval)
+{
+    m_protocol_head = rval.m_protocol_head;
+    m_bytes = rval.m_bytes;
+}
+

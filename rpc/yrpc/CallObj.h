@@ -74,9 +74,9 @@ private:
 private:
     // Message*        m_message;  // 数据部分   
     Generater       m_req;
-    std::string     m_req_bytearray;
+    // std::string     m_req_bytearray;
     Resolver        m_rsp;
-    std::string     m_rsq_bytearray;
+    // std::string     m_rsq_bytearray;
     int             m_type_id;  // 类型id
     uint32_t        m_service_id;   // 服务名
     YRPC_PROTOCOL m_call_type{YRPC_PROTOCOL::type_YRPC_PROTOCOL_Done};

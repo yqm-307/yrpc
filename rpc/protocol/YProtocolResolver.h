@@ -21,11 +21,12 @@ public:
     
     YProtocolResolver(std::string_view bytes);
     YProtocolResolver(){};
-
     YProtocolResolver(const YProtocolResolver& p);
-
     virtual ~YProtocolResolver();
 
+    YProtocolResolver(YProtocolResolver&& rval);
+    YProtocolResolver &operator=(YProtocolResolver&& rval);
+    YProtocolResolver &operator=(const YProtocolResolver& rval);
 
     /**
      * @brief 解析出协议对象
@@ -93,7 +94,7 @@ protected:
 protected:
     // 32位长
     ProtocolHead        m_protocol_head;   //协议头
-    YRPC_PROTOCOL       m_prototype;
+    // YRPC_PROTOCOL       m_prototype;
     std::string         m_bytes;
 };   
 

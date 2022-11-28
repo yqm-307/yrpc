@@ -10,14 +10,14 @@ CallObj::CallObj(MessagePtr ptr, int id,uint32_t sid,YRPC_PROTOCOL type, CallRes
       m_callback(func)
 {
     // 危险操作，临时使用原始指针
-    yrpc::detail::protocol::YProtocolGenerater generater(ptr,m_service_id, m_call_type);
-    generater.ToByteArray(m_req_bytearray);
+    // yrpc::detail::protocol::YProtocolGenerater generater(ptr,m_service_id, m_call_type);
+    // generater.ToByteArray(m_req_bytearray);
 }
 
 void CallObj::SetResult(const std::string_view &view)
 {
-    Resolver res(view);
-    SetResult(res);
+    m_rsp = std::move(Resolver(view));
+    SetResult(m_rsp);
 }
 
 void CallObj::SetResult(const Resolver &res)

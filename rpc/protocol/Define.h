@@ -158,6 +158,8 @@ struct ProtocolHead
         : m_length(len), m_type(type),m_serviceid(sid) ,m_id(id) {}
     ProtocolHead(const ProtocolHead &p) 
         : m_length(p.m_length), m_type(p.m_type), m_serviceid(p.m_serviceid) , m_id(p.m_id) {}
+    ProtocolHead(ProtocolHead&& p)
+    { *this = std::move(p); }
     ~ProtocolHead() {}
 
     ProtocolHead &operator=(const ProtocolHead &p)
@@ -166,6 +168,16 @@ struct ProtocolHead
         m_length = p.m_length;
         m_serviceid = p.m_serviceid;
         m_id = p.m_id;
+        return *this;
+    }
+
+    ProtocolHead &operator=(ProtocolHead&& p)
+    {
+        m_type = p.m_type;
+        m_length = p.m_length;
+        m_serviceid = p.m_serviceid;
+        m_id = p.m_id;
+        p.Clear();
         return *this;
     }
 
@@ -203,6 +215,15 @@ struct ProtocolHead
     std::string ToString() const
     {
         return std::to_string(m_type) + std::to_string(m_length) +std::to_string(m_serviceid)+ std::to_string(m_id);
+    }
+
+
+    void Clear()
+    {
+        m_length = 0;
+        m_type = define::YRPC_PROTOCOL::type_YRPC_PROTOCOL_Done;
+        m_serviceid = 0;
+        m_id = 0;
     }
 
     uint16_t m_length; /* 包长 */

@@ -28,16 +28,16 @@ int main()
             auto req = std::make_shared<EchoReq>();
             req->set_str("hello world");
             auto call = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(req,"Echo",
-            [&](std::shared_ptr<google::protobuf::Message> rsp){
+            [&flag](std::shared_ptr<google::protobuf::Message> rsp){
                 std::shared_ptr<EchoRsp> result =  std::static_pointer_cast<EchoRsp>(rsp);
                 printf("async call :  %s\n",result->str().c_str());
                 flag = false;
             });
-            client.Call(call);
             while(flag){
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 printf("not return!\n");
             }
+            client.Call(call);
             break;
         }
         else
