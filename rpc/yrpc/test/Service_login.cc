@@ -23,9 +23,10 @@ int main()
 
     
     rpc::RpcClient client("127.0.0.1",12020);
-
-    std::shared_ptr<EchoReq> req = std::make_shared<EchoReq>();
-    req->set_str("hello world");
+    // auto req = std::make_shared<EchoReq>();
+    
+    auto req = EchoReq();
+    req.set_str("hello world");
 
     auto call = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(req,"Echo",
         [](std::shared_ptr<google::protobuf::Message> rsp){

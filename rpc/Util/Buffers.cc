@@ -247,7 +247,7 @@ int64_t Buffer::readfd(int fd, int& savedErrno)
 
 const char* Buffer::peek() const
 {
-    return peek();
+    return begin()+_readIndex;
 }
 char* Buffer::peek()
 {
