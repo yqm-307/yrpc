@@ -20,7 +20,7 @@
 
 #define ARRAY_NUM 8
 #define ARRAY_SIZE 1024*4   //4kb   linux下每次读写为4kb时，用户cpu时间和系统cpu时间最短
-
+#define LOG_STDOUT
 
 /* 
     这个宏是否定义很关键，它决定了日志的实现方式，当前日志有两种实现方式，皆为异步日志。

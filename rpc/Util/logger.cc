@@ -84,6 +84,7 @@ Logger::Logger(std::string name)
                 continue;
             this->Dequeue(line);                //取
             write(this->_openfd,line.c_str(),line.size());  //写
+
         }
     });
 }
@@ -259,10 +260,22 @@ void Logger::Log(LOGLEVEL level ,const std::string str)
     default:
         break;
     }
-    
+
     strcpy(log+strlen(log),str.c_str());
     strcpy(log+strlen(log),"\n");
     Enqueue(log);
+
+    
+#ifdef LOG_STDOUT 
+    std::string line;
+    if (level <= LOGLEVEL::LOG_INFO)
+        line = format("\033[0m\033[1;36m%s\033[0m",log);
+    else
+        line = format("\033[0m\033[1;31m%s\033[0m",log);
+    write(STDOUT_FILENO,line.c_str(),line.size());  //写
+#endif
+
+
 }
 
 
