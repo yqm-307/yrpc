@@ -28,17 +28,17 @@ private:
 class Mutex:noncopyable::noncopyable
 {
 public:
-	Mutex():_mutex((pthread_mutex_t*)malloc(sizeof(pthread_mutex_t)))
+	Mutex():_mutex(PTHREAD_MUTEX_INITIALIZER)
 	{
-		pthread_mutex_init(_mutex,NULL);
+		pthread_mutex_init(&_mutex,NULL);
 	}
 	~Mutex(){
-		pthread_mutex_destroy(_mutex);
-		free(_mutex);	
+		pthread_mutex_destroy(&_mutex);
+		// free(&_mutex);	
 	}
 	void lock()
 	{
-		if(0>pthread_mutex_lock(_mutex))
+		if(0>pthread_mutex_lock(&_mutex))
 		{
 			FATAL("Mutex::lock() error!");
 			exit(-1);
@@ -46,16 +46,16 @@ public:
 	}
 	void unlock()
 	{
-		if(0>pthread_mutex_unlock(_mutex))
+		if(0>pthread_mutex_unlock(&_mutex))
 		{
 			FATAL("Mutex::unlock() error!");
 			exit(-1);
 		}
 	}
-	pthread_mutex_t& getlock(){return *_mutex;}
+	pthread_mutex_t& getlock(){return _mutex;}
 
 private:
-	pthread_mutex_t* _mutex;
+	pthread_mutex_t _mutex;
 };
 
 //自旋锁

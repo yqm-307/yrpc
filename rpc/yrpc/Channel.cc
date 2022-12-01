@@ -7,8 +7,10 @@ using namespace yrpc::rpc::detail;
 #define IsWriting(status) (!((status&Writing) == 0)) 
 // 是否正在读
 #define IsReading(status) (!(status&Reading == 0))
-#define SetNoWriting(status) (status^Writing)
-#define SetNoReading(status) (status^Reading)
+#define SetNoWriting(status) (status^=Writing)
+#define SetNoReading(status) (status^=Reading)
+#define SetIsWriting(status) (status|=Writing)
+#define SetIsReading(status) (status|=Reading)
 
 void Channel::CloseInitFunc(const errorcode& e)
 { 
@@ -101,8 +103,8 @@ size_t Channel::Send(const char* data,size_t len)
     m_mutex_buff.lock();
     if ( !IsWriting(m_status) ) // 没有正在发送数据
     {    
-
-        m_status = m_status | Writing;
+        SetIsWriting(m_status);
+        // m_status = m_status | Writing;
         std::shared_ptr<Buffer> IObuffptr = std::make_shared<Buffer>();
         IObuffptr->swap(m_buffer);  // 
         m_eventloop->AddTask([=](void*){
@@ -159,13 +161,12 @@ void Channel::EpollerSend(const char *data, size_t len)
          * 
          * 这样多线程send也不会出错
          */
-        if ( m_buffer.DataSize() > 0 ) 
-        {
-            Send(m_buffer);
-        }
+    }
+    if (m_buffer.DataSize() > 0)
+    {
+        Send(m_buffer);
     }
 
-    
     // 错误分析
     errorcode e;
 

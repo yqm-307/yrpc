@@ -22,6 +22,7 @@ void CallObj::SetResult(const std::string_view &view)
 
 void CallObj::SetResult(const Resolver &res)
 {
+
     yrpc::util::lock::lock_guard<Mutex> lock(m_lock);
     if (m_callback == nullptr)
     { // 同步唤醒

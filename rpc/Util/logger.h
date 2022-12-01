@@ -33,7 +33,7 @@
     是，可能会导致内存占用增加（原因是，目前双循环队列会增大，但是不会动态调整缩小），由
     于设置了超时(毫秒级)，也不会导致延迟特别高，但是对于日志量非常大的情况不如方案(一)。
  */
-#define YNET_LOG_BUFFER
+// #define YNET_LOG_BUFFER
 
 
 namespace yrpc::util::logger

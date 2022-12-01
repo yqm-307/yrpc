@@ -50,7 +50,6 @@ void RpcSession::ProtocolMultiplexing()
      * 1、解包然后判断数据包类型进行分类
      * 2、触发ToClient、ToServer分发给不同的处理handler
      */
-    lock_guard<Mutex> lock(m_mutex_pck);    // 这里会和GetAllPak、GetAPack冲突,需要加锁
     while(true)
     {
         if (m_input_buffer.Has_Pkg())
@@ -80,7 +79,7 @@ void RpcSession::ProtocolMultiplexing()
                 else    // 没有客户端处理函数？存在这种可能吗。但是加上以防万一
                     NoneClientHandler();
             }
-            m_pck_queue.push(proto);
+            AddPacket(proto);
         }
         else
         {
@@ -245,4 +244,10 @@ void RpcSession::NoneClientHandler()
 const Channel::Address& RpcSession::GetPeerAddress()
 {
     return m_channel->GetConnInfo()->GetPeerAddress();
+}
+
+void RpcSession::AddPacket(const Protocol& pck)
+{
+    lock_guard<Mutex> lock(m_mutex_pck);    // 这里会和GetAllPak、GetAPack冲突,需要加锁
+    m_pck_queue.push(pck);
 }

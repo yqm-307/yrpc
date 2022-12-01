@@ -73,7 +73,7 @@ void RpcClient::OnPckHandler(std::string&/*字节流*/ pck)
 
 int RpcClient::Call(detail::CallObj::Ptr call)
 {
-    int ret = 0;
+     int ret = 0;
 
     do{
         if (m_session == nullptr)
@@ -87,7 +87,7 @@ int RpcClient::Call(detail::CallObj::Ptr call)
             ret = -1;
             break;
         } // 相同值
-        std::string bytes;
+        std::string bytes{""};
         call->GetRequest().ToByteArray(bytes);
         ret = m_session->Append(bytes);
     }while(0);

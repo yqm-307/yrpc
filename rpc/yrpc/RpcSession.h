@@ -130,7 +130,7 @@ private:
     // thread unsafe,Session下行数据
     void Output(const char*,size_t);
 
-    
+    void AddPacket(const Protocol& pck);
 
     void InitFunc();
     // thread safe

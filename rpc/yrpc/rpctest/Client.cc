@@ -19,6 +19,7 @@ void call_once(rpc::RpcClient& C,const std::string& once )
         pck,"Echo",
         [](std::shared_ptr<google::protobuf::Message> rsp){
             ccount.fetch_add(1);
+            printf("%d\n",ccount.load());
         });
     
     while (C.Call(co) < 0);
