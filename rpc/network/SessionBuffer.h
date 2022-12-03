@@ -23,6 +23,7 @@ namespace yrpc::detail::net
  */
 class SessionBuffer
 {
+    typedef yrpc::util::buffer::Buffer  Buffer;
 public:
     SessionBuffer(){}
     ~SessionBuffer(){}
@@ -43,7 +44,7 @@ public:
      * 
      * @return std::string 请求的比特流 
      */
-    std::string GetAPck();
+    Buffer GetAPck();
 
 
     /**

@@ -29,25 +29,25 @@ void test_1()
             pck->set_tick(100000);
 
             YProtocolGenerater p(pck,bk[1],detail::protocol::define::type_C2S_RPC_CALL_REQ);
-            std::string bytes;
+            yrpc::util::buffer::Buffer bytes;
             p.ToByteArray(bytes);
-            packetmgr.Append(bytes.c_str(),bytes.size());
+            packetmgr.Append(bytes.Peek(),bytes.DataSize());
         }
         else
         {
             auto pck = std::make_shared<AddRsp>();
             pck->set_result(200000);
             YProtocolGenerater p(pck,bk[0],detail::protocol::define::type_S2C_RPC_CALL_RSP);
-            std::string bytes;
+            yrpc::util::buffer::Buffer bytes;
             p.ToByteArray(bytes);
-            packetmgr.Append(bytes.c_str(),bytes.size());
+            packetmgr.Append(bytes.Peek(),bytes.DataSize());
         }
     }
 
 
     for(int i = 0;i<times;++i)
     {
-        std::string tmp;
+        yrpc::util::buffer::Buffer tmp;
         tmp = packetmgr.GetAPck();
         YProtocolResolver res(tmp);
         // res.ToProtoMsg(ptr);
@@ -80,7 +80,7 @@ void test_2()
     ptr->set_tick(110001);
     YProtocolGenerater gen(ptr,yrpc::util::hash::BKDRHash("tmp"),detail::protocol::define::type_C2S_RPC_CALL_REQ);
 
-    std::string bytes;
+    yrpc::util::buffer::Buffer bytes;
     gen.ToByteArray(bytes);
 
     YProtocolResolver rlv(bytes);

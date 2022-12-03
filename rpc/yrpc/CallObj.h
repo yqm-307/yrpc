@@ -36,12 +36,13 @@ class CallObj
     typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化
     typedef yrpc::detail::protocol::define::YRPC_PROTOCOL   YRPC_PROTOCOL;
     typedef yrpc::rpc::detail::RPC_CALL_TYPE    TYPE;
+    typedef yrpc::util::buffer::Buffer          Buffer;
 public:
     typedef std::shared_ptr<CallObj>        Ptr;
     typedef std::function<void(MessagePtr)> CallResultFunc;         // 
 
 
-    ~CallObj(){}
+    ~CallObj();
 
 
     //////////////
@@ -57,8 +58,9 @@ public:
 private:
     CallObj() = delete;
 
-    void    SetResult(const std::string_view&);
+    void    SetResult(const Buffer&);
     void    SetResult(const Resolver&);
+    void    SetResult(Buffer&&);
     MessagePtr  CreateAReq();
     MessagePtr  CreateARsp();
     

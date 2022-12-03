@@ -21,10 +21,10 @@ Service_Base::~Service_Base()
 }
 
 
-void Service_Base::Dispatch(const std::string& pck,RpcSessionPtr sess)
+void Service_Base::Dispatch(Buffer&& pck,RpcSessionPtr sess)
 {
 
-    assert(pck.size() >= ProtocolHeadSize);
+    assert(pck.DataSize() >= ProtocolHeadSize);
     Resolver resolve(pck);
     auto service = ServiceMap::GetInstance()->IdToService(resolve.GetServiceID());
     if (service == nullptr)
@@ -36,10 +36,11 @@ void Service_Base::Dispatch(const std::string& pck,RpcSessionPtr sess)
     }
 
 
-    auto byte_view = std::string_view(pck.c_str()+ProtocolHeadSize,pck.size()-ProtocolHeadSize);
+    std::string msg_bytearray(pck.Peek()+ProtocolHeadSize,pck.DataSize()-ProtocolHeadSize);
+    // auto byte_view = std::string_view(pck.Peek()+ProtocolHeadSize,pck.DataSize()-ProtocolHeadSize);
     auto aa = yrpc::rpc::ProtocolFactroy::GetInstance()->Create(resolve.GetProtoID());
     MessagePtr req_ptr;
-    service->second(yrpc::detail::CodeOrService::Decode,req_ptr,byte_view);
+    service->second(yrpc::detail::CodeOrService::Decode,req_ptr,msg_bytearray);
 
     //服务调用
     //返回msgtype 的message对象
@@ -87,7 +88,7 @@ void Service_Base::SendPacket(RpcSessionPtr sess,MessagePtr pck,const ProtocolHe
 {
     Generater tobytes(pck,head,type);
 
-    std::string tmp{""};
+    yrpc::util::buffer::Buffer tmp;
     if ( !tobytes.ToByteArray(tmp) )
     {
         ERROR("code generate failed!");

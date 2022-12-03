@@ -18,16 +18,22 @@ public:
     static const int headSize;  //可以插入消息id或者长度
     static const int initSize;
     Buffer(size_t initsize = initSize);
-    ~Buffer(){}
+    ~Buffer(){
+        // DEBUG("address : 0x%x\tbytes:0x%x\t",this,Peek(),&*bytes.begin());
+    }
 
     Buffer(const Buffer& rval);
-
     Buffer(Buffer&& rval);
+    Buffer(const char* bytes , size_t len);
+    Buffer(const std::string& bytes);
+
+    Buffer& operator=(Buffer&&);
+    Buffer& operator=(const Buffer&);
 
 
     //常见值的读写
     /* 与buffer交换数据 */
-    void swap(Buffer& buffer);          //拷贝一个buffer
+    void Swap(Buffer& buffer);          //拷贝一个buffer
     /* 初始化为原始状态 */
     void InitAll();                 //初始化
     /* 将num作为比特流写入buffer */
@@ -41,7 +47,7 @@ public:
     /* 将str作为字节流写入 buffer */
     bool WriteString(std::string str);
     /* 将str作为字节流写入 buffer*/
-    bool WriteString(const char* p , int len);
+    bool WriteString(const char* p ,size_t len);
 
     /* 从buffer中读取 int64  */
     int64_t ReadInt64();
@@ -52,15 +58,15 @@ public:
     /* 从buffer中读取 int8  */
     int8_t  ReadInt8();
     /* 从buffer读取长度为 len 的字节流，并写入 str */
-    void ReadString(std::string& str,int len);
+    void ReadString(std::string& str,size_t len);
     /* 从buffer读取长度为 len 的字节流，并写入 str */
-    void ReadString(char* str,int len);
+    void ReadString(char* str,size_t len);
 
     /* 返回当前读取位置的char* */
-    const char* peek() const;
-    char* peek();
+    const char* Peek(size_t n=0) const;
+    char* Peek(size_t n=0);
     /* 丢弃 n 字节未读数据，如果未读数据小于 n，初始化整个buffer */
-    void recycle(size_t n);                 
+    void Recycle(size_t n);                 
     /* 返回可读字节数 */
     size_t ReadableBytes() const;               
     /* 返回buffer当前可写字节数 */
@@ -73,14 +79,16 @@ public:
     std::string_view View() const
     { return std::string_view(begin(),ReadableBytes()); }
     /* 从sockfd 读取字节流到buffer中 */
-    int64_t readfd(int sockfd,int& Errno);  //connector接受数据使用
+    int64_t Readfd(int sockfd,int& Errno);  //connector接受数据使用
     /* 获取当前可读数据首 */
 
 private:   
-    bool Read(void* ,int len);                         
-    bool Write(const char* data, size_t len);          
+    bool Read(void* ,size_t len);                         
+    bool Write(const char* data, size_t len);    
+    char* GetOffset(size_t n);
+    const char* GetOffset(size_t n) const;
     
-    char* begin()                               
+    char* begin()             
     {return &*bytes.begin();}
     const char* begin() const                   
     {return &*bytes.begin();}
@@ -88,9 +96,9 @@ private:
     void moveForward();                         //向前移动
 private:
     std::vector<char> bytes;            //比特流
-    size_t _readIndex;                  //已读
-    size_t _writeIndex;                 //已写
-    const int reservedBytes;            //预留位置
+    size_t _readIndex{0};                  //已读
+    size_t _writeIndex{0};                 //已写
+    const int reservedBytes{0};            //预留位置
 
     const char CRLF[3] = "\r\n";
 };

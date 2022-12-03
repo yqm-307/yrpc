@@ -29,6 +29,7 @@ class Service_Base
     typedef yrpc::detail::protocol::define::YRPC_ErrCode RPC_ERRCODE;
     typedef yrpc::detail::protocol::define::YRPC_PROTOCOL   YRPC_PROTOCOL;
 
+    typedef yrpc::util::buffer::Buffer                      Buffer;
     typedef std::shared_ptr<RpcSession>                     RpcSessionPtr;
     typedef std::shared_ptr<google::protobuf::Message>      MessagePtr;
     typedef yrpc::detail::ServiceMap                        ServiceMap;
@@ -47,7 +48,7 @@ public:
      * 如果有本次 call 有异常，则处理异常问题，并返回异常信息。
      * 否则返回正常结果
      */
-    void Dispatch(const std::string& ,RpcSessionPtr);
+    void Dispatch(Buffer&& ,RpcSessionPtr);
 
     void SendPacket(RpcSessionPtr,MessagePtr,const ProtocolHead&,YRPC_PROTOCOL);
 

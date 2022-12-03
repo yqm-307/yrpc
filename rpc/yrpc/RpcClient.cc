@@ -46,7 +46,7 @@ void RpcClient::OnConnect(SessionPtr newsession)
     {
         m_session = newsession;
         assert(m_session != nullptr);
-        m_session->SetToClientCallback(functor([this](std::string& pck,RpcSession::SessionPtr){OnPckHandler(pck);}));
+        m_session->SetToClientCallback(functor([this](Buffer&& pck,RpcSession::SessionPtr){OnPckHandler(std::move(pck));}));
     }
     else
     {
@@ -55,7 +55,7 @@ void RpcClient::OnConnect(SessionPtr newsession)
 }
 
 
-void RpcClient::OnPckHandler(std::string&/*字节流*/ pck)
+void RpcClient::OnPckHandler(Buffer&&/*字节流*/ pck)
 {
     Resolver rsl(pck);
     // 获取包id,很重要，to select callobjmap
@@ -73,7 +73,7 @@ void RpcClient::OnPckHandler(std::string&/*字节流*/ pck)
 
 int RpcClient::Call(detail::CallObj::Ptr call)
 {
-     int ret = 0;
+    int ret = 0;
 
     do{
         if (m_session == nullptr)
@@ -87,8 +87,10 @@ int RpcClient::Call(detail::CallObj::Ptr call)
             ret = -1;
             break;
         } // 相同值
-        std::string bytes{""};
+        
+        Buffer bytes{0};
         call->GetRequest().ToByteArray(bytes);
+        yrpc::util::buffer::Buffer tmp(std::move(bytes));
         ret = m_session->Append(bytes);
     }while(0);
 

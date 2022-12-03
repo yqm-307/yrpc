@@ -14,7 +14,12 @@ CallObj::CallObj(MessagePtr ptr, int id,uint32_t sid,YRPC_PROTOCOL type, CallRes
     // generater.ToByteArray(m_req_bytearray);
 }
 
-void CallObj::SetResult(const std::string_view &view)
+CallObj::~CallObj()
+{
+    // DEBUG("~Callobj: 0x%x",this);
+}
+
+void CallObj::SetResult(const Buffer &view)
 {
     m_rsp = std::move(Resolver(view));
     SetResult(m_rsp);
@@ -36,6 +41,14 @@ void CallObj::SetResult(const Resolver &res)
         m_callback(rsp);
     }
 }
+
+void CallObj::SetResult(Buffer&&res)
+{
+    m_rsp = std::move(Resolver(std::move(res)));
+    SetResult(m_rsp);
+}
+
+
 
 CallObj::TYPE CallObj::GetResult(MessagePtr ret)
 {

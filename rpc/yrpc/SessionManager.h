@@ -21,9 +21,10 @@ public:
 private:
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::util::lock::CountDownLatch    CountDownLatch;
+    typedef yrpc::util::lock::Mutex             Mutex;
+    typedef yrpc::util::buffer::Buffer          Buffer;
     typedef yrpc::detail::net::Acceptor         Acceptor;
     typedef yrpc::detail::net::ConnectionPtr    ConnPtr;
-    typedef yrpc::util::lock::Mutex             Mutex;
     typedef yrpc::detail::net::YAddress         YAddress;
     typedef yrpc::detail::net::Connector        Connector;
     typedef yrpc::detail::net::errorcode        errorcode;
@@ -92,7 +93,7 @@ private:
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(const YAddress&);
 
-    void Dispatch(const std::string &string, SessionPtr sess);
+    void Dispatch(Buffer&&string, SessionPtr sess);
 
 
     /**

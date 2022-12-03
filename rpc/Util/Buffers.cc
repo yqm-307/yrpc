@@ -33,6 +33,35 @@ Buffer::Buffer(Buffer&& rval)
     bytes = std::move(rval.bytes);
     rval.InitAll();
 }
+Buffer::Buffer(const char* begin, size_t len)
+    :bytes(len),
+    _readIndex(0),
+    _writeIndex(len)
+{
+    memcpy(bytes.data(),begin,len);
+}
+Buffer::Buffer(const std::string& str)
+    :bytes(str.capacity()),
+    _readIndex(0),
+    _writeIndex(bytes.size())
+{
+    assert(WriteString(str.c_str(),str.size()));
+}
+
+
+Buffer& Buffer::operator=(Buffer&&bf)
+{
+    this->Swap(bf);    
+    return *this;
+}
+Buffer& Buffer::operator=(const Buffer&bf)
+{
+    this->bytes = bf.bytes;
+    this->_readIndex = bf._readIndex;
+    this->_writeIndex = bf._writeIndex;
+    return *this;
+}
+
 
 
 
@@ -56,7 +85,7 @@ size_t Buffer::PrepareBytes() const
 }
 
 //swap
-void Buffer::swap(Buffer& s)
+void Buffer::Swap(Buffer& s)
 {
     bytes.swap(s.bytes);
     std::swap(_readIndex, s._readIndex);
@@ -70,7 +99,7 @@ void Buffer::InitAll()                 //初始化
 }
 
 //读取len个字节到byte中
-bool Buffer::Read(void* byte, int len)
+bool Buffer::Read(void* byte,size_t len)
 {
     assert(ReadableBytes() >= len);
     memcpy(byte,begin()+_readIndex,len);
@@ -163,7 +192,7 @@ bool Buffer::WriteString(std::string str)
     memcpy(buf,str.c_str(),str.size());
     return Write(buf,sizeof(buf));
 }
-bool Buffer::WriteString(const char* p , int len)
+bool Buffer::WriteString(const char* p ,size_t len)
 {
     char buf[len];
     memcpy(buf,p,len);
@@ -199,7 +228,7 @@ int8_t  Buffer::ReadInt8()
     Read(&ret,sizeof(int8_t));
     return ret;
 }
-void Buffer::ReadString(std::string& ret,int len)
+void Buffer::ReadString(std::string& ret,size_t len)
 {
     assert(ReadableBytes()>=len);
     char buf[len];
@@ -207,7 +236,7 @@ void Buffer::ReadString(std::string& ret,int len)
     ret = std::string(buf);
 }
 
-void Buffer::ReadString(char* ret,int len)
+void Buffer::ReadString(char* ret,size_t len)
 {
     assert(ReadableBytes()>=len);
     Read(ret,len);
@@ -218,7 +247,7 @@ void Buffer::ReadString(char* ret,int len)
     将数据读到vec0和vec1中，如果 inputbuffer 满了，就先暂存到缓冲区。
     之后判断有没有用到缓冲区，用到了就移动到inputbuffer中
 */
-int64_t Buffer::readfd(int fd, int& savedErrno)
+int64_t Buffer::Readfd(int fd, int& savedErrno)
 {
     char extrabuf[65536];
     struct iovec vec[2];
@@ -243,19 +272,33 @@ int64_t Buffer::readfd(int fd, int& savedErrno)
     return n;
 }
 
-
-
-const char* Buffer::peek() const
+const char* Buffer::GetOffset(size_t n) const
 {
-    return begin()+_readIndex;
-}
-char* Buffer::peek()
-{
-    return begin()+_readIndex;
+    if ( n > _writeIndex )
+        return nullptr;
+    return begin()+n;
 }
 
+char* Buffer::GetOffset(size_t n)
+{
+    // 如果超出可写范围，返回空指针
+    if ( n > _writeIndex )
+        return nullptr;
+    return begin()+n;
+}
 
-void Buffer::recycle(size_t n) //回收n字节空间
+const char* Buffer::Peek(size_t n) const
+{
+    return GetOffset(_readIndex+n);
+}
+char* Buffer::Peek(size_t n)
+{
+
+    return GetOffset(_readIndex+n);
+}
+
+
+void Buffer::Recycle(size_t n) //回收n字节空间
 {
     if(n<ReadableBytes())
     {

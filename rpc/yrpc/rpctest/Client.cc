@@ -47,6 +47,7 @@ int main()
     for (int i = 0;i<10000;++i)
     {
         call_once(client,"hello world");
+        printf("注册一次\n");
     }
     printf("over!\n");
 }

@@ -52,7 +52,7 @@ std::string CallCenter::Service(const std::string_view& bytes)
     // delete ret; //释放资源
 
     // return std::any_cast<std::string>(sendbyte);
-    
+    return "";
 }
 
 
@@ -69,14 +69,14 @@ void AppendBKDRToArray(std::string& str,const char*data,uint32_t len)
 
 int CallCenter::ErrCodeToByteArray(uint32_t id,uint32_t uid,int err,std::string& bytearray,std::string info)
 {
-    auto pck = std::make_shared<S2C_RPC_ERROR>();
-    pck->set_errnocode(err);
-    pck->set_info(info);
-    yrpc::detail::protocol::YProtocolGenerater req(pck,0,yrpc::detail::protocol::define::type_S2C_RPC_ERROR);
-    req.SetProtoID(uid);
-    req.ToByteArray(bytearray);
-    
-    return 0;
+    // auto pck = std::make_shared<S2C_RPC_ERROR>();
+    // pck->set_errnocode(err);
+    // pck->set_info(info);
+    // yrpc::detail::protocol::YProtocolGenerater req(pck,0,yrpc::detail::protocol::define::type_S2C_RPC_ERROR);
+    // req.SetProtoID(uid);
+    // req.ToByteArray(bytearray);
+    // return 0;
+    return -1;
 }
 
 

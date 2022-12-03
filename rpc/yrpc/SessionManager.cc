@@ -77,8 +77,8 @@ __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::
     });
 
     // 设置服务处理函数
-    sessionptr->SetToServerCallback([this](const std::string &pck, SessionPtr ptr)
-                                        { this->Dispatch(std::forward<const std::string>(pck), ptr); });
+    sessionptr->SetToServerCallback([this](Buffer&&pck, SessionPtr ptr)
+                                        { this->Dispatch(std::forward<Buffer>(pck), ptr); });
     /**
      *  这里要支持连接复用，要检查是否已经建立了和目标进程的连接（目标进程标识{ip:port}）
      */
@@ -285,9 +285,9 @@ __YRPC_SessionManager::Epoller* __YRPC_SessionManager::LoadBalancer()
     return m_sub_loop[BalanceNext];
 }
 
-void __YRPC_SessionManager::Dispatch(const std::string &string, SessionPtr sess)
+void __YRPC_SessionManager::Dispatch(Buffer&&string, SessionPtr sess)
 {
-    yrpc::rpc::detail::Service_Base::GetInstance()->Dispatch(string, sess);
+    yrpc::rpc::detail::Service_Base::GetInstance()->Dispatch(std::forward<Buffer>(string), sess);
 }
 
 #undef BalanceNext

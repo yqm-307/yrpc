@@ -21,6 +21,7 @@ class SessionManager;
 class RpcSession : public std::enable_shared_from_this<RpcSession>
 {
     friend SessionManager;
+    typedef Channel::Buffer                     Buffer;
     
     struct session_detail_protocol
     {
@@ -30,10 +31,9 @@ class RpcSession : public std::enable_shared_from_this<RpcSession>
             rsp = 2,
         };
 
-        std::string data{""};
+        Buffer data{""};
         type t{type::done};
     };
-    typedef Channel::Buffer                     Buffer;
     typedef Channel::errorcode                  errorcode;
     typedef Channel::ChannelPtr                 ChannelPtr;
     typedef Channel::ConnPtr                    ConnPtr;
@@ -53,8 +53,8 @@ public:
         const yrpc::detail::shared::errorcode&,
         const yrpc::detail::net::YAddress&)>   SessionCloseCallback;
 
-    typedef std::function<void(const std::string&,SessionPtr)>    DispatchCallback_Server;
-    typedef std::function<void(std::string&,SessionPtr)>    DispatchCallback_Client;
+    typedef std::function<void(Buffer&&,SessionPtr)>        DispatchCallback_Server;
+    typedef std::function<void(Buffer&&,SessionPtr)>        DispatchCallback_Client;
 
 public:
     RpcSession(ChannelPtr channel,Epoller* loop);
@@ -163,10 +163,10 @@ private:
 
     std::atomic_bool    m_can_used; // session是否可用
 
-    SessionCloseCallback    m_closecb{nullptr};
-    DispatchCallback_Client        m_stoclient{nullptr};
-    DispatchCallback_Server        m_ctoserver{nullptr};
-    Channel::TimeOutCallback m_timeoutcallback{nullptr};
+    SessionCloseCallback            m_closecb{nullptr};
+    DispatchCallback_Client         m_stoclient{nullptr};
+    DispatchCallback_Server         m_ctoserver{nullptr};
+    Channel::TimeOutCallback        m_timeoutcallback{nullptr};
 
 };
 

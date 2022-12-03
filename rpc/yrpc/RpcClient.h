@@ -35,6 +35,7 @@ class RpcClient
     typedef std::shared_ptr<RpcSession>                     SessionPtr;
     typedef google::protobuf::Message                       Message;
     typedef std::map<uint64_t,detail::CallObj::Ptr>         CallObjMap;      
+    typedef yrpc::util::buffer::Buffer                      Buffer;
     typedef yrpc::detail::protocol::YProtocolGenerater  Generater;  // 存储 request 并提供序列化
     typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化         
 public:
@@ -85,7 +86,7 @@ private:
      * 
      * @param pck 一条协议的字节流
      */
-    void OnPckHandler(std::string& pck);
+    void OnPckHandler(Buffer&& pck);
 
 private:
     SessionPtr          m_session;          // 实现rpc IO 操作

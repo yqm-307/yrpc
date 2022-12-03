@@ -37,17 +37,21 @@ YProtocolGenerater& YProtocolGenerater::operator=(const YProtocolGenerater &p)
     return *this;
 }
 
-bool YProtocolGenerater::ToByteArray(std::string &bytearray) const
+bool YProtocolGenerater::ToByteArray(Buffer&bytearray) const
 {
-    bytearray.resize(ProtocolHeadSize, '0'); // 预留 protocol head
+    std::string tmp{""};
+    tmp.resize(ProtocolHeadSize,'0');
+    // bytearray.WriteString((const char*)head,ProtocolHeadSize);   // 先写入head
 
     assert(m_message!=nullptr);
-    if (this->Encode(m_message.get(), bytearray)) // 追加
+    if (this->Encode(m_message.get(), tmp)) // 追加
     {
-        m_protocol_head.m_length = bytearray.size(); // 协议长
-        m_protocol_head.EnCode(bytearray.data());
+        m_protocol_head.m_length = tmp.size(); // 协议长
+        m_protocol_head.EnCode(tmp.data());
+        bytearray = Buffer(tmp);
         return true;
     }
     else
         return false;
 }
+

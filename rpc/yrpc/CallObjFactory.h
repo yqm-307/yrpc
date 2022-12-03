@@ -63,8 +63,9 @@ detail::CallObj::Ptr CallObjFactory::Create(const ReqType& msg,std::string&& nam
             YRPC_PROTO_REGISTER( (local_id+1) , RspType ),
         });
     }
-    auto mmptr = std::make_shared<ReqType>(msg);
+    auto mmptr = std::make_shared<ReqType>(msg);//ProtocolFactroy::GetInstance()->Create(local_id);
     uint32_t hashid = yrpc::util::hash::BKDRHash(name);
+    
     return detail::CallObj::Create<ReqType>(mmptr,local_id,hashid,type,func);
 }
 

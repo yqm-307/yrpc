@@ -90,7 +90,7 @@ bool Channel::IsAlive()
 
 size_t Channel::Send(const Buffer& data)
 {
-    return Send(data.peek(),data.ReadableBytes());
+    return Send(data.Peek(),data.ReadableBytes());
 }
 
 
@@ -106,9 +106,9 @@ size_t Channel::Send(const char* data,size_t len)
         SetIsWriting(m_status);
         // m_status = m_status | Writing;
         std::shared_ptr<Buffer> IObuffptr = std::make_shared<Buffer>();
-        IObuffptr->swap(m_buffer);  // 
+        IObuffptr->Swap(m_buffer);  // 
         m_eventloop->AddTask([=](void*){
-            EpollerSend(IObuffptr->peek(),IObuffptr->DataSize());
+            EpollerSend(IObuffptr->Peek(),IObuffptr->DataSize());
         });
     }
 

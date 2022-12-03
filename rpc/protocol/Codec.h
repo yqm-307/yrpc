@@ -70,11 +70,14 @@ public:
         return msgptr;
     }
 
+    static bool ParseToMessage(std::shared_ptr<google::protobuf::Message> msgptr,const std::string& bytes)
+    {
+        return msgptr->ParseFromArray(bytes.data(),bytes.size());
+    }
     static bool ParseToMessage(std::shared_ptr<google::protobuf::Message> msgptr,const std::string_view& bytes)
     {
         return msgptr->ParseFromArray(bytes.data(),bytes.size());
     }
-
 
     /**
      * @brief 将msg序列化数据输入到bytes
@@ -91,8 +94,8 @@ public:
         return t->AppendToString(&bytes);
     }
 
-    template<class MsgType,class Str>
-    static bool Serialize(std::shared_ptr<google::protobuf::Message> msg,Str&& bytes)
+    template<class MsgType>
+    static bool Serialize(std::shared_ptr<google::protobuf::Message> msg,std::string& bytes)
     {
         // std::shared_ptr<MsgType> t = static_cast<std::shared_ptr<MsgType>>(msg);
         return msg->AppendToString(&bytes);

@@ -50,7 +50,7 @@ size_t Connection::send(const char* data,size_t len)
 
 size_t Connection::send(const Buffer& data)
 {
-    return send(data.peek(),data.ReadableBytes());
+    return send(data.Peek(),data.ReadableBytes());
 }
 
 

@@ -16,10 +16,12 @@ class YProtocolResolver: public Base_Msg<google::protobuf::Message>
     typedef yrpc::detail::protocol::define::YRPC_PROTOCOL YRPC_PROTOCOL;
     typedef google::protobuf::Message           Message;
     typedef std::shared_ptr<Message>            MessagePtr;
-
+    typedef yrpc::util::buffer::Buffer          Buffer;
 public:
     
-    YProtocolResolver(std::string_view bytes);
+    YProtocolResolver(const Buffer& bytes);
+    YProtocolResolver(Buffer&& bytes);
+
     YProtocolResolver(){};
     YProtocolResolver(const YProtocolResolver& p);
     virtual ~YProtocolResolver();
@@ -72,9 +74,10 @@ public:
      * 
      * @param view 
      */
-    void SetByteArray(const std::string_view& view) 
+    void SetByteArray(const Buffer& view) 
     { m_bytes = view; }
-
+    void SetByteArray(Buffer&& view) 
+    { m_bytes =std::move(view); }
 
     /**
      * @brief 待解析字节流是否为空
@@ -83,7 +86,7 @@ public:
      * @return false 
      */
     bool IsEmpty()
-    { return m_bytes.size() == 0; }
+    { return m_bytes.DataSize() == 0; }
 
 
     const ProtocolHead& GetProtocolHead() const
@@ -95,7 +98,7 @@ protected:
     // 32位长
     ProtocolHead        m_protocol_head;   //协议头
     // YRPC_PROTOCOL       m_prototype;
-    std::string         m_bytes;
+    Buffer              m_bytes;
 };   
 
 }

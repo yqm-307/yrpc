@@ -18,7 +18,7 @@ class YProtocolGenerater: public Base_Msg<google::protobuf::Message>
     typedef yrpc::detail::protocol::define::YRPC_PROTOCOL YRPC_PROTOCOL;
     typedef google::protobuf::Message           Message;
     typedef std::shared_ptr<Message>            MessagePtr;
-
+    typedef yrpc::util::buffer::Buffer          Buffer;
 public:
     typedef Base_Msg<google::protobuf::Message> BaseProtocol;
     typedef typename std::shared_ptr<YProtocolGenerater> Ptr;
@@ -44,7 +44,7 @@ public:
      * @return true 
      * @return false 
      */
-    bool ToByteArray(std::string& bytearray) const;
+    bool ToByteArray(Buffer& bytearray) const;
 
 
     /**
