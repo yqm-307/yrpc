@@ -45,6 +45,21 @@ public:
      * @return false 
      */
     bool ToByteArray(Buffer& bytearray) const;
+    
+    template<typename PckType>
+    static bool ToByteArray(Message* msg,Buffer& bytearray)
+    {
+        std::string tmp{""};
+        tmp.resize(ProtocolHeadSize, '0');
+
+        if(msg == nullptr)
+            return false;
+        if (!yrpc::detail::Codec::Serialize<PckType>(msg, tmp))
+            return false;
+        bytearray = std::move(Buffer(tmp));
+        
+        return true;
+    }
 
 
     /**

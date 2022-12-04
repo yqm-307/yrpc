@@ -193,7 +193,7 @@ void RpcSession::CloseFunc(const errorcode& e)
     {
         /* todo 完善错误码 */
     }
-    INFO("RpcSession::CloseFunc() , info: Session Stop");
+    INFO("RpcSession::CloseFunc() , info: Session Stop\tpeer={%s}",m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
 }
 
 

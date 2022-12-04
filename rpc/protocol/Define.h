@@ -93,7 +93,19 @@ protected:
      * @return false 
      */
     virtual bool Encode(ProtobufMsg* proto,std::string& msg) const 
-    {
+    {        
+        // bool result{false};
+        // std::string str{""};
+        // do{
+        //     if( proto == nullptr )
+        //         break;
+        //     yrpc::detail::Codec::Serialize<ProtobufMsg>(proto,str);
+
+        //     if ( yrpc::detail::Codec::Serialize<ProtobufMsg>(proto,msg) )
+        //         result = true;
+        // }while(0);
+
+        // return result;
         bool result{false};
         do{
             if( proto == nullptr )

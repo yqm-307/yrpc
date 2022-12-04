@@ -81,6 +81,11 @@ int RpcClient::Call(detail::CallObj::Ptr call)
             ret = -1;
             break;
         }
+        if (m_session->IsClosed())
+        {
+            ret = -1;
+            break;
+        }
         yrpc::util::lock::lock_guard<Mutex> lock(m_mutex);
         auto res = m_callmap.insert(std::make_pair(call->GetID(), call));
         if (!res.second){
@@ -90,8 +95,8 @@ int RpcClient::Call(detail::CallObj::Ptr call)
         
         Buffer bytes{0};
         call->GetRequest().ToByteArray(bytes);
-        yrpc::util::buffer::Buffer tmp(std::move(bytes));
-        ret = m_session->Append(bytes);
+        // yrpc::util::buffer::Buffer tmp(std::move(bytes));
+        // ret = m_session->Append(bytes);
     }while(0);
 
     return ret;

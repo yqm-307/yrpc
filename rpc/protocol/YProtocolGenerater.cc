@@ -44,14 +44,14 @@ bool YProtocolGenerater::ToByteArray(Buffer&bytearray) const
     // bytearray.WriteString((const char*)head,ProtocolHeadSize);   // 先写入head
 
     assert(m_message!=nullptr);
-    if (this->Encode(m_message.get(), tmp)) // 追加
+    if (this->Encode(m_message.get(),tmp)) // 追加
     {
         m_protocol_head.m_length = tmp.size(); // 协议长
         m_protocol_head.EnCode(tmp.data());
-        bytearray = Buffer(tmp);
+        bytearray = std::move(Buffer(tmp));
         return true;
     }
-    else
-        return false;
+    return false;
 }
+
 

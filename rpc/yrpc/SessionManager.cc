@@ -70,7 +70,7 @@ __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::
             
         }
     });
-
+    // 超时
     sessionptr->SetTimeOutFunc([sessionptr](){
         // 实际上还没有使用
         sessionptr->Close();    // 触发 CloseCallback

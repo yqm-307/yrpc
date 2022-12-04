@@ -14,6 +14,7 @@ void call_once(rpc::RpcClient& C,const std::string& once )
 {
     auto pck = EchoReq();
     pck.set_str(once);
+    assert(C.IsConnected());
     
     auto co = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(
         pck,"Echo",

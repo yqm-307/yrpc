@@ -11,6 +11,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
 {
     m_conn_status = connected;
     m_socket->socket_timeout_ = [this](Socket* socket){TimeOut(socket);};
+    // m_socket->socket_timeout_ms_ = 3000;
     // m_schedule->AddTask([this](void*ptr){RunInEvloop();},nullptr);      //  注册recv handler
     m_schedule->AddSocketTimer(m_socket);                               //  注册超时事件
     INFO("Connection::Connection() , info: connect success ! peer addr : %s",cli.GetIPPort().c_str());

@@ -71,8 +71,8 @@ public:
     /////////////////////////////
     //////  TimeOut about  //////
     /////////////////////////////
-    int             connect_timeout_ms_;    
-    int             socket_timeout_ms_;
+    int             connect_timeout_ms_{5000};    
+    int             socket_timeout_ms_{3000};
     ConnTimeOut     conn_timeout_;
     SocketTimeOut   socket_timeout_;
     
