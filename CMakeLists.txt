@@ -24,7 +24,7 @@ include_directories(
 
 # lib 文件 包含路径
 link_directories(
-    ${PROJECT_BINARY_DIR}/../third-lib/boost_context/lib/
+    ${PROJECT_BINARY_DIR}/../third-lib/lib
 )
 add_definitions(-Dcmakebuild)
 
