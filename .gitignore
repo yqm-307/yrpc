@@ -50,6 +50,8 @@ _deps
 *.proto.h
 *.proto.cc
 
+!third-lib/*/*
+
 
 # 忽略目录
 build/
