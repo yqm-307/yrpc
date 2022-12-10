@@ -4,11 +4,13 @@
 using namespace yrpc::rpc::detail;
 
 // 是否正在写
-#define IsWriting(status) (!((status&Writing) == 0)) 
+#define IsWriting(status) ((status&Writing)) 
 // 是否正在读
-#define IsReading(status) (!(status&Reading == 0))
-#define SetNoWriting(status) (status^=Writing)
-#define SetNoReading(status) (status^=Reading)
+#define IsReading(status) ((status&Reading))
+// 设置为不在写
+#define SetNoWriting(status) (status&=~Writing)
+// 设置为不在读
+#define SetNoReading(status) (status&=~Reading)
 #define SetIsWriting(status) (status|=Writing)
 #define SetIsReading(status) (status|=Reading)
 

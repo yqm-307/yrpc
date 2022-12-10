@@ -143,7 +143,7 @@ void Connection::RunInEvloop()
                 ERROR("Connection::recvhandler() error , info: recv handler is illegal!");
         }
     }
-
+    delete[] array;
 }
 
 Connection::ConnectionPtr Connection::GetPtr()

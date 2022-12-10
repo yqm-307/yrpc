@@ -17,12 +17,12 @@ void call_once(rpc::RpcClient& C,const std::string& once )
     assert(C.IsConnected());
     
     auto co = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(
-        pck,"Echo",
+        std::move(pck),"Echo",
         [](std::shared_ptr<google::protobuf::Message> rsp){
             ccount.fetch_add(1);
-            printf("%d\n",ccount.load());
+            printf("完成了第%d次\n",ccount.load());
         });
-    
+    assert(co);
     while (C.Call(co) < 0);
 }
 
@@ -48,7 +48,9 @@ int main()
     for (int i = 0;i<10000;++i)
     {
         call_once(client,"hello world");
-        printf("注册一次\n");
+        // printf("注册一次\n");
     }
-    printf("over!\n");
+
+    while(ccount<10000){std::this_thread::sleep_for(std::chrono::milliseconds(10));}
+    printf("注册over!\n");
 }

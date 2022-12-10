@@ -28,7 +28,7 @@ int main()
     auto req = EchoReq();
     req.set_str("hello world");
 
-    auto call = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(req,"Echo",
+    auto call = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(std::move(req),"Echo",
         [](std::shared_ptr<google::protobuf::Message> rsp){
     });
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));

@@ -22,3 +22,7 @@ target_link_libraries(test_cter yrpc ybbt)
 
 add_executable(test_assert test_YAssert.cc)
 target_link_libraries(test_assert yrpc ybbt)
+
+
+add_executable(test_buffer test_buffer.cc)
+target_link_libraries(test_buffer yrpc ybbt)

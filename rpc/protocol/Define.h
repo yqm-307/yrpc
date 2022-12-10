@@ -83,6 +83,7 @@ template<class ProtobufMsg>
 class Base_Msg
 {
 public:
+    typedef std::shared_ptr<ProtobufMsg>    MessagePtr;
 protected:
 
     /**
@@ -92,7 +93,7 @@ protected:
      * @return true 
      * @return false 
      */
-    virtual bool Encode(ProtobufMsg* proto,std::string& msg) const 
+    virtual bool Encode(MessagePtr proto,std::string& msg) const 
     {        
         // bool result{false};
         // std::string str{""};
@@ -110,7 +111,7 @@ protected:
         do{
             if( proto == nullptr )
                 break;
-            if ( yrpc::detail::Codec::Serialize<ProtobufMsg>(proto,msg) )
+            if ( yrpc::detail::Codec::Serialize(proto,msg) )
                 result = true;
         }while(0);
 
@@ -153,7 +154,7 @@ protected:
  * 
  * 
  *  |               |               |                       |                   |                    |
- *  | length(16bit) |  type(16bit)  | protocol id(32bit)    | BKDR ID(32bit)    |protobuf bytes(data)|    
+ *  | length(16bit) |  type(16bit)  | BKDR ID(32bit)        | protocol id(32bit)|protobuf bytes(data)|    
  *  |               |               |                       |                   |                    |
  *   包长度 2 字节  ,  范围 1-65535     整条协议，包括协议头长度
  *   协议类型 2 字节,  范围 1-65535     定义在 YRPC_PROTOCOL 
@@ -162,6 +163,12 @@ protected:
  */
 #define ProtocolHeadSize (sizeof(uint16_t)+sizeof(uint16_t)+sizeof(uint32_t)+sizeof(uint32_t))
 #define ProtocolMaxSize UINT16_MAX
+#define Protocol_LengthType         uint16_t
+#define Protocol_YRPCCallType       uint16_t
+#define Protocol_ServiceIdType      uint32_t
+#define Protocol_PckIdType           uint32_t
+
+
 struct ProtocolHead
 {
     ProtocolHead() 
@@ -200,10 +207,18 @@ struct ProtocolHead
      */
     void EnCode(char *start) const
     {
-        memcpy(start                        ,(void *)&m_length      ,sizeof(uint16_t)); // 2 byte  [length]
-        memcpy(start + sizeof(uint16_t)     ,(void *)&m_type        ,sizeof(uint16_t));                      // 2 byte  [type]
-        memcpy(start + sizeof(uint16_t)*2   ,(void*)&m_serviceid    ,sizeof(uint32_t));  // 4 bytes [service id]
-        memcpy(start + 4 * sizeof(uint16_t) ,(void *)&m_id          ,sizeof(uint32_t)); // 4 byte  [package id]
+        memcpy( start,
+                (char*)&m_length,
+                sizeof(Protocol_LengthType)); // 2 byte  [length]
+        memcpy( start + sizeof(Protocol_LengthType),
+                (char*)&m_type,
+                sizeof(Protocol_YRPCCallType));                                                      // 2 byte  [type]
+        memcpy( start + sizeof(Protocol_LengthType)+sizeof(Protocol_YRPCCallType),
+                (char*)&m_serviceid, 
+                sizeof(Protocol_ServiceIdType)); // 4 bytes [service id]
+        memcpy( start + sizeof(Protocol_LengthType)+sizeof(Protocol_YRPCCallType)+sizeof(Protocol_ServiceIdType), 
+                (char*)&m_id, 
+                sizeof(Protocol_PckIdType));            // 4 byte  [package id]
     }
 
     /**
@@ -213,10 +228,18 @@ struct ProtocolHead
      */
     void DeCode(const char *start) const
     {
-        memcpy((void *)&m_length            ,start                          ,sizeof(uint16_t));  // 2 bytes   [length]
-        memcpy((void *)&m_type              ,start + sizeof(uint16_t)       ,sizeof(uint16_t));                       // 2 bytes   [type]
-        memcpy((void *)&m_serviceid         ,start + sizeof(uint16_t) * 2   ,sizeof(uint32_t));
-        memcpy((void *)&m_id                ,start + sizeof(uint16_t) * 4   ,sizeof(uint32_t));  // 4 bytes   [package id]
+        memcpy( (char*)&m_length,
+                start,
+                sizeof(Protocol_LengthType));  // 2 bytes   [length]
+        memcpy( (char*)&m_type,
+                start + sizeof(Protocol_LengthType),
+                sizeof(Protocol_YRPCCallType));                       // 2 bytes   [type]
+        memcpy( (char*)&m_serviceid,
+                start + sizeof(Protocol_LengthType) +sizeof(Protocol_YRPCCallType),
+                sizeof(Protocol_ServiceIdType));
+        memcpy( (char*)&m_id,
+                start + sizeof(Protocol_LengthType) +sizeof(Protocol_YRPCCallType)+sizeof(Protocol_ServiceIdType),
+                sizeof(Protocol_PckIdType));  // 4 bytes   [package id]
     }
 
     /**
@@ -238,9 +261,9 @@ struct ProtocolHead
         m_id = 0;
     }
 
-    uint16_t m_length; /* 包长 */
-    define::YRPC_PROTOCOL m_type;   /* 协议类型 */
-    uint32_t m_serviceid;   /* 服务id */
-    uint32_t m_id;     /* id */
+    uint16_t m_length;              /* 此字段表示这个包的总长度 */
+    define::YRPC_PROTOCOL m_type;   /* 此字段表示这个包的协议类型 */
+    uint32_t m_serviceid;           /* 此字段表示这个包所call的远程服务id */
+    uint32_t m_id;                  /* 此字段表示这个包的id，标识这个包10分钟内唯一 */
 };
 }

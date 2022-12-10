@@ -34,7 +34,7 @@ class RpcClient
     typedef yrpc::util::lock::Mutex                         Mutex;
     typedef std::shared_ptr<RpcSession>                     SessionPtr;
     typedef google::protobuf::Message                       Message;
-    typedef std::map<uint64_t,detail::CallObj::Ptr>         CallObjMap;      
+    typedef std::map<Protocol_PckIdType,detail::CallObj::Ptr> CallObjMap;      
     typedef yrpc::util::buffer::Buffer                      Buffer;
     typedef yrpc::detail::protocol::YProtocolGenerater  Generater;  // 存储 request 并提供序列化
     typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化         

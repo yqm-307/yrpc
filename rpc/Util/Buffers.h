@@ -19,13 +19,14 @@ public:
     static const int initSize;
     Buffer(size_t initsize = initSize);
     ~Buffer(){
-        // DEBUG("address : 0x%x\tbytes:0x%x\t",this,Peek(),&*bytes.begin());
+        // DEBUG("this: 0x%x  bytes:0x%x\t",this,&*bytes.begin());
     }
 
     Buffer(const Buffer& rval);
     Buffer(Buffer&& rval);
     Buffer(const char* bytes , size_t len);
     Buffer(const std::string& bytes);
+    // Buffer(std::string&& bytes);
 
     Buffer& operator=(Buffer&&);
     Buffer& operator=(const Buffer&);
@@ -77,7 +78,7 @@ public:
     size_t DataSize() const {return ReadableBytes();}  //buffer 数据段长度
     /* 获取为std::string_view */
     std::string_view View() const
-    { return std::string_view(begin(),ReadableBytes()); }
+    { return std::string_view(Begin(),ReadableBytes()); }
     /* 从sockfd 读取字节流到buffer中 */
     int64_t Readfd(int sockfd,int& Errno);  //connector接受数据使用
     /* 获取当前可读数据首 */
@@ -88,9 +89,9 @@ private:
     char* GetOffset(size_t n);
     const char* GetOffset(size_t n) const;
     
-    char* begin()             
+    char* Begin()             
     {return &*bytes.begin();}
-    const char* begin() const                   
+    const char* Begin() const                   
     {return &*bytes.begin();}
     void move(int start,int len,int obj);       //移动
     void moveForward();                         //向前移动

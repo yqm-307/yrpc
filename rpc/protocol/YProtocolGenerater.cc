@@ -39,16 +39,19 @@ YProtocolGenerater& YProtocolGenerater::operator=(const YProtocolGenerater &p)
 
 bool YProtocolGenerater::ToByteArray(Buffer&bytearray) const
 {
-    std::string tmp{""};
-    tmp.resize(ProtocolHeadSize,'0');
+    char tmp[ProtocolHeadSize];
+    memset(tmp,'0',ProtocolHeadSize);
+    bytearray.InitAll();    // 情空
+    bytearray.WriteString(tmp,ProtocolHeadSize);
     // bytearray.WriteString((const char*)head,ProtocolHeadSize);   // 先写入head
 
     assert(m_message!=nullptr);
-    if (this->Encode(m_message.get(),tmp)) // 追加
+    std::string tt;
+    if (this->Encode(m_message,tt)) // protobuf 序列化
     {
-        m_protocol_head.m_length = tmp.size(); // 协议长
-        m_protocol_head.EnCode(tmp.data());
-        bytearray = std::move(Buffer(tmp));
+        m_protocol_head.m_length = tt.size() + ProtocolHeadSize; // 协议长
+        m_protocol_head.EnCode(bytearray.Peek());
+        bytearray.WriteString(tt.c_str(),tt.size());
         return true;
     }
     return false;

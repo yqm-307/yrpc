@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <sys/uio.h>    //散步读和聚集写
+#include <unistd.h>
 #include "./Buffers.h"
 #include "./logger.h"
 
@@ -12,11 +13,17 @@ const int Buffer::initSize=4096;// 初始长度
 
 
 Buffer::Buffer(size_t size)
-    :bytes(size),
-    _readIndex(headSize),
+    :_readIndex(headSize),
     _writeIndex(headSize),
     reservedBytes(HeaderBytes)
-{}
+{
+    int syspagesize = getpagesize();
+    if (size%syspagesize == 0)
+        bytes = std::move(std::vector<char>(size));
+    else
+        int npage = size/syspagesize;
+        bytes = std::move(std::vector<char>(syspagesize*((size/syspagesize)+1)));
+}
 
 Buffer::Buffer(const Buffer& rval)
     :bytes(rval.bytes),
@@ -28,22 +35,21 @@ Buffer::Buffer(const Buffer& rval)
 Buffer::Buffer(Buffer&& rval)
     :reservedBytes(HeaderBytes),
     _readIndex(rval._readIndex),
-    _writeIndex(rval._writeIndex)
+    _writeIndex(rval._writeIndex),
+    bytes(std::move(rval.bytes))
 {
-    bytes = std::move(rval.bytes);
-    rval.InitAll();
 }
 Buffer::Buffer(const char* begin, size_t len)
-    :bytes(len),
+    :bytes(initSize),
     _readIndex(0),
     _writeIndex(len)
 {
-    memcpy(bytes.data(),begin,len);
+    WriteString(begin,len);
 }
 Buffer::Buffer(const std::string& str)
-    :bytes(str.capacity()),
+    :bytes(initSize),
     _readIndex(0),
-    _writeIndex(bytes.size())
+    _writeIndex(0)
 {
     assert(WriteString(str.c_str(),str.size()));
 }
@@ -102,7 +108,7 @@ void Buffer::InitAll()                 //初始化
 bool Buffer::Read(void* byte,size_t len)
 {
     assert(ReadableBytes() >= len);
-    memcpy(byte,begin()+_readIndex,len);
+    memcpy(byte,Begin()+_readIndex,len);
     _readIndex+=len;
     return true;
 }
@@ -111,7 +117,9 @@ bool Buffer::Read(void* byte,size_t len)
 //start位置长度为len的内存，移动到obj处
 void Buffer::move(int obj, int src, int len)
 {
-    memcpy(begin() + obj, begin() + src, len);
+    assert(obj >= 0);
+    assert((src + len) < bytes.size());
+    memcpy(Begin() + obj, Begin() + src, len);
 }
 
 //将数据移动到前方
@@ -132,26 +140,31 @@ bool Buffer::Write(const char* data, size_t len)
     {
         moveForward();  //向前移动
         
-        //尽量写
-        int shengyu = WriteableBytes();
-        if(len > WriteableBytes())
-            memcpy(begin() + _writeIndex, data, shengyu);
-        else
-            memcpy(begin() + _writeIndex, data, len);
-        int lenshengyu = len - shengyu;
-        
-        if(lenshengyu > 0)
-        //扩容
-        for (int i = shengyu; i < len; ++i)
+        int writen=WriteableBytes();
+        if(writen < len)
         {
-            bytes.push_back(*(data + i));
+            assert((writen+_writeIndex) <= bytes.size());
+            memcpy(Begin() + _writeIndex, data,writen);
         }
+        else
+        {
+            memcpy(Begin() + _writeIndex, data, len);
+        }
+        
+        int lenshengyu = len - writen;
+        
+        // 有剩余
+        if (lenshengyu > 0)
+            for (int i = writen; i < len; ++i)
+            {
+                bytes.push_back(*(data + i));
+            }
         _writeIndex += len;
-            
     }
     else    //可写空间足够
     {
-        memcpy(begin() + _writeIndex, data, len);
+        assert((len+_writeIndex) <= bytes.size());
+        memcpy(Begin() + _writeIndex, data, len);
         _writeIndex += len;
     }
     
@@ -194,9 +207,9 @@ bool Buffer::WriteString(std::string str)
 }
 bool Buffer::WriteString(const char* p ,size_t len)
 {
-    char buf[len];
-    memcpy(buf,p,len);
-    return Write(buf,len);
+    // char buf[len];
+    // memcpy(buf,p,len);
+    return Write(p,len);
 }
 
 int64_t Buffer::ReadInt64()
@@ -252,7 +265,7 @@ int64_t Buffer::Readfd(int fd, int& savedErrno)
     char extrabuf[65536];
     struct iovec vec[2];
     const size_t writable = WriteableBytes();   //缓冲区可写字节数
-    vec[0].iov_base = begin() + _writeIndex;
+    vec[0].iov_base = Begin() + _writeIndex;
     vec[0].iov_len = writable;
     vec[1].iov_base = extrabuf;
     vec[1].iov_len = sizeof extrabuf;
@@ -276,7 +289,7 @@ const char* Buffer::GetOffset(size_t n) const
 {
     if ( n > _writeIndex )
         return nullptr;
-    return begin()+n;
+    return Begin()+n;
 }
 
 char* Buffer::GetOffset(size_t n)
@@ -284,7 +297,7 @@ char* Buffer::GetOffset(size_t n)
     // 如果超出可写范围，返回空指针
     if ( n > _writeIndex )
         return nullptr;
-    return begin()+n;
+    return Begin()+n;
 }
 
 const char* Buffer::Peek(size_t n) const

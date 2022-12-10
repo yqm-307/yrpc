@@ -2,12 +2,12 @@
 
 using namespace yrpc::rpc::detail;
 
-CallObj::CallObj(MessagePtr ptr, int id,uint32_t sid,YRPC_PROTOCOL type, CallResultFunc func)
-    : m_req(ptr, sid,yrpc::detail::protocol::define::type_C2S_RPC_CALL_REQ),
-      m_type_id(id),
-      m_service_id(sid),
+CallObj::CallObj(int reqtypeid,int rsptypeid,Buffer&& bytes,YRPC_PROTOCOL type, CallResultFunc func)
+    : m_req(std::move(bytes)),
       m_call_type(type),
-      m_callback(func)
+      m_callback(func),
+      m_typeid_req(reqtypeid),
+      m_typeid_rsp(rsptypeid)
 {
     // 危险操作，临时使用原始指针
     // yrpc::detail::protocol::YProtocolGenerater generater(ptr,m_service_id, m_call_type);
@@ -57,30 +57,39 @@ CallObj::TYPE CallObj::GetResult(MessagePtr ret)
         return TYPE::RPC_CALL_IS_SYNC; // 不是异步调用
     if (m_rsp.IsEmpty())               // 尚未返回
         m_cond_t.wait();
-    ret = ProtocolFactroy::GetInstance()->Create(m_type_id);
+    ret = ProtocolFactroy::GetInstance()->Create(m_typeid_rsp);
     return m_status;
 }
 
 uint32_t CallObj::GetID()
 {
-    return m_req.GetProtoID();
+    if (m_req.DataSize() < ProtocolHeadSize)
+    {
+        return 0;
+    }
+    Protocol_PckIdType id;
+    memcpy((char*)&id,m_req.Peek()+(ProtocolHeadSize-sizeof(Protocol_PckIdType)),sizeof(Protocol_PckIdType));
+
+    return id;
 }
 
 CallObj::MessagePtr CallObj::CreateAReq()
 {
-    return ProtocolFactroy::GetInstance()->Create(m_type_id);
+    return ProtocolFactroy::GetInstance()->Create(m_typeid_req);
 }
 
 CallObj::MessagePtr CallObj::CreateARsp()
 {
-    return ProtocolFactroy::GetInstance()->Create(m_type_id + 1);
+    return ProtocolFactroy::GetInstance()->Create(m_typeid_rsp);
 }
 
-const CallObj::Generater &CallObj::GetRequest()
+
+CallObj::Ptr CallObj::Create(
+            int reqtypeid,        // rpc请求的协议id
+            int rsptypeid,                  // rpc响应的协议id
+            Buffer&&buf,                       // rpc请求包的比特流
+            YRPC_PROTOCOL type,                  // 
+            CallResultFunc f)
 {
-    return m_req;
-}
-const CallObj::Resolver &CallObj::GetResponse()
-{
-    return m_rsp;
+    return std::make_shared<CallObj>(reqtypeid,rsptypeid,std::forward<Buffer>(buf),type,f);
 }

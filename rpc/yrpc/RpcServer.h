@@ -116,7 +116,7 @@ void RpcServer::register_service(std::string name,ServiceFunc func)
             packet = yrpc::detail::Codec::ParseToMessage<ParamPackType>(bytes);
         else //序列化
         {
-            yrpc::detail::Codec::Serialize<ReturnPackType>(packet,bytes);
+            yrpc::detail::Codec::Serialize(packet,bytes);
         }
     });
 

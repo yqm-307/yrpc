@@ -146,6 +146,8 @@ PROTOBUF_ATTRIBUTE_INIT_PRIORITY2 static ::_pbi::AddDescriptorsRunner dynamic_in
 class address::_Internal {
  public:
   using HasBits = decltype(std::declval<address>()._impl_._has_bits_);
+  static constexpr int32_t kHasBitsOffset =
+    8 * PROTOBUF_FIELD_OFFSET(address, _impl_._has_bits_);
   static void set_has_a(HasBits* has_bits) {
     (*has_bits)[0] |= 2u;
   }
@@ -467,6 +469,8 @@ void address::InternalSwap(address* other) {
 class addreq::_Internal {
  public:
   using HasBits = decltype(std::declval<addreq>()._impl_._has_bits_);
+  static constexpr int32_t kHasBitsOffset =
+    8 * PROTOBUF_FIELD_OFFSET(addreq, _impl_._has_bits_);
   static void set_has_rint(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -703,6 +707,8 @@ void addreq::InternalSwap(addreq* other) {
 class addrsp::_Internal {
  public:
   using HasBits = decltype(std::declval<addrsp>()._impl_._has_bits_);
+  static constexpr int32_t kHasBitsOffset =
+    8 * PROTOBUF_FIELD_OFFSET(addrsp, _impl_._has_bits_);
   static void set_has_result(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }

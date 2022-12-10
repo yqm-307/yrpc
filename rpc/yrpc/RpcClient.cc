@@ -87,16 +87,15 @@ int RpcClient::Call(detail::CallObj::Ptr call)
             break;
         }
         yrpc::util::lock::lock_guard<Mutex> lock(m_mutex);
-        auto res = m_callmap.insert(std::make_pair(call->GetID(), call));
+        int id = call->GetID();
+        auto res = m_callmap.insert(std::make_pair(id, call));
+        // auto res = m_callmap.insert(std::make_pair(call->GetID(), call));
         if (!res.second){
             ret = -1;
             break;
         } // 相同值
         
-        Buffer bytes{0};
-        call->GetRequest().ToByteArray(bytes);
-        // yrpc::util::buffer::Buffer tmp(std::move(bytes));
-        // ret = m_session->Append(bytes);
+        ret = m_session->Append(call->m_req);
     }while(0);
 
     return ret;
