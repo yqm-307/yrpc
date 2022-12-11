@@ -55,7 +55,7 @@ static uint32_t GetIDuint32()
     static auto timepoint = clock::now<clock::us>();
     static auto expired_timepoint = clock::nowAfter<clock::us>(clock::us(1*60*1000*1000));
     static uint32_t perid{0};  //上一个id
-    static int index=0;
+    static int index=1;
     if(clock::expired<clock::us>(expired_timepoint))
     {// 超时了
         expired_timepoint = clock::nowAfter<clock::us>(clock::us(1*60*1000*1000));
@@ -66,12 +66,12 @@ static uint32_t GetIDuint32()
     if (perid == id)
     {   // 重复了，偏移
         id += index;
-        index ++;
+        index++;
     }
     else
     {
         perid = id;
-        index = 0;
+        index = 1;
     }    
     return id;
 }

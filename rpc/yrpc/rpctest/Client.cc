@@ -9,7 +9,8 @@ using namespace yrpc::util::clock;
 typedef google::protobuf::Message Message;
 typedef std::shared_ptr<Message> MessagePtr;
 
-std::atomic_int ccount{0};
+// std::atomic_int ccount{0};
+int ccount=0;
 
 void call_once(rpc::RpcClient& C,const std::string& once )
 {
@@ -20,7 +21,8 @@ void call_once(rpc::RpcClient& C,const std::string& once )
     auto co = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(
         std::move(pck),"Echo",
         [](std::shared_ptr<google::protobuf::Message> rsp){
-            ccount.fetch_add(1,std::memory_order_seq_cst);
+            // ccount.fetch_add(1,std::memory_order_seq_cst);
+            ++ccount;
             // printf("完成了第%d次\n",ccount.load());
         });
     assert(co);
@@ -52,7 +54,7 @@ int main()
         call_once(client,"hello world");
     }
 
-    while(ccount.load()<99990){std::this_thread::sleep_for(std::chrono::milliseconds(5));}
+    while(ccount<100000){std::this_thread::sleep_for(std::chrono::milliseconds(5));}
     printf("注册over!\n");
     printf("耗时: %ldms\n",now.intervalnow());
 }

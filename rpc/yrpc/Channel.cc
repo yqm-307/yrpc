@@ -106,20 +106,21 @@ size_t Channel::Send(const char* data,size_t len)
         ERROR("len = %d",len);
     }
     assert(len == 25);
-    m_mutex_buff.lock();
-    m_buffer.WriteString(data,len);
-    if ( !IsWriting(m_status) ) // 没有正在发送数据
-    {    
-        SetIsWriting(m_status);
-        // m_status = m_status | Writing;
-        Buffer IObuff;
-        IObuff.Swap(m_buffer);  // 
-        m_eventloop->AddTask([this,IObuff](void*){
-            EpollerSend(IObuff.Peek(),IObuff.DataSize());
-        });
+    {
+        lock_guard<Mutex> lock(m_mutex_buff);
+        m_buffer.WriteString(data, len);
+        if (!IsWriting(m_status)) // 没有正在发送数据
+        {
+            SetIsWriting(m_status);
+            // m_status = m_status | Writing;
+            Buffer IObuff;
+            IObuff.Swap(m_buffer); //
+            m_eventloop->AddTask([this, IObuff](void *)
+            { 
+                EpollerSend(IObuff.Peek(), IObuff.DataSize()); 
+            });
+        }
     }
-
-    m_mutex_buff.unlock();
     return len;
 }
 

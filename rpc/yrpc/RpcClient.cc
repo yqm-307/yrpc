@@ -92,17 +92,21 @@ int RpcClient::Call(detail::CallObj::Ptr call)
             ret = -1;
             break;
         }
-        yrpc::util::lock::lock_guard<Mutex> lock(m_mutex);
-        int id = call->GetID();
-        auto res = m_callmap.insert(std::make_pair(id, call));
-        // auto res = m_callmap.insert(std::make_pair(call->GetID(), call));
-        if (!res.second){
-            ERROR("call object ID is repeat!");
-            ret = -1;
-            break;
-        } // 相同值
-        
-        ret = m_session->Append(call->m_req);
+        {
+            yrpc::util::lock::lock_guard<Mutex> lock(m_mutex);
+            int id = call->GetID();
+            auto res = m_callmap.insert(std::make_pair(id, call));
+            // auto res = m_callmap.insert(std::make_pair(call->GetID(), call));
+            if (!res.second)
+            {
+                ERROR("call object ID is repeat!");
+                ret = -1;
+                break;
+            } // 相同值
+
+            ret = m_session->Append(call->m_req);
+        }
+
     }while(0);
 
     return ret;

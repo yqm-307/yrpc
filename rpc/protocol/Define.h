@@ -172,11 +172,24 @@ protected:
 struct ProtocolHead
 {
     ProtocolHead() 
-        : m_length(0), m_type(define::type_YRPC_PROTOCOL_Done),m_serviceid(0),m_id(yrpc::util::id::GenerateID::GetIDuint32()) {}
+        :m_length(0), 
+         m_type(define::type_YRPC_PROTOCOL_Done),
+         m_serviceid(0),
+         m_id(yrpc::util::id::GenerateID::GetIDuint32())
+    {}
     ProtocolHead(define::YRPC_PROTOCOL type, uint16_t len,uint32_t sid,uint32_t id = yrpc::util::id::GenerateID::GetIDuint32())
-        : m_length(len), m_type(type),m_serviceid(sid) ,m_id(id) {}
+        :m_length(len), 
+         m_type(type),
+         m_serviceid(sid),
+         m_id(id) 
+    {}
     ProtocolHead(const ProtocolHead &p) 
-        : m_length(p.m_length), m_type(p.m_type), m_serviceid(p.m_serviceid) , m_id(p.m_id) {}
+        :m_length(p.m_length), 
+         m_type(p.m_type), 
+         m_serviceid(p.m_serviceid), 
+         m_id(p.m_id) 
+    {}
+    
     ProtocolHead(ProtocolHead&& p)
     { *this = std::move(p); }
     ~ProtocolHead() {}
