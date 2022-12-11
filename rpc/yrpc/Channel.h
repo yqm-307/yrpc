@@ -127,7 +127,7 @@ private:
 
     Epoller*        m_eventloop;
     ConnPtr         m_conn;     // channel hold conn
-    volatile int    m_status;   // 信道应该带有io状态，正在读、正在写、空闲
+    volatile int    m_status{0};   // 信道应该带有io状态，正在读、正在写、空闲
     bool            m_is_closed{false};
     
     Buffer          m_buffer;    // 单缓冲

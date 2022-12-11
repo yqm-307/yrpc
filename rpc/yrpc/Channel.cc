@@ -99,18 +99,23 @@ size_t Channel::Send(const Buffer& data)
 
 size_t Channel::Send(const char* data,size_t len)
 {
-
-    m_buffer.WriteString(data,len);
-    
+    // bug 原因
+    // m_buffer.WriteString(data,len);
+    if(len != 25)
+    {
+        ERROR("len = %d",len);
+    }
+    assert(len == 25);
     m_mutex_buff.lock();
+    m_buffer.WriteString(data,len);
     if ( !IsWriting(m_status) ) // 没有正在发送数据
     {    
         SetIsWriting(m_status);
         // m_status = m_status | Writing;
-        std::shared_ptr<Buffer> IObuffptr = std::make_shared<Buffer>();
-        IObuffptr->Swap(m_buffer);  // 
-        m_eventloop->AddTask([=](void*){
-            EpollerSend(IObuffptr->Peek(),IObuffptr->DataSize());
+        Buffer IObuff;
+        IObuff.Swap(m_buffer);  // 
+        m_eventloop->AddTask([this,IObuff](void*){
+            EpollerSend(IObuff.Peek(),IObuff.DataSize());
         });
     }
 
@@ -150,7 +155,12 @@ void Channel::UpdateAllCallbackAndRunInEvloop()
 void Channel::EpollerSend(const char *data, size_t len)
 {
 
+
     int n = m_conn->send(data,len);
+    static uint64_t nbytes{0};
+    nbytes+=n>=0? n:0;
+    DEBUG("send stat %d byte",nbytes);
+    
     {
         lock_guard<Mutex> lock(m_mutex_buff);
         SetNoWriting(m_status);
@@ -158,16 +168,27 @@ void Channel::EpollerSend(const char *data, size_t len)
          * 因为发送事件的注册是工作线程调用send驱动的，如果buffer有数据，但是send不被调用。
          * 就会导致数据积压在buffer中。所以我添加一个主动检测机制，发送完毕后，检查缓冲区
          * 是否还有待发送数据，如果没有就可以退出。如果有，就直接注册一个发送事件
-         * 
+         *
          * 思考另一个方法，就是保证注册发送事件的顺序。
-         * 
+         *
          * 这样多线程send也不会出错
          */
+        //try to send
+        if (m_buffer.DataSize() > 0)
+        {
+            // m_buffer.WriteString(m_buffer.Peek(), m_buffer.DataSize());
+            SetIsWriting(m_status);
+            Buffer IObuff;
+            IObuff.Swap(m_buffer); //
+            m_eventloop->AddTask([this, IObuff](void *)
+                                 { EpollerSend(IObuff.Peek(), IObuff.DataSize()); });
+        }
     }
-    if (m_buffer.DataSize() > 0)
-    {
-        Send(m_buffer);
-    }
+    // BUG所在
+    // if (m_buffer.DataSize() > 0)
+    // {
+    //     Send(m_buffer);
+    // }
 
     // 错误分析
     errorcode e;

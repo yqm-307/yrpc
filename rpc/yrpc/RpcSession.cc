@@ -32,7 +32,7 @@ void RpcSession::Output(const char* data,size_t len)
 }
 
 
-void RpcSession::Input(char* data,size_t len)
+void RpcSession::Input(const char* data,size_t len)
 {
     // lock_guard<Mutex> lock(m_input_mutex);
     m_input_buffer.Append(data,len);
@@ -79,7 +79,7 @@ void RpcSession::ProtocolMultiplexing()
                 else    // 没有客户端处理函数？存在这种可能吗。但是加上以防万一
                     NoneClientHandler();
             }
-            AddPacket(proto);
+            //AddPacket(proto);
         }
         else
         {
@@ -142,11 +142,12 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
     {
         DEBUG(" recv successfully! %d bytes",buff.DataSize());
         lock_guard<Mutex> lock(m_input_mutex);
-        Input(buff.Peek(),buff.ReadableBytes());
+        Input(buff.Peek(),buff.DataSize());
         ProtocolMultiplexing();     // 进行一次协议解析        
     }
     else
     {
+        ERROR("recv error!");
         // todo 错误处理
     }
 }

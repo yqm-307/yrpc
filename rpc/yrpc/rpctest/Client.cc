@@ -1,6 +1,7 @@
 #include "../RpcClient.h"
 #include <memory>
 #include "../../proto/test_protocol/AddAndStr.pb.h"
+#include <bbt/timer/interval.hpp>
 using namespace yrpc;
 using namespace yrpc::util;
 using namespace yrpc::util::clock;
@@ -19,8 +20,8 @@ void call_once(rpc::RpcClient& C,const std::string& once )
     auto co = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(
         std::move(pck),"Echo",
         [](std::shared_ptr<google::protobuf::Message> rsp){
-            ccount.fetch_add(1);
-            printf("完成了第%d次\n",ccount.load());
+            ccount.fetch_add(1,std::memory_order_seq_cst);
+            // printf("完成了第%d次\n",ccount.load());
         });
     assert(co);
     while (C.Call(co) < 0);
@@ -44,13 +45,14 @@ int main()
             break;
         }
     }
+    bbt::timer::interval now;
 
-    for (int i = 0;i<10000;++i)
+    for (int i = 0;i<100000;++i)
     {
         call_once(client,"hello world");
-        // printf("注册一次\n");
     }
 
-    while(ccount<10000){std::this_thread::sleep_for(std::chrono::milliseconds(10));}
+    while(ccount.load()<99990){std::this_thread::sleep_for(std::chrono::milliseconds(5));}
     printf("注册over!\n");
+    printf("耗时: %ldms\n",now.intervalnow());
 }

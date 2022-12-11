@@ -46,23 +46,33 @@ static uint64_t GetIDuint64()
 }
 
 /**
- * @brief 提供时效为5分钟的uid，10分钟不保证唯一性
- * 
+ * @brief 提供时效为1分钟的uid，10分钟不保证唯一性
+ *  1分钟 = 6kw微秒
  * @return uint32_t 唯一性时效为10分钟uid，失败返回0
  */
 static uint32_t GetIDuint32()
 {
-    auto p = yrpc::util::clock::now<yrpc::util::clock::ns>();
-    static uint32_t per = (p.time_since_epoch().count())/1000%Hours_MS;  //当前小时
+    static auto timepoint = clock::now<clock::us>();
+    static auto expired_timepoint = clock::nowAfter<clock::us>(clock::us(1*60*1000*1000));
+    static uint32_t perid{0};  //上一个id
     static int index=0;
-    uint32_t id = (p.time_since_epoch().count())/1000%Hours_MS;
-    if(per == id)
-        id = index >= Hours_MS ? 0 : id+10*Minute_MS/*10分钟*/+index++;
-    else
-    {//下一个时间段
-        per = id;
-        index=0;
+    if(clock::expired<clock::us>(expired_timepoint))
+    {// 超时了
+        expired_timepoint = clock::nowAfter<clock::us>(clock::us(1*60*1000*1000));
     }
+
+    auto p = expired_timepoint-timepoint;
+    uint32_t id = p.count();
+    if (perid == id)
+    {   // 重复了，偏移
+        id += index;
+        index ++;
+    }
+    else
+    {
+        perid = id;
+        index = 0;
+    }    
     return id;
 }
 

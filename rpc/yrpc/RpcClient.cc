@@ -57,6 +57,7 @@ void RpcClient::OnConnect(SessionPtr newsession)
 
 void RpcClient::OnPckHandler(Buffer&&/*字节流*/ pck)
 {
+    int pcksize = pck.DataSize();
     Resolver rsl(pck);
     // 获取包id,很重要，to select callobjmap
     auto it = m_callmap.find(rsl.GetProtoID());
@@ -64,8 +65,11 @@ void RpcClient::OnPckHandler(Buffer&&/*字节流*/ pck)
     {
         ERROR("RpcClient::OnPckHandler() , info: cann`t find package id");
     }
-    it->second->SetResult(rsl);     //设置结果
-    m_callmap.erase(it);
+    else
+    {
+        it->second->SetResult(rsl);     //设置结果
+        m_callmap.erase(it);
+    }
 }
 
 
@@ -78,11 +82,13 @@ int RpcClient::Call(detail::CallObj::Ptr call)
     do{
         if (m_session == nullptr)
         {
+            ERROR("session is not connected!");
             ret = -1;
             break;
         }
         if (m_session->IsClosed())
         {
+            ERROR("session is closed!");
             ret = -1;
             break;
         }
@@ -91,6 +97,7 @@ int RpcClient::Call(detail::CallObj::Ptr call)
         auto res = m_callmap.insert(std::make_pair(id, call));
         // auto res = m_callmap.insert(std::make_pair(call->GetID(), call));
         if (!res.second){
+            ERROR("call object ID is repeat!");
             ret = -1;
             break;
         } // 相同值

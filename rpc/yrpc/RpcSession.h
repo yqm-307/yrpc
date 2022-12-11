@@ -125,7 +125,7 @@ private:
 
 
     // thread unsafe,Session上行数据
-    void Input(char*,size_t);
+    void Input(const char*,size_t);
 
     // thread unsafe,Session下行数据
     void Output(const char*,size_t);

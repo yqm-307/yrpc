@@ -62,8 +62,8 @@ public:
     void AsyncAccept(const YAddress& peer);
 private:
     __YRPC_SessionManager(int Nthread);  
-
-    SessionID GetSessionID();
+    ~__YRPC_SessionManager();
+    // SessionID GetSessionID();
 
     // 运行在 main loop 中的，只做新连接的分发
     void RunInMainLoop();
@@ -191,13 +191,13 @@ private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
     Acceptor*           m_main_acceptor;    // listen 
     Connector           m_connector;        
-    Epoller**           m_sub_loop;         // sub eventloop
+    std::vector<Epoller*>           m_sub_loop;         // sub eventloop
     const size_t        m_sub_loop_size;    // sub eventloop 数量
     CountDownLatch      m_loop_latch;       // 
     std::atomic_int     m_balance;          // 新连接轮转负载，跨线程（需要atomic，还需要考虑 memory order）
     
     std::thread*        m_main_thread;      
-    std::thread**       m_sub_threads;   
+    std::vector<std::thread*>       m_sub_threads;   
 
     SessionMap          m_sessions;         // 会话
     Mutex               m_mutex_sessions;   

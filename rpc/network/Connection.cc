@@ -119,17 +119,16 @@ void runhandle()
 void Connection::RunInEvloop()
 {
 
-    yrpc::util::buffer::Buffer buffer;
     const int init_buffsize{4096};
-    char* array = new char[4096];
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
+    yrpc::util::buffer::Buffer buffer(init_buffsize);
 
     while(m_conn_status == connected)
     {
-        memset(array,'\0',init_buffsize);
-        int n = recv(array,init_buffsize);
-        buffer.WriteString(array,n);        
+        buffer.InitAll();
+        int n = recv(buffer.Peek(),init_buffsize);
+        buffer.WriteNull(n);
         if(n > 0) 
         {
             e.setcode(yrpc::detail::shared::ERR_NETWORK_RECV_OK);
@@ -143,7 +142,6 @@ void Connection::RunInEvloop()
                 ERROR("Connection::recvhandler() error , info: recv handler is illegal!");
         }
     }
-    delete[] array;
 }
 
 Connection::ConnectionPtr Connection::GetPtr()

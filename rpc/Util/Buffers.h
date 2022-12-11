@@ -63,7 +63,7 @@ public:
     /* 从buffer读取长度为 len 的字节流，并写入 str */
     void ReadString(char* str,size_t len);
 
-    /* 返回当前读取位置的char* */
+    /* 返回当前数据段第一个字节的地址 */
     const char* Peek(size_t n=0) const;
     char* Peek(size_t n=0);
     /* 丢弃 n 字节未读数据，如果未读数据小于 n，初始化整个buffer */
@@ -83,6 +83,9 @@ public:
     int64_t Readfd(int sockfd,int& Errno);  //connector接受数据使用
     /* 获取当前可读数据首 */
 
+    /* 写入 n 个随机字符，本质上就是扩充 */
+    size_t WriteNull(size_t n);
+
 private:   
     bool Read(void* ,size_t len);                         
     bool Write(const char* data, size_t len);    
@@ -99,7 +102,7 @@ private:
     std::vector<char> bytes;            //比特流
     size_t _readIndex{0};                  //已读
     size_t _writeIndex{0};                 //已写
-    const int reservedBytes{0};            //预留位置
+    [[maybe_unused]]const int reservedBytes{0};            //预留位置
 
     const char CRLF[3] = "\r\n";
 };

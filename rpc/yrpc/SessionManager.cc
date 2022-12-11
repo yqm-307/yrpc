@@ -22,20 +22,18 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
 
     // 初始化 sub eventloop，并运行（由于队列为空，都挂起）
     assert(Nthread>=2);
-    m_sub_loop = new Epoller*[Nthread-1];
-    m_sub_threads = new std::thread*[Nthread-1];
     for (int i=0;i<Nthread;++i)
     {
-        m_sub_loop[i] = new Epoller(64*1024,4096);
+        m_sub_loop.push_back(new Epoller(64*1024,4096));
         auto& tmp = m_sub_loop[i];
         tmp->RunForever();
         tmp->AddTask([this](void* ep){
             this->RunInSubLoop((Epoller*)ep);
         },tmp);
-        m_sub_threads[i] = new std::thread([this,tmp](){
+        m_sub_threads.push_back(new std::thread([this,tmp](){
             this->m_loop_latch.wait();
             tmp->Loop();
-        });
+        }));
         m_loop_latch.down();
     }
 
@@ -45,6 +43,16 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     
     INFO("__YRPC_SessionManager()  , info: SessionManager Init Success!");
     
+}
+
+__YRPC_SessionManager::~__YRPC_SessionManager()
+{
+    for(auto && ptr : m_sub_loop)
+    {
+        delete ptr;
+    }
+    delete m_main_acceptor;
+    delete m_main_loop;
 }
 
 
@@ -58,7 +66,7 @@ __YRPC_SessionManager::SessionPtr __YRPC_SessionManager::AddNewSession(Channel::
      */
     auto nextloop = m_sub_loop[BalanceNext];
     auto channelptr = Channel::Create(connptr,nextloop);
-    auto sessionptr = RpcSession::Create(channelptr,*m_sub_loop+BalanceNext);
+    auto sessionptr = RpcSession::Create(channelptr,m_sub_loop[BalanceNext]);
     // 创建并初始化新Session
     sessionptr->SetCloseFunc([this](const yrpc::detail::shared::errorcode& e,const yrpc::detail::net::YAddress& addr){
         // 连接断开，从SessionMap中删除此Session
