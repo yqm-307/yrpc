@@ -1,4 +1,5 @@
 
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin/rpc/simpleCS)
 
 set(ProtoFile ../../proto/test_protocol/AddAndStr.pb.cc ../../proto/test_protocol/AddAndStr.pb.h)
  
