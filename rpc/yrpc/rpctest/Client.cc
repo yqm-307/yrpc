@@ -29,10 +29,8 @@ void call_once(rpc::RpcClient& C,const std::string& once )
     while (C.Call(co) < 0);
 }
 
-int main()
+void run_for_times(const std::string& ip,int port,int ntimes=-1)
 {
-    yrpc::util::logger::Logger::GetInstance("clit.log");
-
     rpc::RpcClient client("127.0.0.1", 12020);
     // bool flag = true;
 
@@ -57,4 +55,20 @@ int main()
     while(ccount<100000){std::this_thread::sleep_for(std::chrono::milliseconds(5));}
     printf("注册over!\n");
     printf("耗时: %ldms\n",now.intervalnow());
+}
+
+int main(int nparam,char* argv[])
+{
+    if ( nparam != 3 )
+    {
+        printf("usage : [ip] [port]");
+        exit(-1);
+    }
+    std::string ip(argv[1],sizeof(argv[1]));
+    int port = std::stoi(std::string(argv[2],sizeof(argv[2])));
+
+
+    yrpc::util::logger::Logger::GetInstance("clit.log");
+
+    run_for_times(ip,port,-1);
 }

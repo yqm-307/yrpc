@@ -102,5 +102,4 @@ void Service_Base::SendPacket(RpcSessionPtr sess,MessagePtr pck,const ProtocolHe
     {
         ERROR("peer {%s} is closed, send failed!",sess->GetPeerAddress().GetIPPort().c_str());
     }
-
 }
