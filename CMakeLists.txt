@@ -17,17 +17,16 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib) # 库输出路径
 # include 包含路径
 include_directories(
     # # 下面两个都 include ，为了兼容 vscode cmake tools
-    ${PROJECT_BINARY_DIR}/rpc/proto # 在主目录构建
-    ${PROJECT_BINARY_DIR}/../rpc/proto
-    ${PROJECT_BINARY_DIR}/third-lib/boost_contex/include
+    ${PROJECT_SOURCE_DIR}/rpc/proto # 在主目录构建
+    ${PROJECT_SOURCE_DIR}/third-lib/boost_contex/include
 )
 
 # lib 文件 包含路径
 link_directories(
     ${PROJECT_BINARY_DIR}/../third-lib/lib
+    ${PROJECT_SOURCE_DIR}/third-lib/lib
 )
 add_definitions(-Dcmakebuild)
-
 # 设置输出路径
 set(MESSAGE_DIR ${CMAKE_BINARY_DIR}/rpc/proto)
 
