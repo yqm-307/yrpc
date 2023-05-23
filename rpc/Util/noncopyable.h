@@ -10,23 +10,19 @@
  */
 #pragma once
 
-namespace yrpc::util::noncopyable
-{
+// namespace yrpc::util::noncopyable
+// {
 
-class noncopyable
-{
-public:
-    noncopyable(noncopyable& non) = delete;
-    void operator=(noncopyable& non) = delete;
+// class noncopyable
+// {
+// public:
+//     noncopyable(noncopyable& non) = delete;
+//     void operator=(noncopyable& non) = delete;
 
-protected:
-    noncopyable() = default;
-    ~noncopyable() = default;
-};
+// protected:
+//     noncopyable() = default;
+//     ~noncopyable() = default;
+// };
 
-}
-
-
-
-
-
+// }
+#include <bbt/template_util/noncopyable.hpp>

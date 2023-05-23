@@ -26,7 +26,7 @@ enum CONN_STATUS : int32_t
     disconnect=2    //断开连接
 };
 
-class Connection:std::enable_shared_from_this<Connection>
+class Connection : public std::enable_shared_from_this<Connection>
 {
 public:
     typedef std::shared_ptr<Connection> ConnectionPtr;
@@ -72,7 +72,7 @@ public:
     /**
      * @brief   强制关闭 socket fd, 释放资源
      */
-    void ForceClose();
+    // void ForceClose();
     
 
     /**
@@ -127,17 +127,16 @@ protected:
     bool is_connected()
     {return m_conn_status == connected;}
 
-    void runhandle();
-
     void initclosehandler(ConnectionPtr conn)
     { DEBUG("client :%s , info: connection close!",conn->StrIPPort().c_str()); }
-
-    void RunInEvloop();
+    // sub loop 中运行
+    void RunInSubLoop();
 
     void TimeOut(Socket* socket);
 protected:
     //todo outputbuffer ，不会让服务的写操作阻塞。但是rpc对于这个有要求吗？毕竟服务完成到返回都可以算作整体，而且有协程，处理完该发不出去还是发不出去
-    Socket*          m_socket;    
+    Socket*          m_socket; // m_ssl_socket
+    // ssl_socket;  //
     yrpc::coroutine::poller::Epoller* m_schedule;    //由拥有者赋予
     
     volatile CONN_STATUS             m_conn_status;

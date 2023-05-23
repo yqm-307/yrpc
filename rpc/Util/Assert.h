@@ -44,7 +44,7 @@
 {\
     if (!(static_cast<bool>(expr)))\
     {\
-        YAssert_Failed(yrpc::util::logger::format(fmt,##__VA_ARGS__));\
+        YAssert_Failed(bbt::log::format(fmt,##__VA_ARGS__));\
     }\
 }
 

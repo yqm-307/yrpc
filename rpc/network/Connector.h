@@ -23,7 +23,7 @@ namespace yrpc::detail::net
  * 类似ECS那样，网络库本身不保存数据，数据层在 channel 、 session
  * 
 */
-class Connector:std::enable_shared_from_this<Connector>
+class Connector : public std::enable_shared_from_this<Connector>
 {
 public:
     /**
@@ -51,12 +51,7 @@ public:
         });
     }
 
-
-    // template<typename T,if_same_as(T,OnConnectHandle)>
-    // void AsyncConnect(Socket* socket,YAddress servaddr,T&& onconn)
-    // {   
-    //     scheduler_->AddTask([this,socket,servaddr,onconn](void*){onConnect(socket,servaddr,onconn);});
-    // }
+    void SyncConnect(Socket* socket, YAddress servaddr);
 
     static Socket* CreateSocket();
     static void DestorySocket(Socket*);

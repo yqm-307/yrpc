@@ -4,12 +4,11 @@
 #include "../Util/Statistics.h"
 #include "../protocol/all.h"
 #include "../network/SessionBuffer.h"
-
+#include "Define.h"
 
 namespace yrpc::rpc::detail
 {
 
-class SessionManager;
 /**
  * @brief 双向连接，一个session可以做服务
  * 1、感觉数据保存这里最好，如果在manager，粒度太粗，manager不好管理
@@ -121,8 +120,9 @@ private:
     /**
      * @brief 将当前数据进行分解，并放在c2s、s2c队列中
      */
-    void ProtocolMultiplexing();
+    std::vector<Protocol> GetProtocolsFromInput();
 
+    void HandleProtocol(const std::vector<Protocol>& protocols);
 
     // thread unsafe,Session上行数据
     void Input(const char*,size_t);
@@ -167,7 +167,6 @@ private:
     DispatchCallback_Client         m_stoclient{nullptr};
     DispatchCallback_Server         m_ctoserver{nullptr};
     Channel::TimeOutCallback        m_timeoutcallback{nullptr};
-
 };
 
 

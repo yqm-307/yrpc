@@ -53,7 +53,7 @@ public:
     void setLoadBalancer(const LBer& lber)
     { lber_ = lber; }
 protected:
-    /* 实际上处理连接事件的函数 */
+    /* main loop 运行的函数 */
     void ListenInEvloop();
     void Init();
     // void ListenRunInLoop();

@@ -102,7 +102,7 @@ private:
     std::vector<char> bytes;            //比特流
     size_t _readIndex{0};                  //已读
     size_t _writeIndex{0};                 //已写
-    [[maybe_unused]]const int reservedBytes{0};            //预留位置
+    const int reservedBytes{0};            //预留位置
 
     const char CRLF[3] = "\r\n";
 };

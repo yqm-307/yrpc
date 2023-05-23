@@ -2,6 +2,7 @@
 #include "../../proto/test_protocol/AddAndStr.pb.h"
 // #include "AddAndStr.pb.h"
 #include <memory>
+#include <bbt/config/GlobalConfig.hpp>
 using namespace yrpc;
 using namespace yrpc::util;
 typedef std::function<void(std::shared_ptr<google::protobuf::Message>)> SendPacket;
@@ -30,13 +31,15 @@ void EchoHandle(const MessagePtr args,SendPacket&& onsend)
 
 int main()
 {
-    yrpc::util::logger::Logger::GetInstance("sevr.log");
+    int flag = 1;
+    bbt::config::GlobalConfig::GetInstance()->GetDynamicCfg()->SetEntry(bbt::config::BBTSysCfg[bbt::config::BBT_LOG_STDOUT_OPEN], &flag);
+
     auto sev = yrpc::rpc::RpcServer::GetInstance();
     sev->SetAddress(yrpc::detail::net::YAddress(12020));
-    sev->SetThreadPool(0);
 
     sev->register_service<AddReq,AddRsp>("add",AddHandle);
     sev->register_service<EchoReq,EchoRsp>("Echo",EchoHandle);
     sev->Start();
+    while(true)
+        std::this_thread::sleep_for(yrpc::util::clock::s(3)); 
 }
-

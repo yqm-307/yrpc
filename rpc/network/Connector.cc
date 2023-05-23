@@ -65,3 +65,8 @@ void Connector::DestorySocket(Socket*socket)
     ::close(socket->sockfd_);
     delete socket;
 }
+
+void Connector::SyncConnect(Socket* socket, YAddress servaddr)
+{
+    
+}

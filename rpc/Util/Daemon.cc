@@ -82,7 +82,7 @@ bool yrpc::util::Daemon::damon()
     umask(0);   // 文件权限屏蔽字,新文件都是777
 
     /* 关闭所有文件描述符 */
-    for ( auto fd =sysconf(_SC_OPEN_MAX); fd > 0;fd--)
+    for ( fd =sysconf(_SC_OPEN_MAX); fd > 0;fd--)
     {
         close(fd);
     }
@@ -96,5 +96,5 @@ bool yrpc::util::Daemon::damon()
 
     // pid文件
     create_pidfile(pid);
-    
+    return true;
 }

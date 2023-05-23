@@ -7,13 +7,8 @@ using namespace yrpc::rpc::detail;
 
 
 
-Service_Base::Service_Base(bool b,int n)
-    :m_canToService(b)
+Service_Base::Service_Base()
 {
-    if ( n <= 0)
-        m_pool = nullptr;
-    else
-        m_pool = std::make_unique<ThreadPool>(n,65535);
 }
 
 Service_Base::~Service_Base()
@@ -35,22 +30,16 @@ void Service_Base::Dispatch(Buffer&& pck,RpcSessionPtr sess)
         return;
     }
 
-
-    std::string msg_bytearray(pck.Peek()+ProtocolHeadSize,pck.DataSize()-ProtocolHeadSize);
-    // auto byte_view = std::string_view(pck.Peek()+ProtocolHeadSize,pck.DataSize()-ProtocolHeadSize);
-    auto aa = yrpc::rpc::ProtocolFactroy::GetInstance()->Create(resolve.GetProtoID());
+    std::string msg_bytearray(pck.Peek() + ProtocolHeadSize, pck.DataSize() - ProtocolHeadSize);
     MessagePtr req_ptr;
     service->second(yrpc::detail::CodeOrService::Decode,req_ptr,msg_bytearray);
 
     //服务调用
-    //返回msgtype 的message对象
-    service->first(req_ptr,
-                        [this,sess,resolve,service](std::shared_ptr<google::protobuf::Message> Packet)->
-    void{
-        this->SendPacket(sess,Packet,resolve.GetProtocolHead(),YRPC_PROTOCOL::type_S2C_RPC_CALL_RSP);
-    });  //调用服务，问题：如果是非常耗时的操作，就会形成类似阻塞的效果，影响线程内主协程的调度
-
-
+    service->first(
+        req_ptr,
+        [this,sess,resolve,service](std::shared_ptr<google::protobuf::Message> Packet)->void
+        {   this->SendPacket(sess,Packet,resolve.GetProtocolHead(),YRPC_PROTOCOL::type_S2C_RPC_CALL_RSP); }
+    );  //调用服务，问题：如果是非常耗时的操作，就会形成类似阻塞的效果，影响线程内主协程的调度
 }
 
 
@@ -68,17 +57,14 @@ Service_Base::MessagePtr Service_Base::DoErrHandler(RPC_ERRCODE type,const std::
 }
 
 
-Service_Base* Service_Base::GetInstance(bool open,int ths)
+Service_Base* Service_Base::GetInstance()
 {
 
     static Service_Base* ptr = nullptr;
 
     if(ptr == nullptr)
     {
-        if (ths <= 0)
-            ptr = new Service_Base(open,0);
-        else
-            ptr = new Service_Base(open,ths);
+        ptr = new Service_Base();
     }
     return ptr;
 }

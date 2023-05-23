@@ -38,10 +38,10 @@ class Service_Base
     typedef yrpc::util::threadpool::ThreadPool<std::function<void()>> ThreadPool;
     typedef yrpc::detail::protocol::ProtocolHead            ProtocolHead;
 public:
-    Service_Base(bool,int);
+    Service_Base();
     ~Service_Base();
 
-    static Service_Base* GetInstance(bool=false,int=-1);
+    static Service_Base* GetInstance();
 
     /**
      * @brief 再ServiceMap中找到对应的处理程序
@@ -63,11 +63,6 @@ private:
     ////// 错误处理函数///////
     /////////////////////////
     MessagePtr DoErrHandler(RPC_ERRCODE,const std::string& info = "");
-
-private:
-    // servicemap 单例
-    std::unique_ptr<ThreadPool>   m_pool;
-    const bool               m_canToService;
 };
 
 }

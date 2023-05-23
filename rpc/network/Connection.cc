@@ -110,15 +110,8 @@ void Connection::Close()
         m_closecb(e,shared_from_this());
 }
 
-void runhandle()
+void Connection::RunInSubLoop()
 {
-    
-}
-
-
-void Connection::RunInEvloop()
-{
-
     const int init_buffsize{4096};
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
@@ -169,7 +162,7 @@ void Connection::setOnTimeoutCallback(OnTimeoutCallback cb)
 void Connection::RunInEvLoop()
 {
     m_schedule->AddTask([this](void *)
-                       { RunInEvloop(); },
+                       { RunInSubLoop(); },
                        nullptr);
 }
 
@@ -197,7 +190,7 @@ void Connection::TimeOut(Socket* socket)
 {
     // 超时被调用,做超时处理
     // 网络层不做处理，交给上层处理超时的连接
-    if (m_timeoutcb != nullptr)
+    if ( ( m_timeoutcb != nullptr ) && ( m_conn_status == connected ) )
         m_timeoutcb();  
 }
 }

@@ -19,6 +19,7 @@ include_directories(
     # # 下面两个都 include ，为了兼容 vscode cmake tools
     ${PROJECT_SOURCE_DIR}/rpc/proto # 在主目录构建
     ${PROJECT_SOURCE_DIR}/third-lib/boost_contex/include
+    ${PROJECT_SOURCE_DIR}
 )
 
 # lib 文件 包含路径
@@ -73,6 +74,7 @@ target_link_libraries(yrpc
     ${PROTOBUF_LIBRARIES} 
     boost_context 
     pthread
+    ybbt
 )
 
 install(TARGETS yrpc DESTINATION lib)

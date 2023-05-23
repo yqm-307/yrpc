@@ -1,3 +1,4 @@
+#include "SessionManager.h"
 #include "RpcClient.h"
 #include <algorithm>
 
@@ -10,10 +11,6 @@ RpcClient::RpcClient(std::string ip,int port)
     :m_session(nullptr),
     m_addr(ip,port)
 {
-    SessionManager::GetInstance()->AsyncConnect(m_addr,[this](SessionPtr ptr){
-        this->OnConnect(ptr);
-    });
-
 }
 
 RpcClient::RpcClient(yrpc::detail::net::YAddress servaddr_)
@@ -46,7 +43,7 @@ void RpcClient::OnConnect(SessionPtr newsession)
     {
         m_session = newsession;
         assert(m_session != nullptr);
-        m_session->SetToClientCallback(functor([this](Buffer&& pck,RpcSession::SessionPtr){OnPckHandler(std::move(pck));}));
+        m_session->SetToClientCallback(functor([this](Buffer&& pck,detail::SessionPtr){OnPckHandler(std::move(pck));}));
     }
     else
     {
@@ -57,18 +54,20 @@ void RpcClient::OnConnect(SessionPtr newsession)
 
 void RpcClient::OnPckHandler(Buffer&&/*字节流*/ pck)
 {
-    int pcksize = pck.DataSize();
     Resolver rsl(pck);
     // 获取包id,很重要，to select callobjmap
-    auto it = m_callmap.find(rsl.GetProtoID());
-    if (it == m_callmap.end())
     {
-        ERROR("RpcClient::OnPckHandler() , info: cann`t find package id");
-    }
-    else
-    {
-        it->second->SetResult(rsl);     //设置结果
-        m_callmap.erase(it);
+        yrpc::util::lock::lock_guard<Mutex> lock(m_mutex);
+        auto it = m_callmap.find(rsl.GetProtoID());
+        if (it == m_callmap.end())
+        {
+            ERROR("RpcClient::OnPckHandler() , info: cann`t find package id");
+        }
+        else
+        {
+            it->second->SetResult(rsl);     //设置结果
+            m_callmap.erase(it);
+        }
     }
 }
 
@@ -111,4 +110,21 @@ int RpcClient::Call(detail::CallObj::Ptr call)
 
     return ret;
 }
+
+/**
+ * @brief 
+ * 
+ * @param func 
+ */
+void RpcClient::AsyncConnect(detail::OnConnCallBack userfunc)
+{
+    yrpc::rpc::detail::SessionManager::GetInstance()->AsyncConnect(m_addr,[this,userfunc](SessionPtr ptr){
+        this->OnConnect(ptr);
+        if (userfunc != nullptr)
+        {
+            userfunc();
+        }
+    });
+}
+
 }

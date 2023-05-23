@@ -70,15 +70,17 @@ int sys_stack_free(void* start,size_t len)
 RoutineStack::RoutineStack(const size_t init_stack_size_,const bool memory_protect_)
     :is_pagelock_(memory_protect_),
     useable_stack_(nullptr),
-    stack_(nullptr)
+    stack_(nullptr),
+    stacksize_(init_stack_size_)
 {
     size_t pagesize = getpagesize();  
+    // 内存对齐
     if(stacksize_%pagesize == 0)
-        stacksize_ = init_stack_size_ ;  //额外两页用来加锁保护  
-    else    //需要对齐
+        stacksize_ = init_stack_size_ ; 
+    else
         stacksize_ = (init_stack_size_/pagesize + 1)*pagesize;
 
-    //需要保护栈内存
+    // 需要保护栈内存
     if(is_pagelock_)
     {
         char* stack_ = sys_stack_alloc(NULL,stacksize_+2*pagesize,

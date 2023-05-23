@@ -61,6 +61,7 @@ Channel::~Channel()
     errorcode e("channel is destory",yrpc::detail::shared::ERR_TYPE_OK,0);
     if (!m_is_closed)
     {
+        m_conn->Close();
         if (m_closecallback == nullptr)
             CloseInitFunc(e);
         m_closecallback(e, m_conn);
@@ -75,6 +76,7 @@ Channel::~Channel()
 void Channel::Close()
 {
     errorcode e("call func : Channel::Close,info: disconnection",yrpc::detail::shared::ERR_TYPE_OK,0);
+    m_conn->Close();
     m_closecallback(e,m_conn);
     m_is_closed = true;
 }       
@@ -136,6 +138,10 @@ void Channel::InitFunc()
         this->m_timeoutcallback();
     });
 
+    m_conn->setOnCloseCallback([this](const errorcode& e,const ConnPtr p){
+        this->m_closecallback(e, p);
+    });
+
     m_conn->RunInEvLoop();
 }
 
@@ -155,13 +161,7 @@ void Channel::UpdateAllCallbackAndRunInEvloop()
 
 void Channel::EpollerSend(const char *data, size_t len)
 {
-
-
     int n = m_conn->send(data,len);
-    static uint64_t nbytes{0};
-    nbytes+=n>=0? n:0;
-    DEBUG("send stat %d byte",nbytes);
-    
     {
         lock_guard<Mutex> lock(m_mutex_buff);
         SetNoWriting(m_status);
@@ -196,7 +196,7 @@ void Channel::EpollerSend(const char *data, size_t len)
 
     if (n > 0)
     {
-        e.set(yrpc::util::logger::format("send %d bytes", n),
+        e.set(bbt::log::format("send %d bytes", n),
               yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,  // code 类型 :网络
               yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_OK // code :发送成功
         );
@@ -206,7 +206,7 @@ void Channel::EpollerSend(const char *data, size_t len)
               yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
               yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL);
     // 回调通知
-    m_sendcallback(e, n,m_conn);
+    m_sendcallback(e, n, m_conn);
 }
 
 // 防止代码污染

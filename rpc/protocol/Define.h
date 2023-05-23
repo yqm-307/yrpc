@@ -15,7 +15,6 @@
 #include "../proto/yrpc_core_protocol/s2c.pb.h"
 #include <assert.h>
 #include <unordered_map>
-
 namespace yrpc::detail::protocol::define
 {
 
@@ -154,10 +153,10 @@ protected:
  * 
  * 
  *  |               |               |                       |                   |                    |
- *  | length(16bit) |  type(16bit)  | BKDR ID(32bit)        | protocol id(32bit)|protobuf bytes(data)|    
+ *  | length(16bit) |  type(16bit)  | BKDR ID(32bit)        | protocol id(32bit)|protobuf bytes(data)|
  *  |               |               |                       |                   |                    |
  *   包长度 2 字节  ,  范围 1-65535     整条协议，包括协议头长度
- *   协议类型 2 字节,  范围 1-65535     定义在 YRPC_PROTOCOL 
+ *   协议类型 2 字节,  范围 1-65535     定义在 YRPC_PROTOCOL
  *   服务名 4 字节  ,  范围 1-42E       通过BKDR生成
  *   协议id 4 字节  ,  范围 1-42E       id generate 产生
  */

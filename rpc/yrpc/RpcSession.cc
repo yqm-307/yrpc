@@ -10,7 +10,6 @@ RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
     m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
     m_can_used(true)
 {
-    // InitFunc();
 }
 
 RpcSession::~RpcSession()
@@ -19,7 +18,6 @@ RpcSession::~RpcSession()
     {
         Close();
     }
-    INFO("");
 }
 
 
@@ -43,13 +41,9 @@ void RpcSession::Input(const char* data,size_t len)
 
 
 
-void RpcSession::ProtocolMultiplexing()
+std::vector<RpcSession::Protocol> RpcSession::GetProtocolsFromInput()
 {
-    /**
-     * 这个函数很重要
-     * 1、解包然后判断数据包类型进行分类
-     * 2、触发ToClient、ToServer分发给不同的处理handler
-     */
+    std::vector<Protocol> protocols;
     while(true)
     {
         if (m_input_buffer.Has_Pkg())
@@ -65,29 +59,22 @@ void RpcSession::ProtocolMultiplexing()
             if ( resolver.GetProtoType() < type_YRPC_PROTOCOL_CS_LIMIT )
             {// c2s 请求
                 proto.t = Protocol::type::req;
-                if(m_ctoserver != nullptr)
-                    m_ctoserver(std::move(proto.data),shared_from_this());
-                else    // 没有服务提供者的处理函数，返回错误信息
-                    NoneServerHandler();    
-
+                protocols.emplace_back(proto);
             }
             else
             {// s2c 响应
                 proto.t = Protocol::type::rsp;
-                if (m_stoclient != nullptr)
-                    m_stoclient(std::move(proto.data),shared_from_this());
-                else    // 没有客户端处理函数？存在这种可能吗。但是加上以防万一
-                    NoneClientHandler();
+                protocols.emplace_back(proto);
             }
-            //AddPacket(proto);
         }
         else
         {
+            DEBUG("buffer size: %d",m_input_buffer.Length());
             break;
         }
     }
+    return protocols;
 }
-
 
 
 
@@ -137,18 +124,49 @@ void RpcSession::UpdataAllCallbackAndRunInEvloop()
 
 void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
 {
+    m_byterecord.Addrecv_bytes(buff.DataSize());
     // 将数据保存到Buffer里
     if(e.err() == yrpc::detail::shared::ERR_NETWORK_RECV_OK)    // 正常接收
     {
-        DEBUG(" recv successfully! %d bytes",buff.DataSize());
-        lock_guard<Mutex> lock(m_input_mutex);
-        Input(buff.Peek(),buff.DataSize());
-        ProtocolMultiplexing();     // 进行一次协议解析        
+        DEBUG("RpcSession::RecvFunc()  , info: recv succ %ld bytes!",buff.DataSize());
+        DEBUG("RpcSession::RecvFunc()  , total recv %ld bytes!",m_byterecord.Getrecv_bytes());
+        std::vector<Protocol> protos;
+        {
+            // lock_guard<Mutex> lock(m_input_mutex);
+            Input(buff.Peek(),buff.DataSize());
+            protos = GetProtocolsFromInput();
+        }
+        // do handle    
+        HandleProtocol(protos);
     }
     else
     {
         ERROR("recv error!");
         // todo 错误处理
+    }
+}
+
+void RpcSession::HandleProtocol(const std::vector<Protocol>& protocols)
+{
+    // while(protocols.size() > 0)
+    for (auto it = protocols.begin(); it != protocols.end(); ++it)
+    {
+        auto proto = *it;
+        yrpc::detail::protocol::YProtocolResolver resolver(proto.data); // todo 复用机制
+        if ( resolver.GetProtoType() < type_YRPC_PROTOCOL_CS_LIMIT )
+        {// c2s 请求
+            if(m_ctoserver != nullptr)
+                m_ctoserver(std::move(proto.data),shared_from_this());
+            else
+                NoneServerHandler();    
+        }
+        else
+        {// s2c 响应
+            if (m_stoclient != nullptr)
+                m_stoclient(std::move(proto.data),shared_from_this());
+            else
+                NoneClientHandler();
+        }
     }
 }
 
@@ -171,6 +189,7 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
 #ifdef YRPC_DEBUG
         m_byterecord.Addsend_bytes(len);
         DEBUG("RpcSession::SendFunc()  , info: send succ %ld bytes!",len);
+        INFO("RpcSession::SendFunc()  ,total send %ld bytes!",m_byterecord.Getsend_bytes());
 #endif
     }
     else
@@ -194,7 +213,7 @@ void RpcSession::CloseFunc(const errorcode& e)
     {
         /* todo 完善错误码 */
     }
-    INFO("RpcSession::CloseFunc() , info: Session Stop\tpeer={%s}",m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
+    INFO("RpcSession::CloseFunc() , info: Session Stop  peer = {%s}",m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
 }
 
 
@@ -234,12 +253,12 @@ bool RpcSession::HasPacket()
 
 void RpcSession::NoneServerHandler()
 {
-
+    WARN("please set server handler");
 }   
 
 void RpcSession::NoneClientHandler()
 {
-
+    WARN("please set client handler");
 }
 
 const Channel::Address& RpcSession::GetPeerAddress()

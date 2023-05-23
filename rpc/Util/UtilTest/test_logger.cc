@@ -2,7 +2,7 @@
 #include "../TimeQueue.h"
 #include <bbt/random/random.hpp>
 #include <unistd.h>
-using namespace yrpc::util::logger;
+using namespace bbt::log;
 using namespace yrpc::util;
 
 void nthread()

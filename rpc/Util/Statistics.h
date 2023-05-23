@@ -40,9 +40,11 @@ class ByteRecord;
 
 // 用来做流量监视的，方便后续调试
 class yrpc::util::statistics::ByteRecord{
+public: 
+    ByteRecord():m_recv_bytes(0),m_send_bytes(0){}
+
     StatisticsValue( uint64_t , recv_bytes );
     StatisticsValue( uint64_t , send_bytes );
-
 };
 
 #endif

@@ -35,12 +35,12 @@
 #include "../Util/noncopyable.h"
 #include "../Util/TcpUtil.h"
 #include "../Util/Locker.h"
+
+
 namespace yrpc::coroutine::poller
 {
 class Epoller;
 typedef int YRoutine_t;
-
-
 
 
 
@@ -87,7 +87,7 @@ public:
 
 
 
-class Epoller final:util::noncopyable::noncopyable 
+class Epoller final : bbt::noncopyable 
 {
     
     template<typename DataObj>
@@ -113,7 +113,7 @@ public:
      * @param logpath   日志名
      * @param protect   是否启用内存保护
      */
-    Epoller(size_t stacksize,int maxqueue,std::string logpath = "yrpc_core.log",bool protect = true);
+    Epoller(size_t stacksize,int maxqueue,bool protect = true);
     ~Epoller();
     
 

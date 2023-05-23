@@ -13,6 +13,7 @@
 #include <memory>
 #include <google/protobuf/any.h>
 #include "../protocol/ErrCode.h"
+#include "../network/all.h"
 #define CLIENTPORT
 
 
@@ -32,6 +33,28 @@ enum RPC_CALL_TYPE: int
     RPC_CALL_IS_SYNC    =4,
     
 };
+
+
+class RpcSession;
+class __YRPC_SessionManager;
+
+
+typedef __YRPC_SessionManager               SessionManager;
+typedef uint64_t                            SessionID;
+typedef yrpc::coroutine::poller::Epoller    Epoller;
+typedef yrpc::util::lock::CountDownLatch    CountDownLatch;
+typedef yrpc::util::lock::Mutex             Mutex;
+typedef yrpc::util::buffer::Buffer          Buffer;
+typedef yrpc::detail::net::Acceptor         Acceptor;
+typedef yrpc::detail::net::ConnectionPtr    ConnPtr;
+typedef yrpc::detail::net::YAddress         YAddress;
+typedef yrpc::detail::net::Connector        Connector;
+typedef yrpc::detail::net::errorcode        errorcode;
+typedef yrpc::detail::net::ConnectionPtr    ConnectionPtr;
+typedef std::shared_ptr<RpcSession>         SessionPtr;
+typedef std::function<void(SessionPtr)>     OnSession;
+typedef yrpc::detail::net::YAddress                     Address;
+typedef std::function<void()>                       OnConnCallBack;
 
 
 }

@@ -9,12 +9,12 @@
  * 
  */
 #include "Epoller.h"
-#include "../Util/Locker.h"
+#include "rpc/Util/Locker.h"
 
 using namespace yrpc::coroutine::poller;
 
 
-Epoller::Epoller(size_t stacksize,int maxqueue,std::string logpath,bool protect)
+Epoller::Epoller(size_t stacksize,int maxqueue,bool protect)
     :max_size_(maxqueue),
     runtime_(stacksize,protect),
     timer_(),
@@ -22,8 +22,6 @@ Epoller::Epoller(size_t stacksize,int maxqueue,std::string logpath,bool protect)
     close_(false),
     forever_(false)
 {
-    yrpc::util::logger::Logger::GetInstance(logpath);  //打开日志
-
     if(epollfd_ < 0)
         FATAL("Epoller::Epoller() epoll_create() error ret : %d",epollfd_);
     else
@@ -144,6 +142,7 @@ void Epoller::DoTimeoutTask()
         for (auto && task : queue)   // 处理超时任务
         {
             task->Data()->eventtype_ = EpollREvent_Timeout;
+            DEBUG("socket addr : %x  callback addr : %x",task->Data(),task->Data()->socket_timeout_);
             task->Data()->socket_timeout_(task->Data());    // callback
         }
     }
@@ -225,7 +224,6 @@ int Epoller::AddSocketTimer(RoutineSocket* socket)
 
     lock_guard<Mutex> lock(mutex_socket_timer_);
     socket->timetask_ = socket_timer_.AddTask(timepoint,socket);
-
     if (socket->timetask_ != nullptr)
         return 0;
     else

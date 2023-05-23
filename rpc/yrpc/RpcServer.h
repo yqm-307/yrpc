@@ -15,7 +15,7 @@ namespace yrpc::rpc
  * 2、ThreadPool配置: 是否设置线程池异步执行任务，如果不设置，默认为io线程内执行。
  * 3、
  */
-class RpcServer : yrpc::util::noncopyable::noncopyable
+class RpcServer : bbt::noncopyable
 {
     typedef yrpc::detail::ServiceFunc           ServiceFunc;
     typedef yrpc::detail::CodecFunc             CodecFunc;
@@ -80,26 +80,15 @@ public:
      */
     template<class ParamPackType,class ReturnPackType>
     void register_service(std::string name,int id,ServiceFunc func);
-
-
-    void SetThreadPool(int nth);
-
-
+    
+    /* 启动服务，立即返回 */
     void Start();
-
     void Stop()
     { m_stop.store(true); }
-private:    
-
-
-
 private:
     Address                     m_serv_addr;    // 服务器监听地址
-    std::atomic_bool            m_stop{false};  //
+    std::atomic_bool            m_stop{false};  
 };
-
-// auto RpcServer::func = nullptr;   
-
 
 
 
@@ -108,9 +97,7 @@ private:
 template<class ParamPackType,class ReturnPackType>
 void RpcServer::register_service(std::string name,ServiceFunc func)
 {
-    // 一、注册service handler 和 decode、encode
     uint32_t ret = yrpc::detail::ServiceMap::GetInstance()->insert(name,func,
-    /*解析：字节流转化为message对象。 序列化：message对象转化为字节流*/
     [](bool is_parse,MessagePtr& packet,std::string& bytes){
         if(is_parse)
             packet = yrpc::detail::Codec::ParseToMessage<ParamPackType>(bytes);
@@ -119,10 +106,6 @@ void RpcServer::register_service(std::string name,ServiceFunc func)
             yrpc::detail::Codec::Serialize(packet,bytes);
         }
     });
-
-    // 二、注册 req 、rsp 到protocol packet 工厂
-    // yrpc::rpc::ProtocolFactroy::GetInstance()->Insert();
-
     assert(ret >= 0);   //服务注册失败，大概率注册时导致的服务名冲突
 }
 
@@ -130,7 +113,6 @@ template<class ParamPackType,class ReturnPackType>
 void RpcServer::register_service(std::string name,int id,ServiceFunc func)
 {
     uint32_t ret = yrpc::detail::ServiceMap::GetInstance()->insert(name,id,func,
-    /*解析：字节流转化为message对象。 序列化：message对象转化为字节流*/
     [](bool is_parse,std::any& arg1,std::any& arg2){
         if(is_parse)
             arg2 = yrpc::detail::Codec::ParseToMessage<ParamPackType>(std::any_cast<std::string_view&>(arg1));

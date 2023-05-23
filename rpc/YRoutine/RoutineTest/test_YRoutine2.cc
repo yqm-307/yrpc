@@ -28,7 +28,7 @@ void f2(void *) {
 
 
 
-int main(int argc) {
+int main(int argc,char* argv[]) {
 
     test_count = 10;
     int test_count_2 = (test_count + 1) * 2;
