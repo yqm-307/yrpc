@@ -47,7 +47,7 @@ void Connector::onConnect(Socket* servfd_,const YAddress& servaddr_,const OnConn
             onconnect_(e,conn);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
         }
         else
-            INFO("Connector no connect handle!");
+            INFO("[YRPC][Connector::onConnect] onconnect_ is nullptr!");
     }
 }
 

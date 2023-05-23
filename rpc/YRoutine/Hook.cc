@@ -250,7 +250,7 @@ ssize_t YRWrite(Socket &socket, const void *buf, size_t len)
 int YRClose(Socket &socket)
 {
     if(socket.timetask_.use_count() >= 2)
-        DEBUG("YRClsoe() socket use_count >= 2,memory leak!");
+        DEBUG("[YRPC][YRClsoe] socket use_count >= 2,memory leak!");
     socket.timetask_ = nullptr; //释放最后的引用计数
     if(socket.sockfd_>=0)
     {

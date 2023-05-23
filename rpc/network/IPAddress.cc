@@ -116,6 +116,7 @@ YAddress& YAddress::operator=(const YAddress& oth)
 	this->_ip = oth._ip;
 	this->_port = oth._port;
 	this->is_null = this->is_null;
+	return *this;
 }
 
 YAddress& YAddress::operator=(YAddress&& oth)
@@ -125,4 +126,5 @@ YAddress& YAddress::operator=(YAddress&& oth)
 	this->_port = oth._port;
 	this->is_null = this->is_null;
 	oth.is_null = true;	// 置空表示，移交所有权
+	return *this;
 }

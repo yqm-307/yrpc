@@ -52,7 +52,7 @@ std::vector<RpcSession::Protocol> RpcSession::GetProtocolsFromInput()
             proto.data = m_input_buffer.GetAPck();
             if (proto.data.DataSize() == 0)
             {
-                DEBUG("GetAPck error!");
+                DEBUG("[YRPC][RpcSession::GetProtocolsFromInput]GetAPck error!");
                 continue;
             }
             yrpc::detail::protocol::YProtocolResolver resolver(proto.data);
@@ -69,7 +69,7 @@ std::vector<RpcSession::Protocol> RpcSession::GetProtocolsFromInput()
         }
         else
         {
-            DEBUG("buffer size: %d",m_input_buffer.Length());
+            DEBUG("[YRPC][RpcSession::GetProtocolsFromInput] buffer size: %d",m_input_buffer.Length());
             break;
         }
     }
@@ -128,8 +128,8 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
     // 将数据保存到Buffer里
     if(e.err() == yrpc::detail::shared::ERR_NETWORK_RECV_OK)    // 正常接收
     {
-        DEBUG("RpcSession::RecvFunc()  , info: recv succ %ld bytes!",buff.DataSize());
-        DEBUG("RpcSession::RecvFunc()  , total recv %ld bytes!",m_byterecord.Getrecv_bytes());
+        DEBUG("[YRPC]RpcSession::RecvFunc()  , info: recv succ %ld bytes!",buff.DataSize());
+        DEBUG("[YRPC]RpcSession::RecvFunc()  , total recv %ld bytes!",m_byterecord.Getrecv_bytes());
         std::vector<Protocol> protos;
         {
             // lock_guard<Mutex> lock(m_input_mutex);
@@ -188,8 +188,8 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
     {        
 #ifdef YRPC_DEBUG
         m_byterecord.Addsend_bytes(len);
-        DEBUG("RpcSession::SendFunc()  , info: send succ %ld bytes!",len);
-        INFO("RpcSession::SendFunc()  ,total send %ld bytes!",m_byterecord.Getsend_bytes());
+        DEBUG("[YRPC][RpcSession::SendFunc] info: send succ %ld bytes!",len);
+        INFO("[YRPC][RpcSession::SendFunc] total send %ld bytes!",m_byterecord.Getsend_bytes());
 #endif
     }
     else
@@ -213,7 +213,7 @@ void RpcSession::CloseFunc(const errorcode& e)
     {
         /* todo 完善错误码 */
     }
-    INFO("RpcSession::CloseFunc() , info: Session Stop  peer = {%s}",m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
+    INFO("[YRPC][RpcSession::CloseFunc] info: Session Stop  peer = {%s}",m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
 }
 
 
@@ -253,12 +253,12 @@ bool RpcSession::HasPacket()
 
 void RpcSession::NoneServerHandler()
 {
-    WARN("please set server handler");
+    WARN("[YRPC][RpcSession::NoneServerHandler] server handler is not set!");
 }   
 
 void RpcSession::NoneClientHandler()
 {
-    WARN("please set client handler");
+    WARN("[YRPC][RpcSession::NoneClientHandler] client handler is not set!");
 }
 
 const Channel::Address& RpcSession::GetPeerAddress()
@@ -270,4 +270,54 @@ void RpcSession::AddPacket(const Protocol& pck)
 {
     lock_guard<Mutex> lock(m_mutex_pck);    // 这里会和GetAllPak、GetAPack冲突,需要加锁
     m_pck_queue.push(pck);
+}
+
+int RpcSession::CallObj_AddObj(detail::CallObj::Ptr obj)
+{
+    auto it = m_call_map.find(obj->GetID());
+    if ( it == m_call_map.end() )
+    {
+        return -1;
+    }
+    else
+    {
+        m_call_map.insert(std::make_pair(obj->GetID(),obj));
+        return 1;
+    }
+}
+
+int RpcSession::CallObj_DelObj(detail::CallObj::Ptr obj)
+{
+    auto it = m_call_map.find(obj->GetID());
+    if ( it == m_call_map.end() )
+    {
+        return -1;
+    }
+    else
+    {
+        auto earse_node = m_call_map.erase(it);
+        return 1;
+    }
+}
+
+
+int RpcSession::SendACallObj(detail::CallObj::Ptr obj)
+{
+    int ret = -1;
+    do{
+        if (CallObj_AddObj(obj) < 0)
+        {
+            ERROR("[YRPC][RpcSession::SendACallObj] call map , id is repeat!");
+            ret = -2;
+            break;   
+        }
+        if (Append(obj->m_req) <= 0)
+        {
+            ret = -3;
+            break;
+        }
+        ret = 1;
+    }while(0);
+    
+    return ret;
 }

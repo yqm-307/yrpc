@@ -11,49 +11,39 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     m_main_acceptor(nullptr),
     m_connector(m_main_loop),
     m_sub_loop_size(Nthread-1),
-    m_loop_latch(Nthread-1),
+    m_sub_loop(m_sub_loop_size),
+    m_loop_latch(Nthread),
     m_undone_conn_queue(std::make_unique<ConnQueue>()),
     port(7912)
 {
     // 初始化 main eventloop，但是不运行
     m_main_thread = new std::thread([this](){
-        m_main_loop->RunForever();
-        this->m_main_loop->Loop();
-    });      // 线程运行
+        m_loop_latch.down();
+        this->MainLoop();
+    });
 
     // 初始化 sub eventloop，并运行（由于队列为空，都挂起）
     assert(Nthread>=2);
     for (int i=0;i<Nthread;++i)
     {
-        m_sub_loop.push_back(new Epoller(64*1024,4096));
-        auto& tmp = m_sub_loop[i];
-        tmp->RunForever();
-        tmp->AddTask([this](void* ep){
-            this->RunInSubLoop((Epoller*)ep);
-        },tmp);
-        m_sub_threads.push_back(new std::thread([this,tmp](){
-            this->m_loop_latch.wait();
-            tmp->Loop();
+        m_sub_threads.push_back(new std::thread([this,i](){
+            this->SubLoop(i);
         }));
         m_loop_latch.down();
     }
-
-
-    // 注册负载均衡器
-    // assert(m_main_acceptor != nullptr);
-    
-    INFO("__YRPC_SessionManager()  , info: SessionManager Init Success!");
-    
+    m_loop_latch.wait();    
+    INFO("[YRPC][__YRPC_SessionManager] info: SessionManager Init Success!");
 }
 
 __YRPC_SessionManager::~__YRPC_SessionManager()
 {
-    for(auto && ptr : m_sub_loop)
-    {
-        delete ptr;
-    }
+    // for(auto && ptr : m_sub_loop)
+    // {
+    //     delete ptr;
+    // }
     delete m_main_acceptor;
-    delete m_main_loop;
+    m_main_acceptor = nullptr;
+    // delete m_main_loop;
 }
 
 
@@ -73,10 +63,10 @@ SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ConnPtr connptr)
         // 连接断开，从SessionMap中删除此Session
         if (this->DelSession(addr))
         {
-            /*删除异常 肯定有bug, 目前是只有这里引用了 DelSession*/ 
+            INFO("[YRPC][__YRPC_SessionManager] session closed!");
         }
         else{
-            
+            WARN("[YRPC][__YRPC_SessionManager] session closed! but not exist in SessionManager!");
         }
     });
     // 超时
@@ -172,11 +162,12 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, ConnectionPtr conn)
         {
             auto newsess = this->AddNewSession(conn);
             // 检查一下是否有主动连接对端的任务
-            auto onsessfunc = m_undone_conn_queue->PopUpById(tmpid);
-            if (onsessfunc != nullptr)
+            auto [onsessfunc,succ] = m_undone_conn_queue->PopUpById(tmpid);
+            if (succ)
             {
-                onsessfunc(newsess);
-                INFO("[__YRPC_SessionManager::OnAccept] SessionID: %ld , session connect repeat",tmpid);
+                if ( onsessfunc != nullptr )
+                    onsessfunc(newsess);
+                INFO("[YRPC][__YRPC_SessionManager::OnAccept] SessionID: %ld , session connect repeat",tmpid);
             }
         }
         else
@@ -185,12 +176,12 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, ConnectionPtr conn)
              * 如果连接已经存在，那么就复用，只允许两端之间存在一条tcp连接
              */
             conn->Close();
-            WARN("[__YRPC_SessionManager::OnAccept] SessionID: %ld , session is exist",tmpid);
+            WARN("[YRPC][__YRPC_SessionManager::OnAccept] SessionID: %ld , session is exist",tmpid);
         }
 
     }
     else{
-        ERROR("[__YRPC_SessionManager::OnAccept] %s",e.what().c_str());
+        ERROR("[YRPC][__YRPC_SessionManager::OnAccept] %s",e.what().c_str());
     }
 }
 void __YRPC_SessionManager::OnConnect(const errorcode &e, ConnectionPtr conn)
@@ -203,27 +194,39 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, ConnectionPtr conn)
         {
             lock_guard<Mutex> lock(m_mutex_session_map);
             newSession = this->AddNewSession(conn);
-        }
-
-        { 
             SessionID tmpid = AddressToID(conn->GetPeerAddress());
             // clean 连接等待队列，处理回调任务
-            lock_guard<Mutex> lock(m_mutex_session_map);
-            auto onsessfunc = this->m_undone_conn_queue->PopUpById(tmpid);
-            if (onsessfunc != nullptr)
+            auto [onsessfunc,exist] = this->m_undone_conn_queue->PopUpById(tmpid);
+            auto done_session = m_session_map.find(tmpid);
+            if ( exist )
             {
-                onsessfunc(newSession);
+                if (done_session != m_session_map.end())
+                {
+                    newSession->Close();
+                    WARN("[YRPC][__YRPC_SessionManager::OnConnect] The connection may already exist!");
+                }
+                else{
+                    if (onsessfunc != nullptr)
+                        onsessfunc(newSession);
+                }
             }
             else
             {
-                newSession->Close();
-                INFO("The connection may already exist!");
+                if (done_session != m_session_map.end())
+                {
+                    newSession->Close();
+                    WARN("[YRPC][__YRPC_SessionManager::OnConnect] The connection may already exist! but exist two queue :D?");
+                }
+                else
+                    ERROR("[YRPC][__YRPC_SessionManager::OnConnect] connection may be not exist!\
+                    because not in m_session_map or m_undone_conn_queue!");
             }
         }
     }
     else
     {
         /* todo 网络连接失败错误处理 */
+        ERROR("[YRPC][__YRPC_SessionManager::OnConnect] connect error!");
     }
 }
 
@@ -273,7 +276,10 @@ bool __YRPC_SessionManager::AsyncConnect(YAddress peer,OnSession onsession)
     }
     else
     {
-        onsession(it->second);
+        if (onsession != nullptr)
+            onsession(it->second);
+        else
+            WARN("[YRPC][__YRPC_SessionManager::AsyncConnect] async connect success callback is nullptr, maybe warning");
         ret = true;
     }
 
@@ -291,12 +297,14 @@ void __YRPC_SessionManager::AsyncAccept(const YAddress& peer)
      * Todo : 被连接也要保存到SessionMap 
      */
     if(m_main_acceptor != nullptr)
+    {
         delete m_main_acceptor;
-    m_main_acceptor = new Acceptor(m_main_loop,peer.GetPort(),3000,5000);
+        m_main_acceptor = nullptr;
+    }
+    m_main_acceptor = new Acceptor(peer.GetPort(),3000,5000);
     
     m_main_acceptor->setLoadBalancer(functor([this]()->auto {return this->LoadBalancer(); }));
     m_main_acceptor->setOnAccept(functor([this](const yrpc::detail::shared::errorcode&e,yrpc::detail::net::ConnectionPtr conn)->void{
-        INFO("OnConnect success!");
         this->OnAccept(e,conn);
     }),nullptr);
     m_main_loop->AddTask([this](void*){this->RunInMainLoop();});
@@ -325,6 +333,46 @@ SessionID __YRPC_SessionManager::AddressToID(const YAddress&key)
         }
     }
     return std::stoull(id);
+}
+
+
+void __YRPC_SessionManager::SubLoop(int idx)
+{
+    assert(_co_scheduler != nullptr);
+    _co_scheduler->RunForever();
+    this->m_sub_loop[idx] = _co_scheduler;
+    this->m_loop_latch.wait();
+    _co_scheduler->Loop();
+}
+void __YRPC_SessionManager::MainLoop()
+{
+    assert(_co_scheduler != nullptr);
+    _co_scheduler->RunForever();
+    m_loop_latch.wait();
+    m_main_loop = _co_scheduler;
+    _co_scheduler->Loop();
+}
+
+SessionPtr __YRPC_SessionManager::TryGetSession(const Address& peer)
+{
+    SessionID sid = AddressToID(peer);
+    lock_guard<Mutex> lock(m_mutex_session_map);
+    auto it = m_session_map.find(sid);
+    if (it == m_session_map.end())
+        return nullptr;
+    else
+        return it->second;
+}
+
+bool __YRPC_SessionManager::IsConnecting(const Address& peer)
+{
+    SessionID sid = AddressToID(peer);
+    lock_guard<Mutex> lock(m_mutex_session_map);
+    auto it = m_undone_conn_queue->Find(sid);
+    if (it == nullptr)
+        return false;
+    else
+        return true;
 }
 
 

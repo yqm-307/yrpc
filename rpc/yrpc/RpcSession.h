@@ -4,6 +4,7 @@
 #include "../Util/Statistics.h"
 #include "../protocol/all.h"
 #include "../network/SessionBuffer.h"
+#include "CallObjFactory.h"
 #include "Define.h"
 
 namespace yrpc::rpc::detail
@@ -39,7 +40,7 @@ class RpcSession : public std::enable_shared_from_this<RpcSession>
     typedef yrpc::util::lock::Mutex             Mutex;
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::detail::net::SessionBuffer    SessionBuffer;
-
+    typedef std::map<Protocol_PckIdType,detail::CallObj::Ptr> CallObjMap;      
 
     
     template<class T>
@@ -83,8 +84,6 @@ public:
     void SetToServerCallback(DispatchCallback_Server cb)
     { m_ctoserver = cb; }
 
-
-
     //////////////////////
     ///// 连接控制 ///////
     //////////////////////
@@ -107,8 +106,14 @@ public:
 
     void UpdataAllCallbackAndRunInEvloop();
     
-    
+    /**/
+    int SendACallObj(detail::CallObj::Ptr obj);
 private:
+    /* 添加一个obj到objmap中，成功返回1，失败返回-1 */
+    int CallObj_AddObj(detail::CallObj::Ptr obj);
+    /* 从objmap中删除一个obj，成功返回1，失败返回-1 */
+    int CallObj_DelObj(detail::CallObj::Ptr obj);
+    
     /*
     * 这里是这个类最核心的部分，重要的几个函数，和大概功能我列出来。
     * Input  从channel接收数据
@@ -162,6 +167,8 @@ private:
     char*           m_remain{nullptr};       // 不完整的包
 
     std::atomic_bool    m_can_used; // session是否可用
+
+    CallObjMap      m_call_map;
 
     SessionCloseCallback            m_closecb{nullptr};
     DispatchCallback_Client         m_stoclient{nullptr};

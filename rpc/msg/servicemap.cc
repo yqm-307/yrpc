@@ -26,7 +26,7 @@ uint32_t ServiceMap::insert(std::string name,const ServiceFunc& service,const Co
 {
     if(NameToId_.find(name) != NameToId_.end())
     {//服务名冲突
-        FATAL("ServiceMap::insert() fatal , service name repeated!");
+        FATAL("[YRPC][ServiceMap::insert] service name repeated!");
         return 0;
     }
 
@@ -43,7 +43,7 @@ uint32_t ServiceMap::insert(std::string name, uint32_t id,const ServiceFunc& ser
 {
     if(NameToId_.find(name) != NameToId_.end())
     {
-        FATAL("ServiceMap::insert() fatal , service name repeated!");
+        FATAL("[YRPC][ServiceMap::insert] service name repeated!");
         return 0;
     }
 

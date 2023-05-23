@@ -20,7 +20,7 @@ public:
      * @param socket_timeout_ms socket超时时间 
      * @param connect_timeout_ms 连接超时时间 
      */
-    Acceptor(Epoller* loop,int port,int socket_timeout_ms = SOCKET_TIME_OUT_MS,int connect_timeout_ms = SOCKET_CONN_TIME_MS);
+    Acceptor(int port,int socket_timeout_ms = SOCKET_TIME_OUT_MS,int connect_timeout_ms = SOCKET_CONN_TIME_MS);
     ~Acceptor();
 
 
@@ -60,7 +60,7 @@ protected:
     void CreateListenSocket();
     void ReleaseListenSocket();
 private:
-    Epoller*        scheduler_;   // listen所在的evloop
+    // Epoller*        scheduler_;   // listen所在的evloop
     LoadBalancer    lber_;   
     Socket*         listenfd_;
     int             port_;

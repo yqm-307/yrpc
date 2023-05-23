@@ -27,6 +27,7 @@ class CallObj
 {
     friend class yrpc::rpc::CallObjFactory;
     friend class yrpc::rpc::RpcClient;
+    friend class yrpc::rpc::detail::RpcSession;
     typedef google::protobuf::Message       Message;
     typedef std::shared_ptr<Message>        MessagePtr;
     typedef yrpc::util::buffer::Buffer      ByteArray;

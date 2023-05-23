@@ -23,9 +23,9 @@ Epoller::Epoller(size_t stacksize,int maxqueue,bool protect)
     forever_(false)
 {
     if(epollfd_ < 0)
-        FATAL("Epoller::Epoller() epoll_create() error ret : %d",epollfd_);
+        FATAL("[YRPC][Epoller::Epoller] error ret : %d",epollfd_);
     else
-        DEBUG("Epoller::Epoller() epoll_create() epollfd : %d",epollfd_);
+        DEBUG("[YRPC][Epoller::Epoller] epollfd : %d",epollfd_);
 }
 
 Epoller::~Epoller()
@@ -142,7 +142,7 @@ void Epoller::DoTimeoutTask()
         for (auto && task : queue)   // 处理超时任务
         {
             task->Data()->eventtype_ = EpollREvent_Timeout;
-            DEBUG("socket addr : %x  callback addr : %x",task->Data(),task->Data()->socket_timeout_);
+            DEBUG("[YRPC][Epoller::DoTimeoutTask] socket addr : %x  callback addr : %x",task->Data(),task->Data()->socket_timeout_);
             task->Data()->socket_timeout_(task->Data());    // callback
         }
     }

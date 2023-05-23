@@ -23,6 +23,10 @@ public:
     static __YRPC_SessionManager* GetInstance();  
     bool AsyncConnect(YAddress peer,OnSession onsession);
     void AsyncAccept(const YAddress& peer);
+    /* 尝试获取Session，Session不存在或者正在连接中返回nullptr */
+    SessionPtr TryGetSession(const Address& peer);
+    /* 当前地址是否正在连接中 */
+    bool IsConnecting(const Address& peer);
 private:
     __YRPC_SessionManager(int Nthread);  
     ~__YRPC_SessionManager();
@@ -39,6 +43,8 @@ private:
     SessionID GetNewID()
     { return (++m_id_key); }
     Epoller* LoadBalancer();
+    void SubLoop(int idx);
+    void MainLoop();
 private:
     // thread unsafe: 添加一个新的Session 到 SessionMap 中
     SessionPtr AddNewSession(Channel::ConnPtr newconn);
@@ -49,10 +55,10 @@ private:
 
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
-    Acceptor*           m_main_acceptor;    // listen 
+    Acceptor*           m_main_acceptor; 
     Connector           m_connector;        
-    std::vector<Epoller*>           m_sub_loop;         // sub eventloop
     const size_t        m_sub_loop_size;    // sub eventloop 数量
+    std::vector<Epoller*>           m_sub_loop;         // sub eventloop
     CountDownLatch      m_loop_latch;       // 
     std::atomic_int     m_balance;          // 新连接轮转负载，跨线程（需要atomic，还需要考虑 memory order）
     

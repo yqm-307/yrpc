@@ -18,7 +18,7 @@ class ConnQueue : bbt::noncopyable
 public:
     typedef std::unique_ptr<ConnQueue>  Ptr;
     /* 弹出一个元素 , 失败返回 nullptr*/
-    OnSessionCallback PopUpById(SessionID id);
+    std::pair<OnSessionCallback,bool> PopUpById(SessionID id);
     /* 查找并插入，id存在成功插入 ret >= 0 ，找不到或插入失败 ret < 0 */
     int   FindAndPush(SessionID id, const OnSessionCallback& func);
     OnSessionCallback Find(SessionID id);

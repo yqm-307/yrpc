@@ -127,8 +127,6 @@ protected:
     bool is_connected()
     {return m_conn_status == connected;}
 
-    void initclosehandler(ConnectionPtr conn)
-    { DEBUG("client :%s , info: connection close!",conn->StrIPPort().c_str()); }
     // sub loop 中运行
     void RunInSubLoop();
 

@@ -40,7 +40,7 @@ public:
 	{
 		if(0>pthread_mutex_lock(&_mutex))
 		{
-			FATAL("Mutex::lock() error!");
+			FATAL("[YRPC][Mutex::lock] error!");
 			exit(-1);
 		}
 	}
@@ -48,7 +48,7 @@ public:
 	{
 		if(0>pthread_mutex_unlock(&_mutex))
 		{
-			FATAL("Mutex::unlock() error!");
+			FATAL("[YRPC][Mutex::unlock] error!");
 			exit(-1);
 		}
 	}
@@ -70,7 +70,7 @@ public:
 	{
 		if(0>pthread_spin_lock(&_spin))
 		{
-			FATAL("Spinlock::lock() error");
+			FATAL("[YRPC][Spinlock::lock] error");
 			exit(-1);
 		}
 	}
@@ -79,7 +79,7 @@ public:
 	{
 		if(0>pthread_spin_unlock(&_spin))
 		{
-			FATAL("Spinlock::unlock() error!");
+			FATAL("[YRPC][Spinlock::unlock] error!");
 			exit(-1);
 		}		
 	}
@@ -106,7 +106,7 @@ public:
 		lock_guard<Mutex> lock(_mutex);
 		if( 0 > pthread_cond_wait(&_cond_t,&_mutex.getlock()))
 		{
-			FATAL("MyLocker::sem_t::wait() error!");
+			FATAL("[YRPC][Sem_t::wait] error!");
 			exit(-1);
 		}
 	}
@@ -115,7 +115,7 @@ public:
 		
 		if(0>pthread_cond_signal(&_cond_t))
 		{
-			FATAL("sem_t::notify_one() error!");
+			FATAL("[YRPC][Sem_t::notify_one] error!");
 			exit(-1);
 		}
 	}
@@ -124,7 +124,7 @@ public:
 	{
 		if(0>pthread_cond_broadcast(&_cond_t))
 		{
-			FATAL("sem_t::notify_all() error!");
+			FATAL("[YRPC][Sem_t::notify_all] error!");
 			exit(-1);
 		}
 	}
@@ -139,7 +139,7 @@ public:
 
 		if(0>pthread_cond_timedwait(&_cond_t,&_mutex.getlock(),&endtime))
 		{
-			FATAL("sem_t::notify_all() error!");
+			FATAL("[YRPC][Sem_t::notify_all] error!");
 			exit(-1);
 		}
 	}
@@ -162,7 +162,7 @@ public:
 	~CountDownLatch()
 	{
 		if(_count!=0)
-			DEBUG("~CountDownLatch() _count=%d",_count.load());
+			DEBUG("[YRPC][~CountDownLatch] _count=%d",_count.load());
 	}
 
 	void wait()

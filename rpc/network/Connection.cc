@@ -14,7 +14,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
     // m_socket->socket_timeout_ms_ = 3000;
     // m_schedule->AddTask([this](void*ptr){RunInEvloop();},nullptr);      //  注册recv handler
     m_schedule->AddSocketTimer(m_socket);                               //  注册超时事件
-    INFO("Connection::Connection() , info: connect success ! peer addr : %s",cli.GetIPPort().c_str());
+    INFO("[YRPC][Connection::Connection] info: connect success ! peer addr : %s",cli.GetIPPort().c_str());
 }
 
 
@@ -102,10 +102,10 @@ size_t Connection::recv(Buffer& data)
 void Connection::Close()
 {
     m_conn_status = disconnect;
-    INFO("Connection::Close() : disconnect");
+    INFO("[YRPC][Connection::Close] disconnect");
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
-    e.setinfo("Connection::Close() : disconnect");
+    e.setinfo("[YRPC][Connection::Close] disconnect");
     if(m_closecb != nullptr)
         m_closecb(e,shared_from_this());
 }
@@ -126,13 +126,13 @@ void Connection::RunInSubLoop()
         {
             e.setcode(yrpc::detail::shared::ERR_NETWORK_RECV_OK);
             
-            DEBUG("Connection::recvhandler() debug , info: from internet recv %d bytes",n);
+            DEBUG("[YRPC][Connection::RunInSubLoop] info: from internet recv %d bytes",n);
             if(m_onrecv)
             {
                 m_onrecv(e,buffer);
             }
             else
-                ERROR("Connection::recvhandler() error , info: recv handler is illegal!");
+                ERROR("[YRPC][Connection::recvhandler] info: recv handler is illegal!");
         }
     }
 }

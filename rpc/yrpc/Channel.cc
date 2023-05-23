@@ -16,14 +16,14 @@ using namespace yrpc::rpc::detail;
 
 void Channel::CloseInitFunc(const errorcode& e)
 { 
-    INFO("Channel::CloseInitFunc(), info[errcode : %d]: peer:{ip:port} = {%s}\t",
+    INFO("[YRPC][Channel::CloseInitFunc] info[errcode : %d]: peer:{ip:port} = {%s}\t",
         e.err(),
         m_conn->StrIPPort().c_str()); 
 }
 
 void Channel::ErrorInitFunc(const errorcode& e)
 { 
-    INFO("Channel::ErrorCallback(), info[errocde : %d]:: peer:{ip:port} = {%s}\t",
+    INFO("[YRPC][Channel::ErrorCallback] info[errocde : %d]:: peer:{ip:port} = {%s}\t",
         e.err(),
         m_conn->StrIPPort().c_str()); 
 }
@@ -31,7 +31,7 @@ void Channel::ErrorInitFunc(const errorcode& e)
 
 void Channel::SendInitFunc(const errorcode&e,size_t len)
 { 
-    INFO("Channel::SendInitFunc(), info[errcode : %d]: peer:{ip:port} = {%s}\t",
+    INFO("[YRPC][Channel::SendInitFunc] info[errcode : %d]: peer:{ip:port} = {%s}\t",
         e.err(),
         m_conn->StrIPPort().c_str()); 
 }
@@ -52,7 +52,7 @@ Channel::Channel(ConnPtr newconn,Epoller* ep)
     m_conn(newconn)
 {
     assert(m_eventloop != nullptr);
-    DEBUG("Channel::Channel(), info: construction channel peer:{ip:port} = {%s}",
+    DEBUG("[YRPC][Channel::Channel] construction channel peer:{ip:port} = {%s}",
             newconn->StrIPPort().c_str());
 }
 
@@ -67,7 +67,7 @@ Channel::~Channel()
         m_closecallback(e, m_conn);
     }
 
-    DEBUG("Channel::~Channel(), info: destory channel peer:{ip:port} = {%s}",
+    DEBUG("[YRPC][Channel::~Channel] info: destory channel peer:{ip:port} = {%s}",
             m_conn->StrIPPort().c_str());
 }
 

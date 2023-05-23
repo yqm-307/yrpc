@@ -305,34 +305,6 @@ private:
     bool        forever_;     
 };
 
+}// namespace yrpc::coroutine::poller
 
-
-
-
-
-
-
-
-// class YRoutine
-// {
-// public:
-//     YRoutine(Epoller* scheduler):epoller_(scheduler){}
-//     void operator-(yrpc::coroutine::context::YRoutineFunc && func)
-//     {
-//         epoller_->AddTask(std::move(func),nullptr);
-//     }
-// private:
-//     Epoller* epoller_;
-// };
-
-
-// #define routine_begin yrpc::coroutine::poller::Epoller _uthread_scheduler(64 * 1024, 300);
-// #define routine_begin_withargs(stack_size, max_task) yrpc::coroutine::poller::Epoller _uthread_scheduler(stack_size, max_task);
-// #define routine_s _uthread_scheduler
-// #define routine_t yrpc::coroutine::poller::poller::YRoutine(_uthread_scheduler)-
-// #define routine_end _uthread_scheduler.Run();
-
-
-
-
-}
+thread_local static yrpc::coroutine::poller::Epoller* _co_scheduler = new yrpc::coroutine::poller::Epoller(64*1024,65535);

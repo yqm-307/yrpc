@@ -5,13 +5,13 @@
 using namespace yrpc::rpc::detail;
 
 
-ConnQueue::OnSessionCallback ConnQueue::PopUpById(SessionID id)
+std::pair<ConnQueue::OnSessionCallback,bool> ConnQueue::PopUpById(SessionID id)
 {
     auto it = m_map.find(id);
     if(it == m_map.end())
-        return nullptr;
+        return {nullptr,false};
     else
-        return it->second;
+        return {it->second,true};
 }
 
 int ConnQueue::FindAndPush(SessionID id, const OnSessionCallback& func)
@@ -32,5 +32,9 @@ int ConnQueue::FindAndPush(SessionID id, const OnSessionCallback& func)
 
 ConnQueue::OnSessionCallback ConnQueue::Find(SessionID id)
 {
-    return m_map.find(id)->second;  
+    auto it = m_map.find(id);
+    if (it == m_map.end())
+        return nullptr;
+    else
+        return it->second;  
 }

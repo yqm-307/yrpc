@@ -64,7 +64,6 @@ protected:
     void onConnect(Socket* servfd_,const YAddress& servaddr_,const OnConnectHandle& onconnect_);
 private:
     yrpc::coroutine::poller::Epoller* scheduler_;
-
 };
 
 }
