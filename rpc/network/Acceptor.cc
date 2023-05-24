@@ -23,6 +23,7 @@ Acceptor::Acceptor(int port,int socket_timeout_ms,int connect_timeout_ms)
 
 Acceptor::~Acceptor()
 {//释放套接字资源和Socket内存
+    INFO("[YRPC][Acceptor::~Acceptor] Acceptor Destroy!");
     this->ReleaseListenSocket();
 }
 

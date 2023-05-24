@@ -99,7 +99,8 @@ public:
     const Channel::Address& GetPeerAddress();
         
     void SetCloseFunc(SessionCloseCallback f)
-    { m_closecb = f; }  
+    { m_closecb = f; } 
+    /* 超时函数，连接真的空闲才会调用 */ 
     void SetTimeOutFunc(Channel::TimeOutCallback f)
     { m_timeoutcallback = f; }
 
@@ -113,7 +114,8 @@ private:
     int CallObj_AddObj(detail::CallObj::Ptr obj);
     /* 从objmap中删除一个obj，成功返回1，失败返回-1 */
     int CallObj_DelObj(detail::CallObj::Ptr obj);
-    
+    /* 连接活跃了，更新超时 */
+    void SetActive();
     /*
     * 这里是这个类最核心的部分，重要的几个函数，和大概功能我列出来。
     * Input  从channel接收数据
@@ -142,6 +144,7 @@ private:
     void RecvFunc(const errorcode&,Buffer&);
     void SendFunc(const errorcode&,size_t);
     void CloseFunc(const errorcode&);
+    void TimeOut(Socket* socket);
 
     // server handler 尚未注册
     void NoneServerHandler();
@@ -167,7 +170,8 @@ private:
     char*           m_remain{nullptr};       // 不完整的包
 
     std::atomic_bool    m_can_used; // session是否可用
-
+    yrpc::util::clock::Timestamp<yrpc::util::clock::ms> 
+                    m_last_active_time; // 最后活跃时间
     CallObjMap      m_call_map;
 
     SessionCloseCallback            m_closecb{nullptr};

@@ -30,7 +30,7 @@ class Connection : public std::enable_shared_from_this<Connection>
 {
 public:
     typedef std::shared_ptr<Connection> ConnectionPtr;
-    typedef std::function<void()>       OnTimeoutCallback;
+    typedef std::function<void(Socket*)>       OnTimeoutCallback;
     typedef yrpc::util::buffer::Buffer Buffer;
 public:
 

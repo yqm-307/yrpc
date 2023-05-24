@@ -30,7 +30,7 @@ typedef std::shared_ptr<google::protobuf::Message> ProtoMsgPtr; // std::shared_p
 typedef std::function<void(ProtoMsgPtr)>    SendPacketFunc;
 
 typedef std::function<void(bool, ProtoMsgPtr &, std::string &)> CodecFunc;    // typedef std::function<void(bool, std::any &, std::any &)>  -- codec函数
-typedef std::function<void(const ProtoMsgPtr/*req*/,SendPacketFunc&&)> ServiceFunc; // std::function<google::protobuf::Message*(const std::any /*req*/)>  -- 服务处理函数
+typedef std::function<ProtoMsgPtr(const ProtoMsgPtr/*req*/)> ServiceFunc; // std::function<google::protobuf::Message*(const std::any /*req*/)>  -- 服务处理函数
 
 typedef std::pair<ServiceFunc, CodecFunc> ServiceHandles;       // std::pair<ServiceFunc, CodecFunc>    -- service handler函数和codec函数
 

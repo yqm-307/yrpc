@@ -12,7 +12,6 @@ namespace yrpc::rpc::detail
 class __YRPC_SessionManager : bbt::noncopyable
 {
 public:
-    typedef std::shared_ptr<RpcSession>         SessionPtr;
     typedef std::function<void(SessionPtr)>     OnSession;
 private:
 
@@ -21,9 +20,9 @@ private:
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
     static __YRPC_SessionManager* GetInstance();  
-    bool AsyncConnect(YAddress peer,OnSession onsession);
-    void AsyncAccept(const YAddress& peer);
-    /* 尝试获取Session，Session不存在或者正在连接中返回nullptr */
+    bool AsyncConnect(Address peer,OnSession onsession);
+    void AsyncAccept(const Address& peer);
+    /* 尝试获取Session，Session不存在或者正在连接中返回nullptr，线程安全 */
     SessionPtr TryGetSession(const Address& peer);
     /* 当前地址是否正在连接中 */
     bool IsConnecting(const Address& peer);
@@ -49,9 +48,9 @@ private:
     // thread unsafe: 添加一个新的Session 到 SessionMap 中
     SessionPtr AddNewSession(Channel::ConnPtr newconn);
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
-    bool DelSession(const YAddress&);
+    bool DelSession(const Address&);
     void Dispatch(Buffer&&string, SessionPtr sess);
-    SessionID AddressToID(const YAddress&key);
+    SessionID AddressToID(const Address&key);
 
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll

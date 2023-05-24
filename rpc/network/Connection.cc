@@ -21,6 +21,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
 
 Connection::~Connection()
 {
+    Close();
     m_schedule->DestorySocket(m_socket);
 }
 
@@ -106,8 +107,11 @@ void Connection::Close()
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
     e.setinfo("[YRPC][Connection::Close] disconnect");
+    this->m_socket->scheduler->CancelSocketTimer(this->m_socket);
     if(m_closecb != nullptr)
         m_closecb(e,shared_from_this());
+    else
+        WARN("[YRPC][Connection::Close] close func is nullptr");
 }
 
 void Connection::RunInSubLoop()
@@ -191,7 +195,9 @@ void Connection::TimeOut(Socket* socket)
     // 超时被调用,做超时处理
     // 网络层不做处理，交给上层处理超时的连接
     if ( ( m_timeoutcb != nullptr ) && ( m_conn_status == connected ) )
-        m_timeoutcb();  
+        m_timeoutcb(socket);
+    else
+        WARN("[YRPC][Connection::TimeOut] connection status anomaly!");  
 }
 }
 

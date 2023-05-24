@@ -16,12 +16,18 @@
 #include "../network/all.h"
 #define CLIENTPORT
 
+/* session 空闲存活时间，如果在session活跃时，session不会被释放。
+但是如果超过 YRPC_SESSION_TIMEOUT 毫秒时间仍未有活跃，那么就会被
+释放 
+*/
+#define YRPC_SESSION_TIMEOUT 3000
 
 namespace yrpc::rpc::detail
 {
 
 typedef std::shared_ptr<google::protobuf::Message> MessagePtr;
 typedef std::function<void(MessagePtr,const yrpc::err::errcode&)> RpcCallback;
+typedef std::function<void()>   CommCallback;
 
 // rpc 调用返回状态
 enum RPC_CALL_TYPE: int
@@ -42,19 +48,21 @@ class __YRPC_SessionManager;
 typedef __YRPC_SessionManager               SessionManager;
 typedef uint64_t                            SessionID;
 typedef yrpc::coroutine::poller::Epoller    Epoller;
+typedef yrpc::coroutine::poller::RoutineSocket Socket;
+
 typedef yrpc::util::lock::CountDownLatch    CountDownLatch;
 typedef yrpc::util::lock::Mutex             Mutex;
 typedef yrpc::util::buffer::Buffer          Buffer;
+
+typedef std::shared_ptr<RpcSession>         SessionPtr;
+typedef std::function<void(SessionPtr)>     OnSession;
+typedef std::function<void()>               OnConnCallBack;
+
 typedef yrpc::detail::net::Acceptor         Acceptor;
+typedef yrpc::detail::net::YAddress         Address;
 typedef yrpc::detail::net::ConnectionPtr    ConnPtr;
-typedef yrpc::detail::net::YAddress         YAddress;
 typedef yrpc::detail::net::Connector        Connector;
 typedef yrpc::detail::net::errorcode        errorcode;
 typedef yrpc::detail::net::ConnectionPtr    ConnectionPtr;
-typedef std::shared_ptr<RpcSession>         SessionPtr;
-typedef std::function<void(SessionPtr)>     OnSession;
-typedef yrpc::detail::net::YAddress                     Address;
-typedef std::function<void()>                       OnConnCallBack;
-
 
 }

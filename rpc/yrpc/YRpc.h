@@ -12,25 +12,46 @@ public:
     Rpc(){}
     ~Rpc(){}
 
-    /** 发起一次远程调用,
+    /** 
      * 返回值含义:
      * 小于等于0失败，大于0成功.
-     * -1,连接已关闭 | -2,发送失败 | -3,连接中 | -4,其他错误
+     * -1,连接已关闭 | -2,发送失败 | -3、-4,连接中,请重试 | 
      */
-    int RemoteOnce(const detail::Address& addr,
+
+    /**
+     * @brief 发起一次远程调用 
+     * 
+     * @param addr 对端地址
+     * @param funcname 调用远程调用的函数名 
+     * @param obj 调用对象
+     * @return int 大于0成功,失败值：-1,连接关闭 | -2,发送失败 | -3、-4,连接尚未完成(重试)
+     */
+    static int RemoteOnce(const detail::Address& addr,
         const std::string& funcname,
         detail::CallObj::Ptr obj);
+    /**
+     * @brief 发起异步连接
+     * 
+     * @param addr 对端地址
+     * @param cb 
+     * @return int 
+     */
+    static int AsyncConnect(const detail::Address& addr,const detail::CommCallback& cb);
 
-    /* 设置服务器监听端口、IP */
-    void SetServerListen(const detail::Address& addr);
+    /**
+     * @brief 设置服务器监听端口，并开启Main Loop，如果不设置服务器将没有服务提供功能
+     * 
+     * @param addr 监听端口地址
+     */
+    static void StartServerListen(const detail::Address& addr);
 
 
     /* 注册服务 */
     template<class ParamPackType,class ReturnPackType>
-    void register_service(std::string name,yrpc::detail::ServiceFunc func);
+    static void register_service(std::string name,const yrpc::detail::ServiceFunc& func);
     /* 注册服务 */
     template<class ParamPackType,class ReturnPackType>
-    void register_service(std::string name,int id,yrpc::detail::ServiceFunc func);
+    static void register_service(std::string name,int id,const yrpc::detail::ServiceFunc& func);
 
 private:
     void AsyncConnect(detail::OnConnCallBack func);
@@ -53,7 +74,7 @@ private:
      * 如果bool 为 true,则执行为Parse行为;如果bool 为false,则执行为Serilize行为。
      */
 template<class ParamPackType,class ReturnPackType>
-void Rpc::register_service(std::string name,yrpc::detail::ServiceFunc func)
+void Rpc::register_service(std::string name,const yrpc::detail::ServiceFunc& func)
 {
     uint32_t ret = yrpc::detail::ServiceMap::GetInstance()->insert(name,func,
     [](bool is_parse,MessagePtr& packet,std::string& bytes){
@@ -68,7 +89,7 @@ void Rpc::register_service(std::string name,yrpc::detail::ServiceFunc func)
 }
 
 template<class ParamPackType,class ReturnPackType>
-void Rpc::register_service(std::string name,int id,yrpc::detail::ServiceFunc func)
+void Rpc::register_service(std::string name,int id,const yrpc::detail::ServiceFunc& func)
 {
     uint32_t ret = yrpc::detail::ServiceMap::GetInstance()->insert(name,id,func,
     [](bool is_parse,std::any& arg1,std::any& arg2){

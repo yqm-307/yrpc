@@ -218,7 +218,6 @@ int Epoller::AddTimer(TimerTaskFunc&& func,int timeout_ms,int reset_time,int max
 
 int Epoller::AddSocketTimer(RoutineSocket* socket)
 {
-
     auto timepoint = yrpc::util::clock::now<yrpc::util::clock::ms>()
                     + yrpc::util::clock::ms(socket->socket_timeout_ms_);
 
@@ -230,6 +229,10 @@ int Epoller::AddSocketTimer(RoutineSocket* socket)
         return -1;
 }
 
+void Epoller::CancelSocketTimer(RoutineSocket* socket)
+{
+    socket_timer_.CancelTask(socket->timetask_);
+}
 
 
 void Epoller::CancelTimer(RoutineSocket*socket)

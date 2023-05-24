@@ -70,7 +70,7 @@ SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ConnPtr connptr)
         }
     });
     // 超时
-    sessionptr->SetTimeOutFunc([sessionptr](){
+    sessionptr->SetTimeOutFunc([sessionptr](Socket* socket){
         // 实际上还没有使用
         if (!sessionptr->IsClosed())
             sessionptr->Close();    // 触发 CloseCallback
@@ -95,7 +95,7 @@ SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ConnPtr connptr)
     return sessionptr;
 }
 
-bool __YRPC_SessionManager::DelSession(const YAddress& id)
+bool __YRPC_SessionManager::DelSession(const Address& id)
 {    
     lock_guard<Mutex> lock(m_mutex_session_map);
     auto its = m_session_map.find(AddressToID(id));
@@ -230,7 +230,7 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, ConnectionPtr conn)
     }
 }
 
-bool __YRPC_SessionManager::AsyncConnect(YAddress peer,OnSession onsession)
+bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
 {
     /**
      * 异步的建立Session，Session建立完成，通过onsession返回 
@@ -287,7 +287,7 @@ bool __YRPC_SessionManager::AsyncConnect(YAddress peer,OnSession onsession)
 }
 
 
-void __YRPC_SessionManager::AsyncAccept(const YAddress& peer)
+void __YRPC_SessionManager::AsyncAccept(const Address& peer)
 {
     /**
      * 创建服务器地址，设置服务提供方处理函数
@@ -320,7 +320,7 @@ void __YRPC_SessionManager::Dispatch(Buffer&&string, SessionPtr sess)
     yrpc::rpc::detail::Service_Base::GetInstance()->Dispatch(std::forward<Buffer>(string), sess);
 }
 
-SessionID __YRPC_SessionManager::AddressToID(const YAddress&key)
+SessionID __YRPC_SessionManager::AddressToID(const Address&key)
 {
     auto str = key.GetIPPort();
     std::string id(19, '0');

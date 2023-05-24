@@ -1,4 +1,4 @@
-#include "../RpcClient.h"
+#include "../YRpc.h"
 #include "../../proto/test_protocol/AddAndStr.pb.h"
 #include <memory>
 #include <bbt/timer/interval.hpp>
@@ -11,14 +11,13 @@ typedef google::protobuf::Message Message;
 typedef std::shared_ptr<Message> MessagePtr;
 
 std::atomic_int ccount{0};
+yrpc::detail::net::YAddress addr("127.0.0.1",12020);
 // int ccount=0;
 
-void call_once(rpc::RpcClient& C,const std::string& once )
+void call_once(const std::string& once )
 {
     auto pck = EchoReq();
-    pck.set_str(once);
-    assert(C.IsConnected());
-    
+    pck.set_str(once);    
     auto co = rpc::CallObjFactory::GetInstance()->Create<EchoReq,EchoRsp>(
         std::move(pck),"Echo",
         [](std::shared_ptr<google::protobuf::Message> rsp){
@@ -27,12 +26,12 @@ void call_once(rpc::RpcClient& C,const std::string& once )
             // printf("完成了第%d次\n",ccount.load());
         });
     assert(co);
-    while (C.Call(co) < 0);
+    while (rpc::Rpc::RemoteOnce(addr,"Echo",co) < 0);
 }
 
 void run_for_times(const std::string& ip,int port,int ntimes=-1)
 {
-    rpc::RpcClient client("127.0.0.1", 12020);
+    // rpc::RpcClient client("127.0.0.1", 12020);
     yrpc::util::lock::Sem_t cond;
     ntimes = ntimes > 0 ? ntimes : 100000;
     bbt::timer::interval now;

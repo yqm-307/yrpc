@@ -236,6 +236,13 @@ public:
      * @param socket socket封装
      */
     void CancelTimer(RoutineSocket* socket);     //取消定时任务
+
+    /**
+     * @brief 取消socket超时定时器
+     * 
+     * @param socket 
+     */
+    void CancelSocketTimer(RoutineSocket* socket);
     
     /**
      * @brief 获取当前正在运行的协程句柄

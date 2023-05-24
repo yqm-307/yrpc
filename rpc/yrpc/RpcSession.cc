@@ -109,8 +109,8 @@ void RpcSession::InitFunc()
         this->CloseFunc(e);
     });
 
-    m_channel->SetTimeOutCallback([this](){
-        this->m_timeoutcallback();
+    m_channel->SetTimeOutCallback([this](Socket* socket){
+        this->TimeOut(socket);
     });
 
 }
@@ -216,6 +216,25 @@ void RpcSession::CloseFunc(const errorcode& e)
     INFO("[YRPC][RpcSession::CloseFunc] info: Session Stop  peer = {%s}",m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
 }
 
+void RpcSession::SetActive()
+{
+    m_last_active_time = yrpc::util::clock::now<yrpc::util::clock::ms>();
+}
+
+void RpcSession::TimeOut(Socket* socket)
+{
+    auto alrealy_timeout_ms = 
+        (yrpc::util::clock::now<yrpc::util::clock::ms>() - m_last_active_time).count();
+    if (alrealy_timeout_ms >= YRPC_SESSION_TIMEOUT)
+    {
+        m_timeoutcallback(socket);
+    }
+    else
+    {
+        assert(socket->scheduler != nullptr);
+        socket->scheduler->AddSocketTimer(socket);
+    }
+}
 
 RpcSession::Protocol RpcSession::GetAPacket()
 {

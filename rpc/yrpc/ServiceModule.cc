@@ -18,28 +18,44 @@ Service_Base::~Service_Base()
 
 void Service_Base::Dispatch(Buffer&& pck,RpcSessionPtr sess)
 {
-
-    assert(pck.DataSize() >= ProtocolHeadSize);
     Resolver resolve(pck);
-    auto service = ServiceMap::GetInstance()->IdToService(resolve.GetServiceID());
-    if (service == nullptr)
+    auto head = resolve.GetProtocolHead();
+    MessagePtr send = nullptr;
+    YRPC_PROTOCOL type = YRPC_PROTOCOL::type_S2C_RPC_ERROR;
+    do
     {
-        // 错误处理
-        auto msg = DoErrHandler(RPC_ERRCODE::CALL_FATAL_SERVICE_ID_IS_BAD,"can't find service id");
-        SendPacket(sess,msg,resolve.GetProtocolHead(),YRPC_PROTOCOL::type_S2C_RPC_ERROR);
-        return;
-    }
+        assert(pck.DataSize() >= ProtocolHeadSize);
+        auto service = ServiceMap::GetInstance()->IdToService(resolve.GetServiceID());
+        if (service == nullptr)
+        {
+            // 错误处理
+            auto msg = DoErrHandler(RPC_ERRCODE::CALL_FATAL_SERVICE_ID_IS_BAD,"can't find service id");
+            send = msg; type = YRPC_PROTOCOL::type_S2C_RPC_ERROR;
+            break;
+        }
 
-    std::string msg_bytearray(pck.Peek() + ProtocolHeadSize, pck.DataSize() - ProtocolHeadSize);
-    MessagePtr req_ptr;
-    service->second(yrpc::detail::CodeOrService::Decode,req_ptr,msg_bytearray);
+        std::string msg_bytearray(pck.Peek() + ProtocolHeadSize, pck.DataSize() - ProtocolHeadSize);
+        MessagePtr req_ptr;
+        service->second(yrpc::detail::CodeOrService::Decode,req_ptr,msg_bytearray);
 
-    //服务调用
-    service->first(
-        req_ptr,
-        [this,sess,resolve,service](std::shared_ptr<google::protobuf::Message> Packet)->void
-        {   this->SendPacket(sess,Packet,resolve.GetProtocolHead(),YRPC_PROTOCOL::type_S2C_RPC_CALL_RSP); }
-    );  //调用服务，问题：如果是非常耗时的操作，就会形成类似阻塞的效果，影响线程内主协程的调度
+        //服务调用
+        MessagePtr ret = service->first(
+            req_ptr
+        );  //调用服务，问题：如果是非常耗时的操作，就会形成类似阻塞的效果，影响线程内主协程的调度
+        if ( ret!= nullptr)
+        {
+            send = ret; type = YRPC_PROTOCOL::type_S2C_RPC_CALL_RSP;
+            break;
+        }
+        else
+        {
+            auto msg = DoErrHandler(RPC_ERRCODE::CALL_FATAL_SERVICE_MSG_IS_BAD,"message retval is nullptr");
+            send = msg; type = YRPC_PROTOCOL::type_S2C_RPC_ERROR;
+            break;
+        }
+    } while (0);
+
+    SendPacket(sess, send, head, type);
 }
 
 

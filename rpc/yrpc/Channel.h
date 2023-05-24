@@ -29,11 +29,12 @@ public:
     typedef yrpc::detail::shared::errorcode                 errorcode;
     typedef yrpc::detail::net::ConnectionPtr                ConnPtr;
     typedef yrpc::coroutine::poller::Epoller                Epoller;
+    typedef yrpc::coroutine::poller::RoutineSocket         Socket;
     typedef std::function<void(const errorcode&,Buffer&,const ConnPtr)>   RecvCallback;
     typedef std::function<void(const errorcode&,size_t,const ConnPtr)>    SendCallback;
     typedef std::function<void(const errorcode&,const ConnPtr)>           CloseCallback;
     typedef std::function<void(const errorcode&,const ConnPtr)>           ErrorCallback;
-    typedef std::function<void()>                                         TimeOutCallback;
+    typedef std::function<void(Socket*)>                                  TimeOutCallback;
     typedef std::shared_ptr<Channel>                        ChannelPtr;
     typedef yrpc::util::lock::Mutex                         Mutex;
     typedef yrpc::detail::net::YAddress                     Address;

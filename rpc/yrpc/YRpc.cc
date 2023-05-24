@@ -1,6 +1,5 @@
 #include "YRpc.h"
 
-
 using namespace yrpc::rpc;
 
 int Rpc::RemoteOnce(const detail::Address& addr,const std::string& funcname,detail::CallObj::Ptr obj)
@@ -39,7 +38,12 @@ int Rpc::RemoteOnce(const detail::Address& addr,const std::string& funcname,deta
 }
 
 
-int Rpc::Call(detail::CallObj::Ptr call,detail::SessionPtr session)
+int Rpc::AsyncConnect(const detail::Address& addr,const detail::CommCallback& cb)
 {
+    detail::SessionManager::GetInstance()->AsyncConnect(addr,[=](detail::SessionPtr){cb();});
+}
 
+void Rpc::StartServerListen(const detail::Address& addr)
+{
+    yrpc::rpc::detail::__YRPC_SessionManager::GetInstance()->AsyncAccept(addr);
 }

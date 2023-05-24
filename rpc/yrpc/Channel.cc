@@ -77,7 +77,7 @@ void Channel::Close()
 {
     errorcode e("call func : Channel::Close,info: disconnection",yrpc::detail::shared::ERR_TYPE_OK,0);
     m_conn->Close();
-    m_closecallback(e,m_conn);
+    // m_closecallback(e,m_conn); // 重复调用了?
     m_is_closed = true;
 }       
 
@@ -134,8 +134,8 @@ void Channel::InitFunc()
         this->m_recvcallback(e,data,this->m_conn);
     });
 
-    m_conn->setOnTimeoutCallback([this](){
-        this->m_timeoutcallback();
+    m_conn->setOnTimeoutCallback([this](Socket* socket){
+        this->m_timeoutcallback(socket);
     });
 
     m_conn->setOnCloseCallback([this](const errorcode& e,const ConnPtr p){
