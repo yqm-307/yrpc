@@ -17,6 +17,7 @@ int Rpc::RemoteOnce(const detail::Address& addr,const std::string& funcname,deta
             }
             if (session->SendACallObj(obj) < 0)
             {
+                ERROR("[YRPC][Rpc::RemoteOnce] send request fatal!");
                 ret = -2;
                 break;
             }
@@ -25,11 +26,15 @@ int Rpc::RemoteOnce(const detail::Address& addr,const std::string& funcname,deta
         else
         {
             if (detail::SessionManager::GetInstance()->IsConnecting(addr))
+            {
                 ret = -3;
+                break;
+            }
             else
             {
                 ret = -4;
                 detail::SessionManager::GetInstance()->AsyncConnect(addr,nullptr);
+                break;
             }
         }
     }while(0);

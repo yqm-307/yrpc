@@ -101,27 +101,18 @@ size_t Channel::Send(const Buffer& data)
 
 size_t Channel::Send(const char* data,size_t len)
 {
-    // bug 原因
-    // m_buffer.WriteString(data,len);
-    if(len != 25)
+    lock_guard<Mutex> lock(m_mutex_buff);
+    m_buffer.WriteString(data, len);
+    if (!IsWriting(m_status)) // 没有正在发送数据
     {
-        ERROR("len = %d",len);
-    }
-    assert(len == 25);
-    {
-        lock_guard<Mutex> lock(m_mutex_buff);
-        m_buffer.WriteString(data, len);
-        if (!IsWriting(m_status)) // 没有正在发送数据
-        {
-            SetIsWriting(m_status);
-            // m_status = m_status | Writing;
-            Buffer IObuff;
-            IObuff.Swap(m_buffer); //
-            m_eventloop->AddTask([this, IObuff](void *)
-            { 
-                EpollerSend(IObuff.Peek(), IObuff.DataSize()); 
-            });
-        }
+        SetIsWriting(m_status);
+        // m_status = m_status | Writing;
+        Buffer IObuff;
+        IObuff.Swap(m_buffer); //
+        m_eventloop->AddTask([this, IObuff](void *)
+        { 
+            EpollerSend(IObuff.Peek(), IObuff.DataSize()); 
+        });
     }
     return len;
 }
@@ -182,15 +173,11 @@ void Channel::EpollerSend(const char *data, size_t len)
             Buffer IObuff;
             IObuff.Swap(m_buffer); //
             m_eventloop->AddTask([this, IObuff](void *)
-                                 { EpollerSend(IObuff.Peek(), IObuff.DataSize()); });
+            { 
+                EpollerSend(IObuff.Peek(), IObuff.DataSize()); 
+            });
         }
     }
-    // BUG所在
-    // if (m_buffer.DataSize() > 0)
-    // {
-    //     Send(m_buffer);
-    // }
-
     // 错误分析
     errorcode e;
 
@@ -205,11 +192,9 @@ void Channel::EpollerSend(const char *data, size_t len)
         e.set("send fail",
               yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
               yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL);
-    // 回调通知
     m_sendcallback(e, n, m_conn);
 }
 
-// 防止代码污染
 #undef IsWriting
 #undef IsReading
 

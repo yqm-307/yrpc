@@ -148,7 +148,6 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
 
 void RpcSession::HandleProtocol(const std::vector<Protocol>& protocols)
 {
-    // while(protocols.size() > 0)
     for (auto it = protocols.begin(); it != protocols.end(); ++it)
     {
         auto proto = *it;
@@ -166,6 +165,7 @@ void RpcSession::HandleProtocol(const std::vector<Protocol>& protocols)
                 m_stoclient(std::move(proto.data),shared_from_this());
             else
                 NoneClientHandler();
+            CallObj_DelObj(resolver.GetProtoID());
         }
     }
 }
@@ -291,8 +291,10 @@ void RpcSession::AddPacket(const Protocol& pck)
     m_pck_queue.push(pck);
 }
 
-int RpcSession::CallObj_AddObj(detail::CallObj::Ptr obj)
+int RpcSession::CallObj_AddObj(detail::CallObj::Ptr obj) /* 发起一次调用时做一次Add*/
 {
+
+    lock_guard<Mutex> lock(m_mutex_call_map);
     auto it = m_call_map.find(obj->GetID());
     if ( it == m_call_map.end() )
     {
@@ -305,9 +307,11 @@ int RpcSession::CallObj_AddObj(detail::CallObj::Ptr obj)
     }
 }
 
-int RpcSession::CallObj_DelObj(detail::CallObj::Ptr obj)
+
+int RpcSession::CallObj_DelObj(Protocol_PckIdType id) /* 处理一次调用后删除掉 */
 {
-    auto it = m_call_map.find(obj->GetID());
+    lock_guard<Mutex> lock(m_mutex_call_map);
+    auto it = m_call_map.find(id);
     if ( it == m_call_map.end() )
     {
         return -1;
@@ -333,6 +337,7 @@ int RpcSession::SendACallObj(detail::CallObj::Ptr obj)
         if (Append(obj->m_req) <= 0)
         {
             ret = -3;
+            CallObj_DelObj(obj->GetID());
             break;
         }
         ret = 1;

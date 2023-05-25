@@ -54,7 +54,7 @@ public:
     static void register_service(std::string name,int id,const yrpc::detail::ServiceFunc& func);
 
 private:
-    void AsyncConnect(detail::OnConnCallBack func);
+    // void AsyncConnect(detail::OnConnCallBack func);
 private:
 
 };

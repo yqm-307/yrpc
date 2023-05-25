@@ -36,7 +36,7 @@ public:
         return std::stoull(id);
     }
 private:
-    /* 服务器注册 */
+    /* 获取服务器列表 */
     MessagePtr GetServerList(MessagePtr pck)
     {
         auto serv_list = std::make_shared<GetServiceListRsp>();
@@ -46,7 +46,10 @@ private:
             addr->set_addr(i.second.GetIP()); 
             addr->set_port(i.second.GetPort());
         }
+        return serv_list;
     }
+
+
 
 private:
     std::map<ServiceID,yrpc::rpc::detail::Address> m_map;

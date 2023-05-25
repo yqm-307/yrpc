@@ -66,15 +66,15 @@ public:
     ///// 协议控制 ///////
     //////////////////////
     
-    // thread safe,获取一个协议包，失败返回的protocol 字节数为0
+    // 获取一个协议包，失败返回的protocol 字节数为0。线程安全
     Protocol GetAPacket();
-    // thread safe,获取当前所有协议包，失败返回一个空的queue,尽量使用GetAllPacket
+    // 获取当前所有协议包，失败返回一个空的queue,尽量使用GetAllPacket。线程安全
     PckQueue GetAllPacket();
-    // thread safe,当前是否有协议
+    // 当前是否有协议，线程安全
     bool HasPacket();
-    // thread safe,向output追加数据
+    // 向output追加数据，线程安全
     size_t Append(const std::string_view pck);
-    // thread safe,向output追加数据
+    // 向output追加数据，线程安全
     size_t Append(const Buffer& bytearray);
 
     // 将 pck 给 client
@@ -98,31 +98,26 @@ public:
 
     const Channel::Address& GetPeerAddress();
         
+    /* 不要在多线程环境调用。线程不安全 */
     void SetCloseFunc(SessionCloseCallback f)
     { m_closecb = f; } 
-    /* 超时函数，连接真的空闲才会调用 */ 
+    /* 不要在多线程环境调用。线程不安全 */ 
     void SetTimeOutFunc(Channel::TimeOutCallback f)
     { m_timeoutcallback = f; }
 
 
     void UpdataAllCallbackAndRunInEvloop();
     
-    /**/
+    /* 发送一个CallObj。线程安全 */
     int SendACallObj(detail::CallObj::Ptr obj);
 private:
-    /* 添加一个obj到objmap中，成功返回1，失败返回-1 */
+    /* 添加一个obj到objmap中，成功返回1，失败返回-1。线程安全 */
     int CallObj_AddObj(detail::CallObj::Ptr obj);
-    /* 从objmap中删除一个obj，成功返回1，失败返回-1 */
-    int CallObj_DelObj(detail::CallObj::Ptr obj);
+    /* 从objmap中删除一个obj，成功返回1，失败返回-1。线程安全 */
+    int CallObj_DelObj(Protocol_PckIdType id);
     /* 连接活跃了，更新超时 */
     void SetActive();
-    /*
-    * 这里是这个类最核心的部分，重要的几个函数，和大概功能我列出来。
-    * Input  从channel接收数据
-    * Output 从channel发送数据
-    * ProtocolMultiplexing  协议多路复用和分解，调用Getpck 相关函数触发
-    * 
-    */
+
 
     /**
      * @brief 将当前数据进行分解，并放在c2s、s2c队列中
@@ -153,7 +148,6 @@ private:
 private:
     /// 当前所在的eventloop
     Epoller*        m_current_loop{nullptr};
-    Mutex           m_push_mutex;
 
     /// input 协议队列
     SessionBuffer   m_input_buffer;         // input buffer 
@@ -172,13 +166,12 @@ private:
     std::atomic_bool    m_can_used; // session是否可用
     yrpc::util::clock::Timestamp<yrpc::util::clock::ms> 
                     m_last_active_time; // 最后活跃时间
-    CallObjMap      m_call_map;
+    CallObjMap      m_call_map;         /* 本地向远端调用事件的集合 */
+    Mutex           m_mutex_call_map;
 
     SessionCloseCallback            m_closecb{nullptr};
     DispatchCallback_Client         m_stoclient{nullptr};
     DispatchCallback_Server         m_ctoserver{nullptr};
     Channel::TimeOutCallback        m_timeoutcallback{nullptr};
 };
-
-
 }
