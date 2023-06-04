@@ -4,7 +4,6 @@
 #include <bbt/timer/interval.hpp>
 #include <bbt/config/GlobalConfig.hpp>
 #include <string>
-// #include "../../proto/test_protocol/AddAndStr.pb.h"
 
 using namespace yrpc;
 using namespace yrpc::util;
@@ -12,6 +11,7 @@ using namespace yrpc::util::clock;
 
 typedef google::protobuf::Message Message;
 typedef std::shared_ptr<Message> MessagePtr;
+typedef yrpc::rpc::detail::Address Address;
 typedef std::function<void(std::shared_ptr<google::protobuf::Message>)> SendPacket;
 
 class ServiceCenter
@@ -37,22 +37,17 @@ public:
     }
 private:
     /* 获取服务器列表 */
-    MessagePtr GetServerList(MessagePtr pck)
-    {
-        auto serv_list = std::make_shared<GetServiceListRsp>();
-        for (auto&& i : m_map)
-        {
-            auto addr = serv_list->add_serv_list();
-            addr->set_addr(i.second.GetIP()); 
-            addr->set_port(i.second.GetPort());
-        }
-        return serv_list;
-    }
-
-
+    MessagePtr GetServerList(MessagePtr pck);
+    /* 注册服务器地址 */
+    MessagePtr RegistServer(MessagePtr pck);
+    MessagePtr HeartBeat(MessagePtr pck);
 
 private:
-    std::map<ServiceID,yrpc::rpc::detail::Address> m_map;
+    void DelAddr(ServiceID id);
+    void AddAddr(ServiceID id, Address addr);
+
+private:
+    std::map<ServiceID, Address> m_map;
 };
 
 ServiceCenter::ServiceCenter()
