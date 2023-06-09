@@ -1,5 +1,5 @@
-#include "Acceptor.h"
 #pragma once
+#include "Acceptor.h"
 
 
 namespace yrpc::detail::net

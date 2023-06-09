@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <google/protobuf/message.h>
 #include <condition_variable>

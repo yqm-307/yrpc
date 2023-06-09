@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2022
  * 
  */
+#pragma once
 
 #include "Codec.h"          // protobuf 解析/序列化
 #include "Define.h"         // 定义常用枚举和typedef

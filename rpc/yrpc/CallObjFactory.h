@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include "CallObj.h"
 #include <functional>
@@ -15,10 +16,9 @@ class CallObjFactory
     typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化
     typedef std::function<void(MessagePtr,const std::string&)>    DeCodeFunc; // 解码
     typedef std::unordered_map<int,DeCodeFunc>      DeCodeMap;
-    typedef yrpc::detail::protocol::define::YRPC_PROTOCOL   YRPC_PROTOCOL;
     typedef yrpc::util::buffer::Buffer                  Buffer;
-
 public:
+    typedef yrpc::detail::protocol::define::YRPC_PROTOCOL   YRPC_PROTOCOL;
 
     static CallObjFactory* GetInstance()
     {
@@ -43,13 +43,7 @@ public:
 
 private:
     DeCodeMap       m_idtocodec_map;
-    static std::atomic_int  global_id;
 };
-
-std::atomic_int  CallObjFactory::global_id = 1;
-
-
-
 
 template<typename ReqType,typename RspType>
 detail::CallObj::Ptr CallObjFactory::Create(ReqType&& msg,std::string&& name,YRPC_PROTOCOL type,detail::CallObj::CallResultFunc func)
@@ -64,6 +58,7 @@ detail::CallObj::Ptr CallObjFactory::Create(ReqType&& msg,std::string&& name,YRP
      * 类型信息。相当于函数第一次调用绑定了初始化，后续调用就不需要初始化了
      */
     static int local_id = 0;  
+    static std::atomic_int  global_id = 1;
     if (local_id == 0)
     {
         local_id = global_id; 

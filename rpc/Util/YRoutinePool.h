@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2022
  * 
  */
+#pragma once
 #include "ThreadPool.h"
 #include "../YRoutine/Epoller.h"
 

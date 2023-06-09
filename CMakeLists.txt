@@ -53,7 +53,7 @@ file(GLOB SRC_FILE
     rpc/msg/*.cc
     rpc/network/*.cc
     rpc/protocol/*.cc
-    rpc/proto/*/*.cc # protobuf 生成头文件
+    rpc/proto/yrpc_core_protocol/*.cc # protobuf 生成头文件
     rpc/yrpc/*.cc
 )
 

@@ -1,3 +1,4 @@
+#pragma once
 #include "../../proto/test_protocol/AddAndStr.pb.h"
 #include "../YRpc.h"
 #include <memory>

@@ -1,3 +1,4 @@
+#pragma once
 #include <bbt/config/GlobalConfig.hpp>
 #include <bbt/Define.hpp>
 

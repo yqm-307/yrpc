@@ -45,7 +45,7 @@ int Rpc::RemoteOnce(const detail::Address& addr,const std::string& funcname,deta
 
 int Rpc::AsyncConnect(const detail::Address& addr,const detail::CommCallback& cb)
 {
-    detail::SessionManager::GetInstance()->AsyncConnect(addr,[=](detail::SessionPtr){cb();});
+    return detail::SessionManager::GetInstance()->AsyncConnect(addr,[=](detail::SessionPtr){cb();});
 }
 
 void Rpc::StartServerListen(const detail::Address& addr)

@@ -1,6 +1,8 @@
+#pragma once
 #include "SessionManager.h"
 #include "CallObjFactory.h"
 #include "../msg/servicemap.h"
+#include "../protocol/Codec.h"
 #include "Define.h"
 
 namespace yrpc::rpc
@@ -77,7 +79,7 @@ template<class ParamPackType,class ReturnPackType>
 void Rpc::register_service(std::string name,const yrpc::detail::ServiceFunc& func)
 {
     uint32_t ret = yrpc::detail::ServiceMap::GetInstance()->insert(name,func,
-    [](bool is_parse,MessagePtr& packet,std::string& bytes){
+    [](bool is_parse,yrpc::rpc::detail::MessagePtr& packet,std::string& bytes){
         if(is_parse)
             packet = yrpc::detail::Codec::ParseToMessage<ParamPackType>(bytes);
         else //序列化
