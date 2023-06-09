@@ -1,6 +1,6 @@
 #pragma once
 #include "../../proto/test_protocol/AddAndStr.pb.h"
-#include "../YRpc.h"
+#include "rpc/YRpc.h"
 #include <memory>
 #include <bbt/timer/interval.hpp>
 #include <bbt/config/GlobalConfig.hpp>

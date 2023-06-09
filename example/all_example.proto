@@ -1,0 +1,60 @@
+
+syntax = "proto2";
+
+option cc_generic_services = true;
+
+// 具体的服务
+message AddReq
+{
+    optional int32 a=2;
+    optional int32 b=3;
+}
+
+message AddRsp
+{
+    optional int32 result=2;
+}
+
+message EchoReq
+{
+    optional string str=2;
+}
+
+message EchoRsp
+{
+    optional string str=2;
+}
+
+// ip port 地址
+message address
+{
+    optional string addr=1;
+    optional int32  port=2;
+}
+
+
+message ServiceRegistReq
+{
+    optional address addr = 1;
+}
+
+message ServiceRegistRsp
+{
+    optional int32 status=1;
+    optional string msg=2;    
+}
+
+message GetServiceListReq
+{
+}
+
+message GetServiceListRsp
+{
+    repeated address serv_list = 1;
+}
+
+
+// service Echo
+// {
+//     rpc EchoService(EchoRsp) returns(EchoRsp);
+// }

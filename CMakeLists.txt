@@ -82,3 +82,5 @@ install(TARGETS yrpc DESTINATION lib)
 install(FILES ${INCLUDE_FILE} DESTINATION include)
 
 add_subdirectory(rpc)
+
+add_subdirectory(example)

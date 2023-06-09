@@ -1,13 +1,12 @@
 #pragma once
-
 #include <unordered_map>
 #include <functional>
 #include <memory>
 #include <initializer_list>
 #include "../Util/noncopyable.h"
 #include "../Util/Assert.h"
-#include "../proto/yrpc_core_protocol/c2s.pb.h"
-#include "../proto/yrpc_core_protocol/s2c.pb.h"
+#include "rpc/protocol/protoc/c2s.pb.h"
+#include "rpc/protocol/protoc/s2c.pb.h"
 #include <google/protobuf/any.h>
 
 namespace yrpc::rpc

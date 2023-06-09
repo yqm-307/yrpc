@@ -1,0 +1,7 @@
+
+syntax = "proto3";
+
+message C2S_HEARTBEAT_REQ
+{
+    int32 tick  = 1;
+}
