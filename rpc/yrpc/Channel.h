@@ -2,7 +2,8 @@
 #include "../network/all.h"
 #include "../shared/all.h"
 #include "../Util/Locker.h"
-
+#include "rpc/protocol/protoc/c2s.pb.h"
+#include "rpc/protocol/protoc/s2c.pb.h"
 namespace yrpc::rpc::detail
 {
 

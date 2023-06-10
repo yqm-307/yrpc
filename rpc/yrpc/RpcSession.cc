@@ -318,7 +318,7 @@ int RpcSession::CallObj_DelObj(Protocol_PckIdType id) /* 处理一次调用后�
     }
     else
     {
-        auto earse_node = m_call_map.erase(it);
+        m_call_map.erase(it);
         return 1;
     }
 }

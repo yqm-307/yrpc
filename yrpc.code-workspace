@@ -75,6 +75,16 @@
 			"iomanip": "cpp",
 			"*.inc": "cpp",
 			"codecvt": "cpp"
+		},
+		"VSCodeCounter.languages": {
+			"cpp": {
+				"extensions": [
+				".cc",
+				".c",
+				".h",
+				".hpp",
+			]
+			}
 		}
 	}
 }
