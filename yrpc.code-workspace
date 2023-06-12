@@ -6,6 +6,7 @@
 	],
 	"settings": {
 		"files.associations": {
+			"*.bat": "bat",
 			"*.csv": "csv (equals)",
 			"array": "cpp",
 			"*.tcc": "cpp",
@@ -74,7 +75,10 @@
 			"stop_token": "cpp",
 			"iomanip": "cpp",
 			"*.inc": "cpp",
-			"codecvt": "cpp"
+			"codecvt": "cpp",
+			"bitset": "cpp",
+			"shared_mutex": "cpp",
+			"regex": "cpp"
 		},
 		"VSCodeCounter.languages": {
 			"cpp": {
@@ -85,6 +89,11 @@
 				".hpp",
 			]
 			}
-		}
+		},
+		"C_Cpp.default.cppStandard": "c++17",
+		"C_Cpp.default.cStandard": "c11",
+		"C_Cpp.default.includePath": [
+			"/home/yqm/Code/Git/github/yrpc"
+		]
 	}
 }

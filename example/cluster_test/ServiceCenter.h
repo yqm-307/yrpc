@@ -1,7 +1,7 @@
 #pragma once
 #include "../all_example.pb.h"
-#include "../../rpc/yrpc/YRpc.h"
-#include "../../rpc/yrpc/Define.h"
+#include "yrpc/core/YRpc.h"
+#include "yrpc/core/Define.h"
 #include <memory>
 #include <bbt/timer/interval.hpp>
 #include <bbt/config/GlobalConfig.hpp>

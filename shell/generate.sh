@@ -4,7 +4,7 @@
 
 
 SRC_DIR=".."
-DST_DIR="../rpc/proto"
+DST_DIR="../yrpc/proto"
 SRC_DIR="../message"
 
 
@@ -44,16 +44,16 @@ function getallprotofile()
 function main()
 {
     # 创建目录
-    if [ !  -d "../rpc/protocol/protoc"  ]
+    if [ !  -d "../yrpc/protocol/protoc"  ]
     then
-        mkdir ../rpc/protocol/protoc
+        mkdir ../yrpc/protocol/protoc
     fi
 
     ##########
     # rpc 内部协议
     ##########
-    generate_ex ../rpc/protocol/protoc ../rpc/protocol/protobuf c2s.proto
-    generate_ex ../rpc/protocol/protoc ../rpc/protocol/protobuf s2c.proto
+    generate_ex ../yrpc/protocol/protoc ../yrpc/protocol/protobuf c2s.proto
+    generate_ex ../yrpc/protocol/protoc ../yrpc/protocol/protobuf s2c.proto
 
     ##########
     # example

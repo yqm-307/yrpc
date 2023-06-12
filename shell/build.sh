@@ -17,8 +17,12 @@ function info_build()
 function generate_head_dir_and_copy_to_dstdir()
 {
     dstdir=$1
-    cp -rf rpc rpc_h
+    cp -rf yrpc rpc_h
     find rpc_h -name '*.c' -o -name '*cc' -print | xargs rm
+    if [ -d "$dstdir/yrpc" ]
+    then
+        sudo rm -rf $dstdir/yrpc
+    fi
     sudo mv rpc_h $dstdir/yrpc
     info_build "copy over! cpp head file copy to ${dstdir}/yrpc"
     rm -rf rpc_h

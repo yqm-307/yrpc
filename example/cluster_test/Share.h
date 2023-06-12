@@ -1,6 +1,6 @@
 #pragma once
-#include "../../proto/test_protocol/AddAndStr.pb.h"
-#include "rpc/YRpc.h"
+#include "../all_example.pb.h"
+#include "yrpc/core/YRpc.h"
 #include <memory>
 #include <bbt/timer/interval.hpp>
 #include <bbt/config/GlobalConfig.hpp>
@@ -54,7 +54,7 @@ private:
         std::string str = req->str();
         auto rsp = std::make_shared<EchoRsp>();
         rsp->set_str(str);
-        return rsp;
+        return rsp;                       
     }
 private:
     int debug_log{1};

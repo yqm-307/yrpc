@@ -1,0 +1,18 @@
+
+syntax = "proto3";
+
+
+
+message S2C_HEARTBEAT_RSP
+{
+    int32 tick    = 1;
+}
+
+
+message S2C_RPC_ERROR
+{
+    int32 errnocode = 1;
+    string info     = 2;
+}
+
+

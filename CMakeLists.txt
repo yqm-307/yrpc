@@ -17,7 +17,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib) # 库输出路径
 # include 包含路径
 include_directories(
     # # 下面两个都 include ，为了兼容 vscode cmake tools
-    ${PROJECT_SOURCE_DIR}/rpc/proto # 在主目录构建
+    ${PROJECT_SOURCE_DIR}/yrpc/proto # 在主目录构建
     ${PROJECT_SOURCE_DIR}/third-lib/boost_contex/include
     ${PROJECT_SOURCE_DIR}
 )
@@ -46,16 +46,16 @@ LIST(APPEND PROTO_FLAGS -I${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB MSG_PROTOS ${CMAKE_BINARY_DIR}/message/*.proto) # 搜索所有proto文件
 
 file(GLOB SRC_FILE
-    rpc/YRoutine/*.cc
+    yrpc/YRoutine/*.cc
 
     # ${PROJECT_BINARY_DIR}/rpc/YRoutine/*.S  # 暂时没啥用了，安心用boost context
-    rpc/Util/*.cc
-    rpc/msg/*.cc
-    rpc/network/*.cc
-    rpc/protocol/*.cc
+    yrpc/Util/*.cc
+    yrpc/msg/*.cc
+    yrpc/network/*.cc
+    yrpc/protocol/*.cc
     # rpc/proto/yrpc_core_protocol/*.cc # protobuf 生成头文件
-    rpc/protocol/protoc/*.cc    # rpc内部使用protobuf文件
-    rpc/yrpc/*.cc
+    yrpc/protocol/protoc/*.cc    # rpc内部使用protobuf文件
+    yrpc/core/*.cc
 )
 
 # 生成 yrpc 的 lib文件
@@ -82,6 +82,6 @@ install(TARGETS yrpc DESTINATION lib)
 
 install(FILES ${INCLUDE_FILE} DESTINATION include)
 
-add_subdirectory(rpc)
+add_subdirectory(yrpc)
 
 add_subdirectory(example)
