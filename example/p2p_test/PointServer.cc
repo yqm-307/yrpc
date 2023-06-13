@@ -1,4 +1,5 @@
 #include "PointServer.h"
+#include "yrpc/config/config.hpp"
 
 
 void routine_handle(void* p2pserv)
@@ -8,11 +9,14 @@ void routine_handle(void* p2pserv)
 
 int main(int argc, char* argv[])
 {
-    if (argc != 3)
+    if (argc != 4)
     {
-        printf("usage: p2pserver [peer ip] [peer port] [listen port]");
+        printf("need 3 params, but have %d\n", argc - 1);
+        printf("usage: p2pserver [peer ip] [peer port] [listen port]\n");
         exit(-1);
     }
+    int debug = 1;
+    BBT_CONFIG()->GetDynamicCfg()->SetEntry<int>(bbt::config::BBTSysCfg[bbt::config::BBT_LOG_STDOUT_OPEN],&debug);
 
     std::string peer_ip(argv[1]);
     int peer_port = std::stoi(argv[2]);

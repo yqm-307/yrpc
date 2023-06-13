@@ -1,5 +1,5 @@
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin/example/cluster)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/example/cluster)
 
 set(ProtoFile ../all_example.pb.cc ../all_example.pb.h)
 

@@ -230,7 +230,7 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, ConnectionPtr conn)
     }
 }
 
-bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
+int __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
 {
     /**
      * 异步的建立Session，Session建立完成，通过onsession返回 
@@ -246,7 +246,7 @@ bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
      */
     using namespace yrpc::detail::net;
 
-    bool ret = false;    
+    int ret = -1;    
     SessionID tmpid = AddressToID(peer);
     lock_guard<Mutex> lock(m_mutex_session_map);
     auto it = m_session_map.find(tmpid);
@@ -255,15 +255,15 @@ bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
      * 1、如果sessions中已经有了该连接，则直接返回即可
      * 2、如果sessions中没有，则检查是否已经注册连接事件
      *      (1) 如果 connect async wait queue 中没有对应的用户会话，注册一个新的connect事件
-     *      (2) 如果 connect async wait queue 中有对应的用户会话，返回false
+     *      (2) 如果 connect async wait queue 中有对应的用户会话且注册失败，返回false
      */
     if( it == m_session_map.end() )
     {
         Socket* socket = Connector::CreateSocket();
-        auto succ = m_undone_conn_queue->FindAndPush(tmpid,onsession);
-        if( succ <= 0 )
+        auto status = m_undone_conn_queue->FindAndPush(tmpid,onsession);
+        if( status <= 1 ) // 存在或者插入失败
         {
-            ret = false;
+            ret = -1;
         }
         else
         {
@@ -271,7 +271,7 @@ bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
             {
                 this->OnConnect(std::forward<const errorcode>(e),std::forward<ConnectionPtr>(conn));
             }));
-            ret = true;
+            ret = 0;
         }
     }
     else
@@ -280,7 +280,7 @@ bool __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
             onsession(it->second);
         else
             WARN("[YRPC][__YRPC_SessionManager::AsyncConnect] async connect success callback is nullptr, maybe warning");
-        ret = true;
+        ret = 1;
     }
 
     return ret;

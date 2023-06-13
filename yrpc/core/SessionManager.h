@@ -20,7 +20,14 @@ private:
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
     static __YRPC_SessionManager* GetInstance();  
-    bool AsyncConnect(Address peer,OnSession onsession);
+    /**
+     * @brief 发起一个异步连接
+     * 
+     * @param peer      对端地址
+     * @param onsession 连接建立成功时触发回调
+     * @return int      # -1(未连接), 0(连接中), 1(连接已完成)
+     */
+    int AsyncConnect(Address peer,OnSession onsession);
     void AsyncAccept(const Address& peer);
     /* 尝试获取Session，Session不存在或者正在连接中返回nullptr，线程安全 */
     SessionPtr TryGetSession(const Address& peer);

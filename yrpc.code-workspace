@@ -95,5 +95,9 @@
 		"C_Cpp.default.includePath": [
 			"/home/yqm/Code/Git/github/yrpc"
 		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": []
 	}
 }

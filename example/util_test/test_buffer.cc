@@ -1,5 +1,5 @@
-#include "../Buffers.h"
-#include "../protocol/proto.h"
+#include "yrpc/Util/Buffers.h"
+#include "yrpc/protocol/proto.h"
 typedef yrpc::util::buffer::Buffer Buffer;
 #define ToInt(n) yrpc::util::protoutil::BytesToType<int>(n)
 

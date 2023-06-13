@@ -83,6 +83,4 @@ install(TARGETS yrpc DESTINATION lib)
 
 install(FILES ${INCLUDE_FILE} DESTINATION include)
 
-add_subdirectory(yrpc)
-
 add_subdirectory(example)

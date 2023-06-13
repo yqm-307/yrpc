@@ -19,8 +19,14 @@ public:
     typedef std::unique_ptr<ConnQueue>  Ptr;
     /* 弹出一个元素 , 失败返回 nullptr*/
     std::pair<OnSessionCallback,bool> PopUpById(SessionID id);
-    /* 查找并插入，id存在成功插入 ret >= 0 ，找不到或插入失败 ret < 0 */
-    int   FindAndPush(SessionID id, const OnSessionCallback& func);
+    /**
+     * @brief 查找并插入一个半连接SessionID(连接中的Session)
+     * 
+     * @param id    会话ID
+     * @param func  会话建立时的回调
+     * @return int  # -2(插入失败), 1(已经存在), 2(插入成功)
+     */
+    int FindAndPush(SessionID id, const OnSessionCallback& func);
     OnSessionCallback Find(SessionID id);
 private:
     Map m_map;

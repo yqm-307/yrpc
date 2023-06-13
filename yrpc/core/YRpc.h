@@ -34,9 +34,9 @@ public:
     /**
      * @brief 发起异步连接
      * 
-     * @param addr 对端地址
-     * @param cb 
-     * @return int 
+     * @param addr  对端地址
+     * @param cb    连接建立完成后回调
+     * @return int  # -1(未连接), 0(连接中), 1(连接已完成)
      */
     static int AsyncConnect(const detail::Address& addr,const detail::CommCallback& cb);
 
