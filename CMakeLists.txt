@@ -46,16 +46,17 @@ LIST(APPEND PROTO_FLAGS -I${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB MSG_PROTOS ${CMAKE_BINARY_DIR}/message/*.proto) # 搜索所有proto文件
 
 file(GLOB SRC_FILE
-    yrpc/YRoutine/*.cc
+    # yrpc/YRoutine/*.cc
+    # yrpc/Util/*.cc
+    # yrpc/msg/*.cc
+    # yrpc/network/*.cc
+    # yrpc/protocol/*.cc
+    # yrpc/protocol/protoc/*.cc    # rpc内部使用protobuf文件
+    # yrpc/core/*.cc
+    yrpc/*/*/*.cc
+    yrpc/*/*.cc
+    yrpc/*.cc
 
-    # ${PROJECT_BINARY_DIR}/rpc/YRoutine/*.S  # 暂时没啥用了，安心用boost context
-    yrpc/Util/*.cc
-    yrpc/msg/*.cc
-    yrpc/network/*.cc
-    yrpc/protocol/*.cc
-    # rpc/proto/yrpc_core_protocol/*.cc # protobuf 生成头文件
-    yrpc/protocol/protoc/*.cc    # rpc内部使用protobuf文件
-    yrpc/core/*.cc
 )
 
 # 生成 yrpc 的 lib文件
