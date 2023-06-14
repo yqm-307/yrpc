@@ -82,13 +82,14 @@ public:
 
     void Start(){
         _co_scheduler->AddTimer([this](){PrintOnce();}, 5000);
-        while(!m_stop)
-        {   
-            auto call_obj = Generate();
-            rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
-            m_total_req++;
-        }
-        return;
+        _co_scheduler->AddTimer([this](){
+            int nCanSendNum = 5000 - (m_total_req - m_complete_req);
+            while (nCanSendNum--){
+                auto call_obj = Generate();
+                rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
+                m_total_req++;
+            }
+        }, 10);
     }
 private:
     MsgPtr Remote_Add(MsgPtr ReqPtr)
