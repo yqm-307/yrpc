@@ -62,7 +62,7 @@ private:
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
     Acceptor*           m_main_acceptor; 
-    Connector           m_connector;        
+    Connector*          m_connector;        
     const size_t        m_sub_loop_size;    // sub eventloop 数量
     std::vector<Epoller*>           m_sub_loop;         // sub eventloop
     CountDownLatch      m_loop_latch;       // 

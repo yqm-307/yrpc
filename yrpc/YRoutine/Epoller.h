@@ -292,8 +292,8 @@ private:
     typedef std::queue<YRoutine_t> SuspendQueue;    //挂起协程队列
 
     SuspendQueue                suspend_queue_;     //协程挂起队列
-    PendingTaskQueue                   pending_tasks_;     //待处理任务
-    Mutex                       m_lock;             // thread safe addtask
+    PendingTaskQueue            pending_tasks_;     //待处理任务
+    // Mutex                       m_lock;             // thread safe addtask
     size_t                      max_size_;          //待处理任务队列长度
     detail::Scheduler           runtime_;           //协程调度
 
@@ -314,4 +314,4 @@ private:
 
 }// namespace yrpc::coroutine::poller
 
-thread_local static yrpc::coroutine::poller::Epoller* _co_scheduler = new yrpc::coroutine::poller::Epoller(64*1024,65535);
+static thread_local yrpc::coroutine::poller::Epoller* _co_scheduler = new yrpc::coroutine::poller::Epoller(64*1024,65535);

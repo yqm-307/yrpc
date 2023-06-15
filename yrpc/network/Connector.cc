@@ -5,7 +5,9 @@ using namespace yrpc::detail::net;
 
 Connector::Connector(yrpc::coroutine::poller::Epoller* loop)
     :scheduler_(loop)
-{}
+{
+    YAssert(loop != nullptr, "[Connector::Connector] Epoller is nullptr!");
+}
 
 Connector::~Connector()
 {}

@@ -68,6 +68,7 @@ public:
         [this](yrpc::detail::ProtoMsgPtr rsp){
             Destroy(rsp);
         });
+        return call_obj;
     }
 
     void Destroy(MsgPtr packet)
@@ -81,9 +82,11 @@ public:
     }
 
     void Start(){
-        _co_scheduler->AddTimer([this](){PrintOnce();}, 5000);
         _co_scheduler->AddTimer([this](){
-            int nCanSendNum = 5000 - (m_total_req - m_complete_req);
+            PrintOnce();
+        }, 5000);
+        _co_scheduler->AddTimer([this](){
+            int nCanSendNum = 5000 - (m_total_req.load() - m_complete_req.load());
             while (nCanSendNum--){
                 auto call_obj = Generate();
                 rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
@@ -117,8 +120,8 @@ private:
     std::atomic_bool m_stop;
 
     std::map<int, int> m_result;        // result map
-    std::atomic_int m_total_req;        // 总请求数
-    std::atomic_int m_complete_req;     // 已完成请求数
+    std::atomic_int m_total_req{0};        // 总请求数
+    std::atomic_int m_complete_req{0};     // 已完成请求数
 
     bbt::random::mt_random<int,1,1000> rand;
 };

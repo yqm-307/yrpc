@@ -41,7 +41,7 @@ Epoller::~Epoller()
 // }
 void Epoller::AddTask(yrpc::coroutine::context::YRoutineFunc func,void* args)
 {   
-    yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> lock(m_lock);
+    // yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> lock(m_lock);
     this->pending_tasks_.push(std::make_pair(func,args));
 }
 
@@ -167,7 +167,7 @@ void Epoller::DoPendingList()
     decltype(pending_tasks_) queue;
 
     {// 减少临界区
-        yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> lock(m_lock);
+        // yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> lock(m_lock);
         queue.swap(pending_tasks_);
     }
 

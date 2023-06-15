@@ -7,10 +7,10 @@ using namespace yrpc::rpc::detail;
 
 
 __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
-    :m_main_loop(new Epoller(64*1024,65535)),
+    :m_main_loop(nullptr),
     m_main_acceptor(nullptr),
-    m_connector(m_main_loop),
-    m_sub_loop_size(Nthread-1),
+    m_connector(nullptr),
+    m_sub_loop_size(Nthread - 1),
     m_sub_loop(m_sub_loop_size),
     m_loop_latch(Nthread),
     m_undone_conn_queue(std::make_unique<ConnQueue>()),
@@ -18,18 +18,16 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
 {
     // 初始化 main eventloop，但是不运行
     m_main_thread = new std::thread([this](){
-        m_loop_latch.down();
         this->MainLoop();
     });
 
     // 初始化 sub eventloop，并运行（由于队列为空，都挂起）
     assert(Nthread>=2);
-    for (int i=0;i<Nthread;++i)
+    for (int i=0;i<Nthread - 1;++i)
     {
         m_sub_threads.push_back(new std::thread([this,i](){
             this->SubLoop(i);
         }));
-        m_loop_latch.down();
     }
     m_loop_latch.wait();    
     INFO("[YRPC][__YRPC_SessionManager] info: SessionManager Init Success!");
@@ -267,7 +265,7 @@ int __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
         }
         else
         {
-            m_connector.AsyncConnect(socket, peer, functor([this](const errorcode &e, ConnectionPtr conn)
+            m_connector->AsyncConnect(socket, peer, functor([this](const errorcode &e, ConnectionPtr conn)
             {
                 this->OnConnect(std::forward<const errorcode>(e),std::forward<ConnectionPtr>(conn));
             }));
@@ -307,7 +305,9 @@ void __YRPC_SessionManager::AsyncAccept(const Address& peer)
     m_main_acceptor->setOnAccept(functor([this](const yrpc::detail::shared::errorcode&e,yrpc::detail::net::ConnectionPtr conn)->void{
         this->OnAccept(e,conn);
     }),nullptr);
-    m_main_loop->AddTask([this](void*){this->RunInMainLoop();});
+    m_main_loop->AddTask([this](void*){
+        this->RunInMainLoop();
+    });
 }
 
 Epoller* __YRPC_SessionManager::LoadBalancer()
@@ -339,18 +339,21 @@ SessionID __YRPC_SessionManager::AddressToID(const Address&key)
 void __YRPC_SessionManager::SubLoop(int idx)
 {
     assert(_co_scheduler != nullptr);
-    _co_scheduler->RunForever();
-    this->m_sub_loop[idx] = _co_scheduler;
-    this->m_loop_latch.wait();
-    _co_scheduler->Loop();
+    m_loop_latch.down();
+    m_loop_latch.wait();
+    m_sub_loop[idx] = _co_scheduler;
+    m_sub_loop[idx]->RunForever();
+    m_sub_loop[idx]->Loop();
 }
 void __YRPC_SessionManager::MainLoop()
 {
     assert(_co_scheduler != nullptr);
-    _co_scheduler->RunForever();
+    m_loop_latch.down();
     m_loop_latch.wait();
     m_main_loop = _co_scheduler;
-    _co_scheduler->Loop();
+    m_connector = new Connector(m_main_loop);
+    m_main_loop->RunForever();
+    m_main_loop->Loop();
 }
 
 SessionPtr __YRPC_SessionManager::TryGetSession(const Address& peer)
