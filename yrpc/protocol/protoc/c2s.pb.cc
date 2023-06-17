@@ -21,9 +21,8 @@ namespace _pb = ::PROTOBUF_NAMESPACE_ID;
 namespace _pbi = _pb::internal;
 
 PROTOBUF_CONSTEXPR C2S_HEARTBEAT_REQ::C2S_HEARTBEAT_REQ(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.tick_)*/0
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+    ::_pbi::ConstantInitialized)
+  : tick_(0){}
 struct C2S_HEARTBEAT_REQDefaultTypeInternal {
   PROTOBUF_CONSTEXPR C2S_HEARTBEAT_REQDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -44,7 +43,7 @@ const uint32_t TableStruct_c2s_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::C2S_HEARTBEAT_REQ, _impl_.tick_),
+  PROTOBUF_FIELD_OFFSET(::C2S_HEARTBEAT_REQ, tick_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::C2S_HEARTBEAT_REQ)},
@@ -83,29 +82,18 @@ class C2S_HEARTBEAT_REQ::_Internal {
 C2S_HEARTBEAT_REQ::C2S_HEARTBEAT_REQ(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  SharedCtor();
   // @@protoc_insertion_point(arena_constructor:C2S_HEARTBEAT_REQ)
 }
 C2S_HEARTBEAT_REQ::C2S_HEARTBEAT_REQ(const C2S_HEARTBEAT_REQ& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
-  C2S_HEARTBEAT_REQ* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.tick_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
-
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _this->_impl_.tick_ = from._impl_.tick_;
+  tick_ = from.tick_;
   // @@protoc_insertion_point(copy_constructor:C2S_HEARTBEAT_REQ)
 }
 
-inline void C2S_HEARTBEAT_REQ::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_.tick_){0}
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
+inline void C2S_HEARTBEAT_REQ::SharedCtor() {
+tick_ = 0;
 }
 
 C2S_HEARTBEAT_REQ::~C2S_HEARTBEAT_REQ() {
@@ -122,7 +110,7 @@ inline void C2S_HEARTBEAT_REQ::SharedDtor() {
 }
 
 void C2S_HEARTBEAT_REQ::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
+  _cached_size_.Set(size);
 }
 
 void C2S_HEARTBEAT_REQ::Clear() {
@@ -131,7 +119,7 @@ void C2S_HEARTBEAT_REQ::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.tick_ = 0;
+  tick_ = 0;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -144,7 +132,7 @@ const char* C2S_HEARTBEAT_REQ::_InternalParse(const char* ptr, ::_pbi::ParseCont
       // int32 tick = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          _impl_.tick_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          tick_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -205,28 +193,32 @@ size_t C2S_HEARTBEAT_REQ::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_tick());
   }
 
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData C2S_HEARTBEAT_REQ::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
     C2S_HEARTBEAT_REQ::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*C2S_HEARTBEAT_REQ::GetClassData() const { return &_class_data_; }
 
+void C2S_HEARTBEAT_REQ::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<C2S_HEARTBEAT_REQ *>(to)->MergeFrom(
+      static_cast<const C2S_HEARTBEAT_REQ &>(from));
+}
 
-void C2S_HEARTBEAT_REQ::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<C2S_HEARTBEAT_REQ*>(&to_msg);
-  auto& from = static_cast<const C2S_HEARTBEAT_REQ&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:C2S_HEARTBEAT_REQ)
-  GOOGLE_DCHECK_NE(&from, _this);
+
+void C2S_HEARTBEAT_REQ::MergeFrom(const C2S_HEARTBEAT_REQ& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:C2S_HEARTBEAT_REQ)
+  GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from._internal_tick() != 0) {
-    _this->_internal_set_tick(from._internal_tick());
+    _internal_set_tick(from._internal_tick());
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void C2S_HEARTBEAT_REQ::CopyFrom(const C2S_HEARTBEAT_REQ& from) {
@@ -243,7 +235,7 @@ bool C2S_HEARTBEAT_REQ::IsInitialized() const {
 void C2S_HEARTBEAT_REQ::InternalSwap(C2S_HEARTBEAT_REQ* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_.tick_, other->_impl_.tick_);
+  swap(tick_, other->tick_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata C2S_HEARTBEAT_REQ::GetMetadata() const {

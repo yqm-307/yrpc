@@ -21,11 +21,9 @@ namespace _pb = ::PROTOBUF_NAMESPACE_ID;
 namespace _pbi = _pb::internal;
 
 PROTOBUF_CONSTEXPR AddReq::AddReq(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_._has_bits_)*/{}
-  , /*decltype(_impl_._cached_size_)*/{}
-  , /*decltype(_impl_.a_)*/0
-  , /*decltype(_impl_.b_)*/0} {}
+    ::_pbi::ConstantInitialized)
+  : a_(0)
+  , b_(0){}
 struct AddReqDefaultTypeInternal {
   PROTOBUF_CONSTEXPR AddReqDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -36,10 +34,8 @@ struct AddReqDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AddReqDefaultTypeInternal _AddReq_default_instance_;
 PROTOBUF_CONSTEXPR AddRsp::AddRsp(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_._has_bits_)*/{}
-  , /*decltype(_impl_._cached_size_)*/{}
-  , /*decltype(_impl_.result_)*/0} {}
+    ::_pbi::ConstantInitialized)
+  : result_(0){}
 struct AddRspDefaultTypeInternal {
   PROTOBUF_CONSTEXPR AddRspDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -50,10 +46,8 @@ struct AddRspDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AddRspDefaultTypeInternal _AddRsp_default_instance_;
 PROTOBUF_CONSTEXPR EchoReq::EchoReq(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_._has_bits_)*/{}
-  , /*decltype(_impl_._cached_size_)*/{}
-  , /*decltype(_impl_.str_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}} {}
+    ::_pbi::ConstantInitialized)
+  : str_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}){}
 struct EchoReqDefaultTypeInternal {
   PROTOBUF_CONSTEXPR EchoReqDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -64,10 +58,8 @@ struct EchoReqDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EchoReqDefaultTypeInternal _EchoReq_default_instance_;
 PROTOBUF_CONSTEXPR EchoRsp::EchoRsp(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_._has_bits_)*/{}
-  , /*decltype(_impl_._cached_size_)*/{}
-  , /*decltype(_impl_.str_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}} {}
+    ::_pbi::ConstantInitialized)
+  : str_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}){}
 struct EchoRspDefaultTypeInternal {
   PROTOBUF_CONSTEXPR EchoRspDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -78,11 +70,9 @@ struct EchoRspDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EchoRspDefaultTypeInternal _EchoRsp_default_instance_;
 PROTOBUF_CONSTEXPR address::address(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_._has_bits_)*/{}
-  , /*decltype(_impl_._cached_size_)*/{}
-  , /*decltype(_impl_.addr_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.port_)*/0} {}
+    ::_pbi::ConstantInitialized)
+  : addr_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
+  , port_(0){}
 struct addressDefaultTypeInternal {
   PROTOBUF_CONSTEXPR addressDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -93,10 +83,8 @@ struct addressDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 addressDefaultTypeInternal _address_default_instance_;
 PROTOBUF_CONSTEXPR ServiceRegistReq::ServiceRegistReq(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_._has_bits_)*/{}
-  , /*decltype(_impl_._cached_size_)*/{}
-  , /*decltype(_impl_.addr_)*/nullptr} {}
+    ::_pbi::ConstantInitialized)
+  : addr_(nullptr){}
 struct ServiceRegistReqDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ServiceRegistReqDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -107,11 +95,9 @@ struct ServiceRegistReqDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ServiceRegistReqDefaultTypeInternal _ServiceRegistReq_default_instance_;
 PROTOBUF_CONSTEXPR ServiceRegistRsp::ServiceRegistRsp(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_._has_bits_)*/{}
-  , /*decltype(_impl_._cached_size_)*/{}
-  , /*decltype(_impl_.msg_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.status_)*/0} {}
+    ::_pbi::ConstantInitialized)
+  : msg_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
+  , status_(0){}
 struct ServiceRegistRspDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ServiceRegistRspDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -122,7 +108,7 @@ struct ServiceRegistRspDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ServiceRegistRspDefaultTypeInternal _ServiceRegistRsp_default_instance_;
 PROTOBUF_CONSTEXPR GetServiceListReq::GetServiceListReq(
-    ::_pbi::ConstantInitialized) {}
+    ::_pbi::ConstantInitialized){}
 struct GetServiceListReqDefaultTypeInternal {
   PROTOBUF_CONSTEXPR GetServiceListReqDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -133,9 +119,8 @@ struct GetServiceListReqDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GetServiceListReqDefaultTypeInternal _GetServiceListReq_default_instance_;
 PROTOBUF_CONSTEXPR GetServiceListRsp::GetServiceListRsp(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.serv_list_)*/{}
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+    ::_pbi::ConstantInitialized)
+  : serv_list_(){}
 struct GetServiceListRspDefaultTypeInternal {
   PROTOBUF_CONSTEXPR GetServiceListRspDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -150,66 +135,66 @@ static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_all_5
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_all_5fexample_2eproto = nullptr;
 
 const uint32_t TableStruct_all_5fexample_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  PROTOBUF_FIELD_OFFSET(::AddReq, _impl_._has_bits_),
+  PROTOBUF_FIELD_OFFSET(::AddReq, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::AddReq, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::AddReq, _impl_.a_),
-  PROTOBUF_FIELD_OFFSET(::AddReq, _impl_.b_),
+  PROTOBUF_FIELD_OFFSET(::AddReq, a_),
+  PROTOBUF_FIELD_OFFSET(::AddReq, b_),
   0,
   1,
-  PROTOBUF_FIELD_OFFSET(::AddRsp, _impl_._has_bits_),
+  PROTOBUF_FIELD_OFFSET(::AddRsp, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::AddRsp, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::AddRsp, _impl_.result_),
+  PROTOBUF_FIELD_OFFSET(::AddRsp, result_),
   0,
-  PROTOBUF_FIELD_OFFSET(::EchoReq, _impl_._has_bits_),
+  PROTOBUF_FIELD_OFFSET(::EchoReq, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::EchoReq, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::EchoReq, _impl_.str_),
+  PROTOBUF_FIELD_OFFSET(::EchoReq, str_),
   0,
-  PROTOBUF_FIELD_OFFSET(::EchoRsp, _impl_._has_bits_),
+  PROTOBUF_FIELD_OFFSET(::EchoRsp, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::EchoRsp, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::EchoRsp, _impl_.str_),
+  PROTOBUF_FIELD_OFFSET(::EchoRsp, str_),
   0,
-  PROTOBUF_FIELD_OFFSET(::address, _impl_._has_bits_),
+  PROTOBUF_FIELD_OFFSET(::address, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::address, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::address, _impl_.addr_),
-  PROTOBUF_FIELD_OFFSET(::address, _impl_.port_),
+  PROTOBUF_FIELD_OFFSET(::address, addr_),
+  PROTOBUF_FIELD_OFFSET(::address, port_),
   0,
   1,
-  PROTOBUF_FIELD_OFFSET(::ServiceRegistReq, _impl_._has_bits_),
+  PROTOBUF_FIELD_OFFSET(::ServiceRegistReq, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::ServiceRegistReq, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::ServiceRegistReq, _impl_.addr_),
+  PROTOBUF_FIELD_OFFSET(::ServiceRegistReq, addr_),
   0,
-  PROTOBUF_FIELD_OFFSET(::ServiceRegistRsp, _impl_._has_bits_),
+  PROTOBUF_FIELD_OFFSET(::ServiceRegistRsp, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::ServiceRegistRsp, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::ServiceRegistRsp, _impl_.status_),
-  PROTOBUF_FIELD_OFFSET(::ServiceRegistRsp, _impl_.msg_),
+  PROTOBUF_FIELD_OFFSET(::ServiceRegistRsp, status_),
+  PROTOBUF_FIELD_OFFSET(::ServiceRegistRsp, msg_),
   1,
   0,
   ~0u,  // no _has_bits_
@@ -224,7 +209,7 @@ const uint32_t TableStruct_all_5fexample_2eproto::offsets[] PROTOBUF_SECTION_VAR
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::GetServiceListRsp, _impl_.serv_list_),
+  PROTOBUF_FIELD_OFFSET(::GetServiceListRsp, serv_list_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, 8, -1, sizeof(::AddReq)},
@@ -281,9 +266,7 @@ PROTOBUF_ATTRIBUTE_INIT_PRIORITY2 static ::_pbi::AddDescriptorsRunner dynamic_in
 
 class AddReq::_Internal {
  public:
-  using HasBits = decltype(std::declval<AddReq>()._impl_._has_bits_);
-  static constexpr int32_t kHasBitsOffset =
-    8 * PROTOBUF_FIELD_OFFSET(AddReq, _impl_._has_bits_);
+  using HasBits = decltype(std::declval<AddReq>()._has_bits_);
   static void set_has_a(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -295,35 +278,24 @@ class AddReq::_Internal {
 AddReq::AddReq(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  SharedCtor();
   // @@protoc_insertion_point(arena_constructor:AddReq)
 }
 AddReq::AddReq(const AddReq& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  AddReq* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){from._impl_._has_bits_}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.a_){}
-    , decltype(_impl_.b_){}};
-
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _has_bits_(from._has_bits_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  ::memcpy(&_impl_.a_, &from._impl_.a_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.b_) -
-    reinterpret_cast<char*>(&_impl_.a_)) + sizeof(_impl_.b_));
+  ::memcpy(&a_, &from.a_,
+    static_cast<size_t>(reinterpret_cast<char*>(&b_) -
+    reinterpret_cast<char*>(&a_)) + sizeof(b_));
   // @@protoc_insertion_point(copy_constructor:AddReq)
 }
 
-inline void AddReq::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.a_){0}
-    , decltype(_impl_.b_){0}
-  };
+inline void AddReq::SharedCtor() {
+::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+    reinterpret_cast<char*>(&a_) - reinterpret_cast<char*>(this)),
+    0, static_cast<size_t>(reinterpret_cast<char*>(&b_) -
+    reinterpret_cast<char*>(&a_)) + sizeof(b_));
 }
 
 AddReq::~AddReq() {
@@ -340,7 +312,7 @@ inline void AddReq::SharedDtor() {
 }
 
 void AddReq::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
+  _cached_size_.Set(size);
 }
 
 void AddReq::Clear() {
@@ -349,13 +321,13 @@ void AddReq::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000003u) {
-    ::memset(&_impl_.a_, 0, static_cast<size_t>(
-        reinterpret_cast<char*>(&_impl_.b_) -
-        reinterpret_cast<char*>(&_impl_.a_)) + sizeof(_impl_.b_));
+    ::memset(&a_, 0, static_cast<size_t>(
+        reinterpret_cast<char*>(&b_) -
+        reinterpret_cast<char*>(&a_)) + sizeof(b_));
   }
-  _impl_._has_bits_.Clear();
+  _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -370,7 +342,7 @@ const char* AddReq::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _Internal::set_has_a(&has_bits);
-          _impl_.a_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          a_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -379,7 +351,7 @@ const char* AddReq::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
           _Internal::set_has_b(&has_bits);
-          _impl_.b_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          b_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -400,7 +372,7 @@ const char* AddReq::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
     CHK_(ptr != nullptr);
   }  // while
 message_done:
-  _impl_._has_bits_.Or(has_bits);
+  _has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -414,7 +386,7 @@ uint8_t* AddReq::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   // optional int32 a = 2;
   if (cached_has_bits & 0x00000001u) {
     target = stream->EnsureSpace(target);
@@ -443,7 +415,7 @@ size_t AddReq::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000003u) {
     // optional int32 a = 2;
     if (cached_has_bits & 0x00000001u) {
@@ -456,35 +428,39 @@ size_t AddReq::ByteSizeLong() const {
     }
 
   }
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData AddReq::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
     AddReq::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*AddReq::GetClassData() const { return &_class_data_; }
 
+void AddReq::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<AddReq *>(to)->MergeFrom(
+      static_cast<const AddReq &>(from));
+}
 
-void AddReq::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<AddReq*>(&to_msg);
-  auto& from = static_cast<const AddReq&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:AddReq)
-  GOOGLE_DCHECK_NE(&from, _this);
+
+void AddReq::MergeFrom(const AddReq& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:AddReq)
+  GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = from._impl_._has_bits_[0];
+  cached_has_bits = from._has_bits_[0];
   if (cached_has_bits & 0x00000003u) {
     if (cached_has_bits & 0x00000001u) {
-      _this->_impl_.a_ = from._impl_.a_;
+      a_ = from.a_;
     }
     if (cached_has_bits & 0x00000002u) {
-      _this->_impl_.b_ = from._impl_.b_;
+      b_ = from.b_;
     }
-    _this->_impl_._has_bits_[0] |= cached_has_bits;
+    _has_bits_[0] |= cached_has_bits;
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void AddReq::CopyFrom(const AddReq& from) {
@@ -501,13 +477,13 @@ bool AddReq::IsInitialized() const {
 void AddReq::InternalSwap(AddReq* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_has_bits_[0], other->_has_bits_[0]);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(AddReq, _impl_.b_)
-      + sizeof(AddReq::_impl_.b_)
-      - PROTOBUF_FIELD_OFFSET(AddReq, _impl_.a_)>(
-          reinterpret_cast<char*>(&_impl_.a_),
-          reinterpret_cast<char*>(&other->_impl_.a_));
+      PROTOBUF_FIELD_OFFSET(AddReq, b_)
+      + sizeof(AddReq::b_)
+      - PROTOBUF_FIELD_OFFSET(AddReq, a_)>(
+          reinterpret_cast<char*>(&a_),
+          reinterpret_cast<char*>(&other->a_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata AddReq::GetMetadata() const {
@@ -520,9 +496,7 @@ void AddReq::InternalSwap(AddReq* other) {
 
 class AddRsp::_Internal {
  public:
-  using HasBits = decltype(std::declval<AddRsp>()._impl_._has_bits_);
-  static constexpr int32_t kHasBitsOffset =
-    8 * PROTOBUF_FIELD_OFFSET(AddRsp, _impl_._has_bits_);
+  using HasBits = decltype(std::declval<AddRsp>()._has_bits_);
   static void set_has_result(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -531,31 +505,19 @@ class AddRsp::_Internal {
 AddRsp::AddRsp(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  SharedCtor();
   // @@protoc_insertion_point(arena_constructor:AddRsp)
 }
 AddRsp::AddRsp(const AddRsp& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  AddRsp* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){from._impl_._has_bits_}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.result_){}};
-
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _has_bits_(from._has_bits_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _this->_impl_.result_ = from._impl_.result_;
+  result_ = from.result_;
   // @@protoc_insertion_point(copy_constructor:AddRsp)
 }
 
-inline void AddRsp::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.result_){0}
-  };
+inline void AddRsp::SharedCtor() {
+result_ = 0;
 }
 
 AddRsp::~AddRsp() {
@@ -572,7 +534,7 @@ inline void AddRsp::SharedDtor() {
 }
 
 void AddRsp::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
+  _cached_size_.Set(size);
 }
 
 void AddRsp::Clear() {
@@ -581,8 +543,8 @@ void AddRsp::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.result_ = 0;
-  _impl_._has_bits_.Clear();
+  result_ = 0;
+  _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -597,7 +559,7 @@ const char* AddRsp::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _Internal::set_has_result(&has_bits);
-          _impl_.result_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          result_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -618,7 +580,7 @@ const char* AddRsp::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
     CHK_(ptr != nullptr);
   }  // while
 message_done:
-  _impl_._has_bits_.Or(has_bits);
+  _has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -632,7 +594,7 @@ uint8_t* AddRsp::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   // optional int32 result = 2;
   if (cached_has_bits & 0x00000001u) {
     target = stream->EnsureSpace(target);
@@ -656,33 +618,37 @@ size_t AddRsp::ByteSizeLong() const {
   (void) cached_has_bits;
 
   // optional int32 result = 2;
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_result());
   }
 
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData AddRsp::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
     AddRsp::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*AddRsp::GetClassData() const { return &_class_data_; }
 
+void AddRsp::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<AddRsp *>(to)->MergeFrom(
+      static_cast<const AddRsp &>(from));
+}
 
-void AddRsp::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<AddRsp*>(&to_msg);
-  auto& from = static_cast<const AddRsp&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:AddRsp)
-  GOOGLE_DCHECK_NE(&from, _this);
+
+void AddRsp::MergeFrom(const AddRsp& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:AddRsp)
+  GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from._internal_has_result()) {
-    _this->_internal_set_result(from._internal_result());
+    _internal_set_result(from._internal_result());
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void AddRsp::CopyFrom(const AddRsp& from) {
@@ -699,8 +665,8 @@ bool AddRsp::IsInitialized() const {
 void AddRsp::InternalSwap(AddRsp* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  swap(_impl_.result_, other->_impl_.result_);
+  swap(_has_bits_[0], other->_has_bits_[0]);
+  swap(result_, other->result_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata AddRsp::GetMetadata() const {
@@ -713,9 +679,7 @@ void AddRsp::InternalSwap(AddRsp* other) {
 
 class EchoReq::_Internal {
  public:
-  using HasBits = decltype(std::declval<EchoReq>()._impl_._has_bits_);
-  static constexpr int32_t kHasBitsOffset =
-    8 * PROTOBUF_FIELD_OFFSET(EchoReq, _impl_._has_bits_);
+  using HasBits = decltype(std::declval<EchoReq>()._has_bits_);
   static void set_has_str(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -724,42 +688,29 @@ class EchoReq::_Internal {
 EchoReq::EchoReq(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  SharedCtor();
   // @@protoc_insertion_point(arena_constructor:EchoReq)
 }
 EchoReq::EchoReq(const EchoReq& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  EchoReq* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){from._impl_._has_bits_}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.str_){}};
-
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _has_bits_(from._has_bits_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.str_.InitDefault();
+  str_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.str_.Set("", GetArenaForAllocation());
+    str_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   if (from._internal_has_str()) {
-    _this->_impl_.str_.Set(from._internal_str(), 
-      _this->GetArenaForAllocation());
+    str_.Set(from._internal_str(), 
+      GetArenaForAllocation());
   }
   // @@protoc_insertion_point(copy_constructor:EchoReq)
 }
 
-inline void EchoReq::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.str_){}
-  };
-  _impl_.str_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.str_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+inline void EchoReq::SharedCtor() {
+str_.InitDefault();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  str_.Set("", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 EchoReq::~EchoReq() {
@@ -773,11 +724,11 @@ EchoReq::~EchoReq() {
 
 inline void EchoReq::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.str_.Destroy();
+  str_.Destroy();
 }
 
 void EchoReq::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
+  _cached_size_.Set(size);
 }
 
 void EchoReq::Clear() {
@@ -786,11 +737,11 @@ void EchoReq::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
-    _impl_.str_.ClearNonDefaultToEmpty();
+    str_.ClearNonDefaultToEmpty();
   }
-  _impl_._has_bits_.Clear();
+  _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -829,7 +780,7 @@ const char* EchoReq::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) 
     CHK_(ptr != nullptr);
   }  // while
 message_done:
-  _impl_._has_bits_.Or(has_bits);
+  _has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -843,7 +794,7 @@ uint8_t* EchoReq::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   // optional string str = 2;
   if (cached_has_bits & 0x00000001u) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::VerifyUTF8StringNamedField(
@@ -871,35 +822,39 @@ size_t EchoReq::ByteSizeLong() const {
   (void) cached_has_bits;
 
   // optional string str = 2;
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_str());
   }
 
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData EchoReq::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
     EchoReq::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*EchoReq::GetClassData() const { return &_class_data_; }
 
+void EchoReq::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<EchoReq *>(to)->MergeFrom(
+      static_cast<const EchoReq &>(from));
+}
 
-void EchoReq::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<EchoReq*>(&to_msg);
-  auto& from = static_cast<const EchoReq&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:EchoReq)
-  GOOGLE_DCHECK_NE(&from, _this);
+
+void EchoReq::MergeFrom(const EchoReq& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:EchoReq)
+  GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from._internal_has_str()) {
-    _this->_internal_set_str(from._internal_str());
+    _internal_set_str(from._internal_str());
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void EchoReq::CopyFrom(const EchoReq& from) {
@@ -918,10 +873,10 @@ void EchoReq::InternalSwap(EchoReq* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_has_bits_[0], other->_has_bits_[0]);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.str_, lhs_arena,
-      &other->_impl_.str_, rhs_arena
+      &str_, lhs_arena,
+      &other->str_, rhs_arena
   );
 }
 
@@ -935,9 +890,7 @@ void EchoReq::InternalSwap(EchoReq* other) {
 
 class EchoRsp::_Internal {
  public:
-  using HasBits = decltype(std::declval<EchoRsp>()._impl_._has_bits_);
-  static constexpr int32_t kHasBitsOffset =
-    8 * PROTOBUF_FIELD_OFFSET(EchoRsp, _impl_._has_bits_);
+  using HasBits = decltype(std::declval<EchoRsp>()._has_bits_);
   static void set_has_str(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -946,42 +899,29 @@ class EchoRsp::_Internal {
 EchoRsp::EchoRsp(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  SharedCtor();
   // @@protoc_insertion_point(arena_constructor:EchoRsp)
 }
 EchoRsp::EchoRsp(const EchoRsp& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  EchoRsp* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){from._impl_._has_bits_}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.str_){}};
-
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _has_bits_(from._has_bits_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.str_.InitDefault();
+  str_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.str_.Set("", GetArenaForAllocation());
+    str_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   if (from._internal_has_str()) {
-    _this->_impl_.str_.Set(from._internal_str(), 
-      _this->GetArenaForAllocation());
+    str_.Set(from._internal_str(), 
+      GetArenaForAllocation());
   }
   // @@protoc_insertion_point(copy_constructor:EchoRsp)
 }
 
-inline void EchoRsp::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.str_){}
-  };
-  _impl_.str_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.str_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+inline void EchoRsp::SharedCtor() {
+str_.InitDefault();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  str_.Set("", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 EchoRsp::~EchoRsp() {
@@ -995,11 +935,11 @@ EchoRsp::~EchoRsp() {
 
 inline void EchoRsp::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.str_.Destroy();
+  str_.Destroy();
 }
 
 void EchoRsp::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
+  _cached_size_.Set(size);
 }
 
 void EchoRsp::Clear() {
@@ -1008,11 +948,11 @@ void EchoRsp::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
-    _impl_.str_.ClearNonDefaultToEmpty();
+    str_.ClearNonDefaultToEmpty();
   }
-  _impl_._has_bits_.Clear();
+  _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1051,7 +991,7 @@ const char* EchoRsp::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) 
     CHK_(ptr != nullptr);
   }  // while
 message_done:
-  _impl_._has_bits_.Or(has_bits);
+  _has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -1065,7 +1005,7 @@ uint8_t* EchoRsp::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   // optional string str = 2;
   if (cached_has_bits & 0x00000001u) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::VerifyUTF8StringNamedField(
@@ -1093,35 +1033,39 @@ size_t EchoRsp::ByteSizeLong() const {
   (void) cached_has_bits;
 
   // optional string str = 2;
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_str());
   }
 
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData EchoRsp::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
     EchoRsp::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*EchoRsp::GetClassData() const { return &_class_data_; }
 
+void EchoRsp::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<EchoRsp *>(to)->MergeFrom(
+      static_cast<const EchoRsp &>(from));
+}
 
-void EchoRsp::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<EchoRsp*>(&to_msg);
-  auto& from = static_cast<const EchoRsp&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:EchoRsp)
-  GOOGLE_DCHECK_NE(&from, _this);
+
+void EchoRsp::MergeFrom(const EchoRsp& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:EchoRsp)
+  GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from._internal_has_str()) {
-    _this->_internal_set_str(from._internal_str());
+    _internal_set_str(from._internal_str());
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void EchoRsp::CopyFrom(const EchoRsp& from) {
@@ -1140,10 +1084,10 @@ void EchoRsp::InternalSwap(EchoRsp* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_has_bits_[0], other->_has_bits_[0]);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.str_, lhs_arena,
-      &other->_impl_.str_, rhs_arena
+      &str_, lhs_arena,
+      &other->str_, rhs_arena
   );
 }
 
@@ -1157,9 +1101,7 @@ void EchoRsp::InternalSwap(EchoRsp* other) {
 
 class address::_Internal {
  public:
-  using HasBits = decltype(std::declval<address>()._impl_._has_bits_);
-  static constexpr int32_t kHasBitsOffset =
-    8 * PROTOBUF_FIELD_OFFSET(address, _impl_._has_bits_);
+  using HasBits = decltype(std::declval<address>()._has_bits_);
   static void set_has_addr(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
@@ -1171,45 +1113,31 @@ class address::_Internal {
 address::address(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  SharedCtor();
   // @@protoc_insertion_point(arena_constructor:address)
 }
 address::address(const address& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  address* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){from._impl_._has_bits_}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.addr_){}
-    , decltype(_impl_.port_){}};
-
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _has_bits_(from._has_bits_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.addr_.InitDefault();
+  addr_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.addr_.Set("", GetArenaForAllocation());
+    addr_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   if (from._internal_has_addr()) {
-    _this->_impl_.addr_.Set(from._internal_addr(), 
-      _this->GetArenaForAllocation());
+    addr_.Set(from._internal_addr(), 
+      GetArenaForAllocation());
   }
-  _this->_impl_.port_ = from._impl_.port_;
+  port_ = from.port_;
   // @@protoc_insertion_point(copy_constructor:address)
 }
 
-inline void address::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.addr_){}
-    , decltype(_impl_.port_){0}
-  };
-  _impl_.addr_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.addr_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+inline void address::SharedCtor() {
+addr_.InitDefault();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  addr_.Set("", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+port_ = 0;
 }
 
 address::~address() {
@@ -1223,11 +1151,11 @@ address::~address() {
 
 inline void address::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.addr_.Destroy();
+  addr_.Destroy();
 }
 
 void address::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
+  _cached_size_.Set(size);
 }
 
 void address::Clear() {
@@ -1236,12 +1164,12 @@ void address::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
-    _impl_.addr_.ClearNonDefaultToEmpty();
+    addr_.ClearNonDefaultToEmpty();
   }
-  _impl_.port_ = 0;
-  _impl_._has_bits_.Clear();
+  port_ = 0;
+  _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1268,7 +1196,7 @@ const char* address::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) 
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _Internal::set_has_port(&has_bits);
-          _impl_.port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          port_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1289,7 +1217,7 @@ const char* address::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) 
     CHK_(ptr != nullptr);
   }  // while
 message_done:
-  _impl_._has_bits_.Or(has_bits);
+  _has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -1303,7 +1231,7 @@ uint8_t* address::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   // optional string addr = 1;
   if (cached_has_bits & 0x00000001u) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::VerifyUTF8StringNamedField(
@@ -1336,7 +1264,7 @@ size_t address::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000003u) {
     // optional string addr = 1;
     if (cached_has_bits & 0x00000001u) {
@@ -1351,35 +1279,39 @@ size_t address::ByteSizeLong() const {
     }
 
   }
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData address::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
     address::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*address::GetClassData() const { return &_class_data_; }
 
+void address::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<address *>(to)->MergeFrom(
+      static_cast<const address &>(from));
+}
 
-void address::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<address*>(&to_msg);
-  auto& from = static_cast<const address&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:address)
-  GOOGLE_DCHECK_NE(&from, _this);
+
+void address::MergeFrom(const address& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:address)
+  GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = from._impl_._has_bits_[0];
+  cached_has_bits = from._has_bits_[0];
   if (cached_has_bits & 0x00000003u) {
     if (cached_has_bits & 0x00000001u) {
-      _this->_internal_set_addr(from._internal_addr());
+      _internal_set_addr(from._internal_addr());
     }
     if (cached_has_bits & 0x00000002u) {
-      _this->_impl_.port_ = from._impl_.port_;
+      port_ = from.port_;
     }
-    _this->_impl_._has_bits_[0] |= cached_has_bits;
+    _has_bits_[0] |= cached_has_bits;
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void address::CopyFrom(const address& from) {
@@ -1398,12 +1330,12 @@ void address::InternalSwap(address* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_has_bits_[0], other->_has_bits_[0]);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.addr_, lhs_arena,
-      &other->_impl_.addr_, rhs_arena
+      &addr_, lhs_arena,
+      &other->addr_, rhs_arena
   );
-  swap(_impl_.port_, other->_impl_.port_);
+  swap(port_, other->port_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata address::GetMetadata() const {
@@ -1416,9 +1348,7 @@ void address::InternalSwap(address* other) {
 
 class ServiceRegistReq::_Internal {
  public:
-  using HasBits = decltype(std::declval<ServiceRegistReq>()._impl_._has_bits_);
-  static constexpr int32_t kHasBitsOffset =
-    8 * PROTOBUF_FIELD_OFFSET(ServiceRegistReq, _impl_._has_bits_);
+  using HasBits = decltype(std::declval<ServiceRegistReq>()._has_bits_);
   static const ::address& addr(const ServiceRegistReq* msg);
   static void set_has_addr(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
@@ -1427,38 +1357,28 @@ class ServiceRegistReq::_Internal {
 
 const ::address&
 ServiceRegistReq::_Internal::addr(const ServiceRegistReq* msg) {
-  return *msg->_impl_.addr_;
+  return *msg->addr_;
 }
 ServiceRegistReq::ServiceRegistReq(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  SharedCtor();
   // @@protoc_insertion_point(arena_constructor:ServiceRegistReq)
 }
 ServiceRegistReq::ServiceRegistReq(const ServiceRegistReq& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  ServiceRegistReq* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){from._impl_._has_bits_}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.addr_){nullptr}};
-
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _has_bits_(from._has_bits_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   if (from._internal_has_addr()) {
-    _this->_impl_.addr_ = new ::address(*from._impl_.addr_);
+    addr_ = new ::address(*from.addr_);
+  } else {
+    addr_ = nullptr;
   }
   // @@protoc_insertion_point(copy_constructor:ServiceRegistReq)
 }
 
-inline void ServiceRegistReq::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.addr_){nullptr}
-  };
+inline void ServiceRegistReq::SharedCtor() {
+addr_ = nullptr;
 }
 
 ServiceRegistReq::~ServiceRegistReq() {
@@ -1472,11 +1392,11 @@ ServiceRegistReq::~ServiceRegistReq() {
 
 inline void ServiceRegistReq::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  if (this != internal_default_instance()) delete _impl_.addr_;
+  if (this != internal_default_instance()) delete addr_;
 }
 
 void ServiceRegistReq::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
+  _cached_size_.Set(size);
 }
 
 void ServiceRegistReq::Clear() {
@@ -1485,12 +1405,12 @@ void ServiceRegistReq::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
-    GOOGLE_DCHECK(_impl_.addr_ != nullptr);
-    _impl_.addr_->Clear();
+    GOOGLE_DCHECK(addr_ != nullptr);
+    addr_->Clear();
   }
-  _impl_._has_bits_.Clear();
+  _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1525,7 +1445,7 @@ const char* ServiceRegistReq::_InternalParse(const char* ptr, ::_pbi::ParseConte
     CHK_(ptr != nullptr);
   }  // while
 message_done:
-  _impl_._has_bits_.Or(has_bits);
+  _has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -1539,7 +1459,7 @@ uint8_t* ServiceRegistReq::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   // optional .address addr = 1;
   if (cached_has_bits & 0x00000001u) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -1564,36 +1484,39 @@ size_t ServiceRegistReq::ByteSizeLong() const {
   (void) cached_has_bits;
 
   // optional .address addr = 1;
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-        *_impl_.addr_);
+        *addr_);
   }
 
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ServiceRegistReq::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
     ServiceRegistReq::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ServiceRegistReq::GetClassData() const { return &_class_data_; }
 
+void ServiceRegistReq::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<ServiceRegistReq *>(to)->MergeFrom(
+      static_cast<const ServiceRegistReq &>(from));
+}
 
-void ServiceRegistReq::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<ServiceRegistReq*>(&to_msg);
-  auto& from = static_cast<const ServiceRegistReq&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:ServiceRegistReq)
-  GOOGLE_DCHECK_NE(&from, _this);
+
+void ServiceRegistReq::MergeFrom(const ServiceRegistReq& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:ServiceRegistReq)
+  GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from._internal_has_addr()) {
-    _this->_internal_mutable_addr()->::address::MergeFrom(
-        from._internal_addr());
+    _internal_mutable_addr()->::address::MergeFrom(from._internal_addr());
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void ServiceRegistReq::CopyFrom(const ServiceRegistReq& from) {
@@ -1610,8 +1533,8 @@ bool ServiceRegistReq::IsInitialized() const {
 void ServiceRegistReq::InternalSwap(ServiceRegistReq* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  swap(_impl_.addr_, other->_impl_.addr_);
+  swap(_has_bits_[0], other->_has_bits_[0]);
+  swap(addr_, other->addr_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata ServiceRegistReq::GetMetadata() const {
@@ -1624,9 +1547,7 @@ void ServiceRegistReq::InternalSwap(ServiceRegistReq* other) {
 
 class ServiceRegistRsp::_Internal {
  public:
-  using HasBits = decltype(std::declval<ServiceRegistRsp>()._impl_._has_bits_);
-  static constexpr int32_t kHasBitsOffset =
-    8 * PROTOBUF_FIELD_OFFSET(ServiceRegistRsp, _impl_._has_bits_);
+  using HasBits = decltype(std::declval<ServiceRegistRsp>()._has_bits_);
   static void set_has_status(HasBits* has_bits) {
     (*has_bits)[0] |= 2u;
   }
@@ -1638,45 +1559,31 @@ class ServiceRegistRsp::_Internal {
 ServiceRegistRsp::ServiceRegistRsp(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  SharedCtor();
   // @@protoc_insertion_point(arena_constructor:ServiceRegistRsp)
 }
 ServiceRegistRsp::ServiceRegistRsp(const ServiceRegistRsp& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  ServiceRegistRsp* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){from._impl_._has_bits_}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.msg_){}
-    , decltype(_impl_.status_){}};
-
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _has_bits_(from._has_bits_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.msg_.InitDefault();
+  msg_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.msg_.Set("", GetArenaForAllocation());
+    msg_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   if (from._internal_has_msg()) {
-    _this->_impl_.msg_.Set(from._internal_msg(), 
-      _this->GetArenaForAllocation());
+    msg_.Set(from._internal_msg(), 
+      GetArenaForAllocation());
   }
-  _this->_impl_.status_ = from._impl_.status_;
+  status_ = from.status_;
   // @@protoc_insertion_point(copy_constructor:ServiceRegistRsp)
 }
 
-inline void ServiceRegistRsp::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_._has_bits_){}
-    , /*decltype(_impl_._cached_size_)*/{}
-    , decltype(_impl_.msg_){}
-    , decltype(_impl_.status_){0}
-  };
-  _impl_.msg_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.msg_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+inline void ServiceRegistRsp::SharedCtor() {
+msg_.InitDefault();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  msg_.Set("", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+status_ = 0;
 }
 
 ServiceRegistRsp::~ServiceRegistRsp() {
@@ -1690,11 +1597,11 @@ ServiceRegistRsp::~ServiceRegistRsp() {
 
 inline void ServiceRegistRsp::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.msg_.Destroy();
+  msg_.Destroy();
 }
 
 void ServiceRegistRsp::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
+  _cached_size_.Set(size);
 }
 
 void ServiceRegistRsp::Clear() {
@@ -1703,12 +1610,12 @@ void ServiceRegistRsp::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000001u) {
-    _impl_.msg_.ClearNonDefaultToEmpty();
+    msg_.ClearNonDefaultToEmpty();
   }
-  _impl_.status_ = 0;
-  _impl_._has_bits_.Clear();
+  status_ = 0;
+  _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1723,7 +1630,7 @@ const char* ServiceRegistRsp::_InternalParse(const char* ptr, ::_pbi::ParseConte
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
           _Internal::set_has_status(&has_bits);
-          _impl_.status_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          status_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1756,7 +1663,7 @@ const char* ServiceRegistRsp::_InternalParse(const char* ptr, ::_pbi::ParseConte
     CHK_(ptr != nullptr);
   }  // while
 message_done:
-  _impl_._has_bits_.Or(has_bits);
+  _has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -1770,7 +1677,7 @@ uint8_t* ServiceRegistRsp::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   // optional int32 status = 1;
   if (cached_has_bits & 0x00000002u) {
     target = stream->EnsureSpace(target);
@@ -1803,7 +1710,7 @@ size_t ServiceRegistRsp::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _impl_._has_bits_[0];
+  cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x00000003u) {
     // optional string msg = 2;
     if (cached_has_bits & 0x00000001u) {
@@ -1818,35 +1725,39 @@ size_t ServiceRegistRsp::ByteSizeLong() const {
     }
 
   }
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ServiceRegistRsp::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
     ServiceRegistRsp::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ServiceRegistRsp::GetClassData() const { return &_class_data_; }
 
+void ServiceRegistRsp::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<ServiceRegistRsp *>(to)->MergeFrom(
+      static_cast<const ServiceRegistRsp &>(from));
+}
 
-void ServiceRegistRsp::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<ServiceRegistRsp*>(&to_msg);
-  auto& from = static_cast<const ServiceRegistRsp&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:ServiceRegistRsp)
-  GOOGLE_DCHECK_NE(&from, _this);
+
+void ServiceRegistRsp::MergeFrom(const ServiceRegistRsp& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:ServiceRegistRsp)
+  GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = from._impl_._has_bits_[0];
+  cached_has_bits = from._has_bits_[0];
   if (cached_has_bits & 0x00000003u) {
     if (cached_has_bits & 0x00000001u) {
-      _this->_internal_set_msg(from._internal_msg());
+      _internal_set_msg(from._internal_msg());
     }
     if (cached_has_bits & 0x00000002u) {
-      _this->_impl_.status_ = from._impl_.status_;
+      status_ = from.status_;
     }
-    _this->_impl_._has_bits_[0] |= cached_has_bits;
+    _has_bits_[0] |= cached_has_bits;
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void ServiceRegistRsp::CopyFrom(const ServiceRegistRsp& from) {
@@ -1865,12 +1776,12 @@ void ServiceRegistRsp::InternalSwap(ServiceRegistRsp* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_has_bits_[0], other->_has_bits_[0]);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.msg_, lhs_arena,
-      &other->_impl_.msg_, rhs_arena
+      &msg_, lhs_arena,
+      &other->msg_, rhs_arena
   );
-  swap(_impl_.status_, other->_impl_.status_);
+  swap(status_, other->status_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata ServiceRegistRsp::GetMetadata() const {
@@ -1892,7 +1803,6 @@ GetServiceListReq::GetServiceListReq(::PROTOBUF_NAMESPACE_ID::Arena* arena,
 }
 GetServiceListReq::GetServiceListReq(const GetServiceListReq& from)
   : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase() {
-  GetServiceListReq* const _this = this; (void)_this;
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   // @@protoc_insertion_point(copy_constructor:GetServiceListReq)
 }
@@ -1927,29 +1837,19 @@ class GetServiceListRsp::_Internal {
 
 GetServiceListRsp::GetServiceListRsp(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned),
+  serv_list_(arena) {
+  SharedCtor();
   // @@protoc_insertion_point(arena_constructor:GetServiceListRsp)
 }
 GetServiceListRsp::GetServiceListRsp(const GetServiceListRsp& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  GetServiceListRsp* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.serv_list_){from._impl_.serv_list_}
-    , /*decltype(_impl_._cached_size_)*/{}};
-
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      serv_list_(from.serv_list_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   // @@protoc_insertion_point(copy_constructor:GetServiceListRsp)
 }
 
-inline void GetServiceListRsp::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_.serv_list_){arena}
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
+inline void GetServiceListRsp::SharedCtor() {
 }
 
 GetServiceListRsp::~GetServiceListRsp() {
@@ -1963,11 +1863,10 @@ GetServiceListRsp::~GetServiceListRsp() {
 
 inline void GetServiceListRsp::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.serv_list_.~RepeatedPtrField();
 }
 
 void GetServiceListRsp::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
+  _cached_size_.Set(size);
 }
 
 void GetServiceListRsp::Clear() {
@@ -1976,7 +1875,7 @@ void GetServiceListRsp::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.serv_list_.Clear();
+  serv_list_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -2054,31 +1953,35 @@ size_t GetServiceListRsp::ByteSizeLong() const {
 
   // repeated .address serv_list = 1;
   total_size += 1UL * this->_internal_serv_list_size();
-  for (const auto& msg : this->_impl_.serv_list_) {
+  for (const auto& msg : this->serv_list_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData GetServiceListRsp::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
     GetServiceListRsp::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetServiceListRsp::GetClassData() const { return &_class_data_; }
 
+void GetServiceListRsp::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<GetServiceListRsp *>(to)->MergeFrom(
+      static_cast<const GetServiceListRsp &>(from));
+}
 
-void GetServiceListRsp::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<GetServiceListRsp*>(&to_msg);
-  auto& from = static_cast<const GetServiceListRsp&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:GetServiceListRsp)
-  GOOGLE_DCHECK_NE(&from, _this);
+
+void GetServiceListRsp::MergeFrom(const GetServiceListRsp& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:GetServiceListRsp)
+  GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  _this->_impl_.serv_list_.MergeFrom(from._impl_.serv_list_);
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  serv_list_.MergeFrom(from.serv_list_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void GetServiceListRsp::CopyFrom(const GetServiceListRsp& from) {
@@ -2095,7 +1998,7 @@ bool GetServiceListRsp::IsInitialized() const {
 void GetServiceListRsp::InternalSwap(GetServiceListRsp* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  _impl_.serv_list_.InternalSwap(&other->_impl_.serv_list_);
+  serv_list_.InternalSwap(&other->serv_list_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata GetServiceListRsp::GetMetadata() const {

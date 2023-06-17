@@ -86,12 +86,7 @@ public:
             PrintOnce();
         }, 5000);
         _co_scheduler->AddTimer([this](){
-            int nCanSendNum = 5000 - (m_total_req.load() - m_complete_req.load());
-            while (nCanSendNum--){
-                auto call_obj = Generate();
-                rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
-                m_total_req++;
-            }
+            SendOnce();
         }, 10);
     }
 private:
@@ -110,6 +105,20 @@ private:
         static int begin = 5; 
         printf("当前经过 %d 秒, 以发送总请求数量 %d 个, 以完成总请求数量 %d 个.\n", begin, m_total_req.load(), m_complete_req.load());
         begin += 5;
+        _co_scheduler->AddTimer([this](){
+            PrintOnce();
+        }, 5000);
+    }
+    void SendOnce(){
+        int nCanSendNum = 5000 - (m_total_req.load() - m_complete_req.load());
+        while (nCanSendNum--){
+            auto call_obj = Generate();
+            rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
+            m_total_req++;
+        }
+        _co_scheduler->AddTimer([this](){
+            SendOnce();
+        }, 100);
     }
 private:
     yrpc::detail::net::YAddress peer_addr;   // 对端地址
