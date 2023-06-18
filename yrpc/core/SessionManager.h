@@ -25,7 +25,7 @@ public:
      * 
      * @param peer      对端地址
      * @param onsession 连接建立成功时触发回调
-     * @return int      # -1(未连接), 0(连接中), 1(连接已完成)
+     * @return int      # 0(连接中), 1(连接已完成)
      */
     int AsyncConnect(Address peer,OnSession onsession);
     void AsyncAccept(const Address& peer);

@@ -24,7 +24,7 @@ public:
      * 
      * @param id    会话ID
      * @param func  会话建立时的回调
-     * @return int  # -2(插入失败), 1(已经存在), 2(插入成功)
+     * @return int  # -1(已经存在), 1(插入成功)
      */
     int FindAndPush(SessionID id, const OnSessionCallback& func);
     OnSessionCallback Find(SessionID id);

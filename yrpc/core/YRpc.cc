@@ -29,7 +29,7 @@ int Rpc::RemoteOnce(const detail::Address& addr,const std::string& funcname,deta
             if (retcode <= 0)
                 ret = -3;   // 连接未完成, 重试
             else
-                ret = -4;   // 连接成功, 重试(重试大概率成功，除非对端关闭)
+                ret = 2;   // 连接成功, 重试(重试大概率成功，除非对端关闭)
             break;
         }
     }while(0);

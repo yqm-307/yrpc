@@ -259,9 +259,9 @@ int __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
     {
         Socket* socket = Connector::CreateSocket();
         auto status = m_undone_conn_queue->FindAndPush(tmpid,onsession);
-        if( status <= 1 ) // 存在或者插入失败
+        if( status == -1 ) // 说明连接正在进行中
         {
-            ret = -1;
+            ret = 0;
         }
         else
         {

@@ -113,7 +113,15 @@ private:
         int nCanSendNum = 5000 - (m_total_req.load() - m_complete_req.load());
         while (nCanSendNum--){
             auto call_obj = Generate();
-            rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
+            while (1) {
+                int err = rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
+                if (err == -3) {
+                    assert(yrpc::socket::YRSleep(y_scheduler, 1000) >= 0);
+                    printf("连接失败，重试\n");
+                }
+                else if (err > 0)
+                    break;
+            }
             m_total_req++;
         }
         y_scheduler->AddTimer([this](){

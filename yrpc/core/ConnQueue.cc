@@ -20,12 +20,11 @@ int ConnQueue::FindAndPush(SessionID id, const OnSessionCallback& func)
     auto it = m_map.find(id);
     if (it != m_map.end())
     {
-        ret = 1; // 已经存在
     }
     else
     {
-        auto succ =  m_map.insert(std::make_pair(id, func));
-        ret = succ.second ? 2 : -2; 
+        m_map.insert(std::make_pair(id, func));
+        ret = 1;
     }
     return ret;
 }
