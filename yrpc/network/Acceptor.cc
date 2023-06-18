@@ -43,7 +43,7 @@ int Acceptor::StartListen()
         return -1;
     if (onconnection_ == nullptr)
         return -2;
-    _co_scheduler->AddTask([this](void*){ListenInEvloop();},nullptr); // 注册监听任务
+    y_scheduler->AddTask([this](void*){ListenInEvloop();},nullptr); // 注册监听任务
     INFO("[YRPC][Acceptor::listen] acceptor begin!");
     return 0;
 }
@@ -77,7 +77,7 @@ void Acceptor::ListenInEvloop()
                 e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_FAIL);
             //创建socket
 
-            auto evloop = ( lber_ == nullptr ) ? _co_scheduler : lber_();  // 走不走负载均衡，不走就默认在当前线程进行IO
+            auto evloop = ( lber_ == nullptr ) ? y_scheduler : lber_();  // 走不走负载均衡，不走就默认在当前线程进行IO
             Socket* clisock = evloop->CreateSocket(newfd,socket_timeout_ms_,connect_timeout_ms_);  //普通连接
             YAddress cli(inet_ntoa(cliaddr.sin_addr),ntohs(len));
             Connection::ConnectionPtr newconn = std::make_shared<Connection>(evloop,clisock,std::move(cli));
@@ -90,7 +90,7 @@ void Acceptor::ListenInEvloop()
 
 void Acceptor::CreateListenSocket()
 {
-    listenfd_ = _co_scheduler->CreateSocket(fd_,-1,-1); //需要free
+    listenfd_ = y_scheduler->CreateSocket(fd_,-1,-1); //需要free
     if(listenfd_ == nullptr) 
         ERROR("Acceptor::CreateListenSocket() error , Epoller::CreateSocket error!");
 }
@@ -99,7 +99,7 @@ void Acceptor::ReleaseListenSocket()
 {
     if(listenfd_ == nullptr)
         ERROR("Acceptor::RelaseListenSocket() error , listenfd is null!");
-    _co_scheduler->DestorySocket(listenfd_);   //释放socket内存
+    y_scheduler->DestorySocket(listenfd_);   //释放socket内存
     if(fd_ < 0 )
         ERROR("Acceptor::RelaseListenSocket() error , listen socket fd = %d error\n",fd_);
     ::close(fd_);

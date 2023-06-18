@@ -21,8 +21,9 @@ namespace _pb = ::PROTOBUF_NAMESPACE_ID;
 namespace _pbi = _pb::internal;
 
 PROTOBUF_CONSTEXPR S2C_HEARTBEAT_RSP::S2C_HEARTBEAT_RSP(
-    ::_pbi::ConstantInitialized)
-  : tick_(0){}
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.tick_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
 struct S2C_HEARTBEAT_RSPDefaultTypeInternal {
   PROTOBUF_CONSTEXPR S2C_HEARTBEAT_RSPDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -33,9 +34,10 @@ struct S2C_HEARTBEAT_RSPDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 S2C_HEARTBEAT_RSPDefaultTypeInternal _S2C_HEARTBEAT_RSP_default_instance_;
 PROTOBUF_CONSTEXPR S2C_RPC_ERROR::S2C_RPC_ERROR(
-    ::_pbi::ConstantInitialized)
-  : info_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
-  , errnocode_(0){}
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.info_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.errnocode_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
 struct S2C_RPC_ERRORDefaultTypeInternal {
   PROTOBUF_CONSTEXPR S2C_RPC_ERRORDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -56,15 +58,15 @@ const uint32_t TableStruct_s2c_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::S2C_HEARTBEAT_RSP, tick_),
+  PROTOBUF_FIELD_OFFSET(::S2C_HEARTBEAT_RSP, _impl_.tick_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::S2C_RPC_ERROR, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::S2C_RPC_ERROR, errnocode_),
-  PROTOBUF_FIELD_OFFSET(::S2C_RPC_ERROR, info_),
+  PROTOBUF_FIELD_OFFSET(::S2C_RPC_ERROR, _impl_.errnocode_),
+  PROTOBUF_FIELD_OFFSET(::S2C_RPC_ERROR, _impl_.info_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::S2C_HEARTBEAT_RSP)},
@@ -106,18 +108,29 @@ class S2C_HEARTBEAT_RSP::_Internal {
 S2C_HEARTBEAT_RSP::S2C_HEARTBEAT_RSP(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor();
+  SharedCtor(arena, is_message_owned);
   // @@protoc_insertion_point(arena_constructor:S2C_HEARTBEAT_RSP)
 }
 S2C_HEARTBEAT_RSP::S2C_HEARTBEAT_RSP(const S2C_HEARTBEAT_RSP& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
+  S2C_HEARTBEAT_RSP* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.tick_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  tick_ = from.tick_;
+  _this->_impl_.tick_ = from._impl_.tick_;
   // @@protoc_insertion_point(copy_constructor:S2C_HEARTBEAT_RSP)
 }
 
-inline void S2C_HEARTBEAT_RSP::SharedCtor() {
-tick_ = 0;
+inline void S2C_HEARTBEAT_RSP::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.tick_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
 }
 
 S2C_HEARTBEAT_RSP::~S2C_HEARTBEAT_RSP() {
@@ -134,7 +147,7 @@ inline void S2C_HEARTBEAT_RSP::SharedDtor() {
 }
 
 void S2C_HEARTBEAT_RSP::SetCachedSize(int size) const {
-  _cached_size_.Set(size);
+  _impl_._cached_size_.Set(size);
 }
 
 void S2C_HEARTBEAT_RSP::Clear() {
@@ -143,7 +156,7 @@ void S2C_HEARTBEAT_RSP::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  tick_ = 0;
+  _impl_.tick_ = 0;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -156,7 +169,7 @@ const char* S2C_HEARTBEAT_RSP::_InternalParse(const char* ptr, ::_pbi::ParseCont
       // int32 tick = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          tick_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          _impl_.tick_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -217,32 +230,28 @@ size_t S2C_HEARTBEAT_RSP::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_tick());
   }
 
-  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData S2C_HEARTBEAT_RSP::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
     S2C_HEARTBEAT_RSP::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*S2C_HEARTBEAT_RSP::GetClassData() const { return &_class_data_; }
 
-void S2C_HEARTBEAT_RSP::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-  static_cast<S2C_HEARTBEAT_RSP *>(to)->MergeFrom(
-      static_cast<const S2C_HEARTBEAT_RSP &>(from));
-}
 
-
-void S2C_HEARTBEAT_RSP::MergeFrom(const S2C_HEARTBEAT_RSP& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:S2C_HEARTBEAT_RSP)
-  GOOGLE_DCHECK_NE(&from, this);
+void S2C_HEARTBEAT_RSP::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<S2C_HEARTBEAT_RSP*>(&to_msg);
+  auto& from = static_cast<const S2C_HEARTBEAT_RSP&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:S2C_HEARTBEAT_RSP)
+  GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from._internal_tick() != 0) {
-    _internal_set_tick(from._internal_tick());
+    _this->_internal_set_tick(from._internal_tick());
   }
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void S2C_HEARTBEAT_RSP::CopyFrom(const S2C_HEARTBEAT_RSP& from) {
@@ -259,7 +268,7 @@ bool S2C_HEARTBEAT_RSP::IsInitialized() const {
 void S2C_HEARTBEAT_RSP::InternalSwap(S2C_HEARTBEAT_RSP* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(tick_, other->tick_);
+  swap(_impl_.tick_, other->_impl_.tick_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata S2C_HEARTBEAT_RSP::GetMetadata() const {
@@ -277,30 +286,43 @@ class S2C_RPC_ERROR::_Internal {
 S2C_RPC_ERROR::S2C_RPC_ERROR(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor();
+  SharedCtor(arena, is_message_owned);
   // @@protoc_insertion_point(arena_constructor:S2C_RPC_ERROR)
 }
 S2C_RPC_ERROR::S2C_RPC_ERROR(const S2C_RPC_ERROR& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
+  S2C_RPC_ERROR* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.info_){}
+    , decltype(_impl_.errnocode_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  info_.InitDefault();
+  _impl_.info_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    info_.Set("", GetArenaForAllocation());
+    _impl_.info_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   if (!from._internal_info().empty()) {
-    info_.Set(from._internal_info(), 
-      GetArenaForAllocation());
+    _this->_impl_.info_.Set(from._internal_info(), 
+      _this->GetArenaForAllocation());
   }
-  errnocode_ = from.errnocode_;
+  _this->_impl_.errnocode_ = from._impl_.errnocode_;
   // @@protoc_insertion_point(copy_constructor:S2C_RPC_ERROR)
 }
 
-inline void S2C_RPC_ERROR::SharedCtor() {
-info_.InitDefault();
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  info_.Set("", GetArenaForAllocation());
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-errnocode_ = 0;
+inline void S2C_RPC_ERROR::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.info_){}
+    , decltype(_impl_.errnocode_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.info_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.info_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 S2C_RPC_ERROR::~S2C_RPC_ERROR() {
@@ -314,11 +336,11 @@ S2C_RPC_ERROR::~S2C_RPC_ERROR() {
 
 inline void S2C_RPC_ERROR::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  info_.Destroy();
+  _impl_.info_.Destroy();
 }
 
 void S2C_RPC_ERROR::SetCachedSize(int size) const {
-  _cached_size_.Set(size);
+  _impl_._cached_size_.Set(size);
 }
 
 void S2C_RPC_ERROR::Clear() {
@@ -327,8 +349,8 @@ void S2C_RPC_ERROR::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  info_.ClearToEmpty();
-  errnocode_ = 0;
+  _impl_.info_.ClearToEmpty();
+  _impl_.errnocode_ = 0;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -341,7 +363,7 @@ const char* S2C_RPC_ERROR::_InternalParse(const char* ptr, ::_pbi::ParseContext*
       // int32 errnocode = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          errnocode_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          _impl_.errnocode_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -429,35 +451,31 @@ size_t S2C_RPC_ERROR::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_errnocode());
   }
 
-  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData S2C_RPC_ERROR::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
     S2C_RPC_ERROR::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*S2C_RPC_ERROR::GetClassData() const { return &_class_data_; }
 
-void S2C_RPC_ERROR::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-  static_cast<S2C_RPC_ERROR *>(to)->MergeFrom(
-      static_cast<const S2C_RPC_ERROR &>(from));
-}
 
-
-void S2C_RPC_ERROR::MergeFrom(const S2C_RPC_ERROR& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:S2C_RPC_ERROR)
-  GOOGLE_DCHECK_NE(&from, this);
+void S2C_RPC_ERROR::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<S2C_RPC_ERROR*>(&to_msg);
+  auto& from = static_cast<const S2C_RPC_ERROR&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:S2C_RPC_ERROR)
+  GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (!from._internal_info().empty()) {
-    _internal_set_info(from._internal_info());
+    _this->_internal_set_info(from._internal_info());
   }
   if (from._internal_errnocode() != 0) {
-    _internal_set_errnocode(from._internal_errnocode());
+    _this->_internal_set_errnocode(from._internal_errnocode());
   }
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void S2C_RPC_ERROR::CopyFrom(const S2C_RPC_ERROR& from) {
@@ -477,10 +495,10 @@ void S2C_RPC_ERROR::InternalSwap(S2C_RPC_ERROR* other) {
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &info_, lhs_arena,
-      &other->info_, rhs_arena
+      &_impl_.info_, lhs_arena,
+      &other->_impl_.info_, rhs_arena
   );
-  swap(errnocode_, other->errnocode_);
+  swap(_impl_.errnocode_, other->_impl_.errnocode_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata S2C_RPC_ERROR::GetMetadata() const {

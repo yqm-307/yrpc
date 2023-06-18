@@ -24,10 +24,10 @@ int main(int argc, char* argv[])
 
     PointServer p(peer_ip, peer_port, listen_port);
     p.StartService();
-    _co_scheduler->AddTask([](void* arg){
+    y_scheduler->AddTask([](void* arg){
         auto p2p = static_cast<PointServer*>(arg);
         p2p->Start();
     }, &p);
-    _co_scheduler->RunForever();
-    _co_scheduler->Loop();
+    y_scheduler->RunForever();
+    y_scheduler->Loop();
 }

@@ -338,8 +338,8 @@ SessionID __YRPC_SessionManager::AddressToID(const Address&key)
 
 void __YRPC_SessionManager::SubLoop(int idx)
 {
-    assert(_co_scheduler != nullptr);
-    m_sub_loop[idx] = _co_scheduler;
+    assert(y_scheduler != nullptr);
+    m_sub_loop[idx] = y_scheduler;
     m_sub_loop[idx]->RunForever();
     m_loop_latch.down();
     m_loop_latch.wait();
@@ -347,8 +347,8 @@ void __YRPC_SessionManager::SubLoop(int idx)
 }
 void __YRPC_SessionManager::MainLoop()
 {
-    assert(_co_scheduler != nullptr);
-    m_main_loop = _co_scheduler;
+    assert(y_scheduler != nullptr);
+    m_main_loop = y_scheduler;
     m_connector = new Connector(m_main_loop);
     m_main_loop->RunForever();
     m_loop_latch.down();

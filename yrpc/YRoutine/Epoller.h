@@ -312,6 +312,17 @@ private:
     bool        forever_;     
 };
 
+class YRPCCoSchedulerHelper {
+public:
+    static Epoller* GetCurrentScheduler(){
+        static thread_local Epoller* scheduler = nullptr;
+        if (!scheduler) {
+            scheduler = new Epoller(64*1024,65535);
+        }
+        return scheduler;
+    }
+};
+
 }// namespace yrpc::coroutine::poller
 
-static thread_local yrpc::coroutine::poller::Epoller* _co_scheduler = new yrpc::coroutine::poller::Epoller(64*1024,65535);
+#define y_scheduler yrpc::coroutine::poller::YRPCCoSchedulerHelper::GetCurrentScheduler()

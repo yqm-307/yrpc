@@ -82,10 +82,10 @@ public:
     }
 
     void Start(){
-        _co_scheduler->AddTimer([this](){
+        y_scheduler->AddTimer([this](){
             PrintOnce();
         }, 5000);
-        _co_scheduler->AddTimer([this](){
+        y_scheduler->AddTimer([this](){
             SendOnce();
         }, 10);
     }
@@ -105,7 +105,7 @@ private:
         static int begin = 5; 
         printf("当前经过 %d 秒, 以发送总请求数量 %d 个, 以完成总请求数量 %d 个.\n", begin, m_total_req.load(), m_complete_req.load());
         begin += 5;
-        _co_scheduler->AddTimer([this](){
+        y_scheduler->AddTimer([this](){
             PrintOnce();
         }, 5000);
     }
@@ -116,7 +116,7 @@ private:
             rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
             m_total_req++;
         }
-        _co_scheduler->AddTimer([this](){
+        y_scheduler->AddTimer([this](){
             SendOnce();
         }, 100);
     }
