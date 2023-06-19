@@ -11,7 +11,10 @@ std::pair<ConnQueue::OnSessionCallback,bool> ConnQueue::PopUpById(SessionID id)
     if(it == m_map.end())
         return {nullptr,false};
     else
+    {
+        m_map.erase(it);
         return {it->second,true};
+    }
 }
 
 int ConnQueue::FindAndPush(SessionID id, const OnSessionCallback& func)
