@@ -43,7 +43,7 @@ private:
     void RunInSubLoop(Epoller*);
     // 被连接后
     void OnAccept(const errorcode &e, ConnectionPtr conn);
-    void OnConnect(const errorcode &e, ConnectionPtr conn);
+    void OnConnect(const errorcode &e, const Address& addr, ConnectionPtr conn);
 
     // 注意这是线程不安全的,获取一个新的session uid
     SessionID GetNewID()

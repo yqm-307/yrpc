@@ -133,7 +133,7 @@ __YRPC_SessionManager *__YRPC_SessionManager::GetInstance()
     static __YRPC_SessionManager *manager = nullptr;
     if (manager == nullptr)
     {
-        int *ptr = nullptr;
+        const int * ptr = nullptr;
         int thread_num = (ptr = BBT_CONFIG()->GetDynamicCfg()->GetEntry<int>(yrpc::config::SysCfg[yrpc::config::THREAD_NUM])) == nullptr ?
                 sysconf(_SC_NPROCESSORS_ONLN)*2 : *ptr;
         manager = new __YRPC_SessionManager(thread_num);  // 默认根据处理器数量*2 分配线程
@@ -182,8 +182,9 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, ConnectionPtr conn)
         ERROR("[YRPC][__YRPC_SessionManager::OnAccept] %s",e.what().c_str());
     }
 }
-void __YRPC_SessionManager::OnConnect(const errorcode &e, ConnectionPtr conn)
+void __YRPC_SessionManager::OnConnect(const errorcode &e, const Address& addr, ConnectionPtr conn)
 {
+    SessionID sid = this->AddressToID(addr);
     // 构造新的Session
     if (e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
     {
@@ -198,7 +199,7 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, ConnectionPtr conn)
             auto done_session = m_session_map.find(tmpid);
             if ( exist )
             {
-                if (done_session != m_session_map.end())
+                if (done_session == m_session_map.end())
                 {
                     newSession->Close();
                     WARN("[YRPC][__YRPC_SessionManager::OnConnect] The connection may already exist!");
@@ -223,6 +224,15 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, ConnectionPtr conn)
     }
     else
     {
+        {
+            lock_guard<Mutex> lock(m_mutex_session_map);
+            // 如果 connect 失败，只关闭等待队列中的连接。已完成的不关注
+            auto [onconnect, succ] = m_undone_conn_queue->PopUpById(sid);
+            // if (succ)
+            // {
+            //     onconnect();
+            // }
+        }
         /* todo 网络连接失败错误处理 */
         ERROR("[YRPC][__YRPC_SessionManager::OnConnect] connect error!");
     }
@@ -265,9 +275,9 @@ int __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
         }
         else
         {
-            m_connector->AsyncConnect(socket, peer, functor([this](const errorcode &e, ConnectionPtr conn)
+            m_connector->AsyncConnect(socket, peer, functor([this](const errorcode &e, const Address& peeraddr, ConnectionPtr conn)
             {
-                this->OnConnect(std::forward<const errorcode>(e),std::forward<ConnectionPtr>(conn));
+                this->OnConnect(std::forward<const errorcode>(e), std::forward<const Address&>(peeraddr), std::forward<ConnectionPtr>(conn));
             }));
             ret = 0;
         }

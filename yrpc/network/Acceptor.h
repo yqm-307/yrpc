@@ -45,8 +45,8 @@ public:
      * @param onconn 新连接建立时回调
      * @param args  函数参数(保留，可能用到)
      */
-    template<typename Func,if_same_as(Func,OnConnectHandle)>
-    void setOnAccept(Func&& onconn,void*args=nullptr)
+    template<typename Func,if_same_as(Func, OnAcceptHandle)>
+    void setOnAccept(Func&& onconn, void* args = nullptr)
     { onconnection_ = onconn; args_ = args;}
 
     template<typename LBer,if_same_as(LBer,LoadBalancer)>
@@ -66,7 +66,7 @@ private:
     int             port_;
     int             fd_;
     std::atomic_bool    close_;
-    OnConnectHandle     onconnection_;  //handle 去解析rpc request ，调用请求的服务
+    OnAcceptHandle     onconnection_;  //handle 去解析rpc request ，调用请求的服务
     void*               args_;
 
     int                 connect_timeout_ms_;

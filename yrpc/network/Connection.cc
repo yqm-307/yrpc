@@ -106,7 +106,7 @@ void Connection::Close()
     INFO("[YRPC][Connection::Close] disconnect");
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
-    e.setinfo("[YRPC][Connection::Close] disconnect");
+    e.setinfo("disconnect");
     this->m_socket->scheduler->CancelSocketTimer(this->m_socket);
     if(m_closecb != nullptr)
         m_closecb(e,shared_from_this());

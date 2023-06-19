@@ -27,30 +27,36 @@ void Connector::onConnect(Socket* servfd_,const YAddress& servaddr_,const OnConn
 
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
-    if(connerror == ECONNREFUSED)
-    {// 连接被拒绝
-        e.setcode(yrpc::detail::shared::ERR_NETWORK_ECONNREFUSED);
-        e.setinfo("Connector::connect() error , YRConnect error : connect refused %d",connerror);
-        onconnect_(e,nullptr);
-        return;
-    }
-    if(n<0)
+    if(onconnect_ != nullptr) 
     {
-
-        ERROR("Connector::connect() error , YRConnect error : retvalue %d",n);
-    }
-    else
-    {//成功建立新连接
-        ConnectionPtr conn = std::make_shared<Connection>(scheduler_,servfd_,servaddr_);
-        if(onconnect_ != nullptr)
-        {
-            e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OK);
-            e.setinfo("Connector::connect() ,connet success peer %s",conn->StrIPPort().c_str());
-            onconnect_(e,conn);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
+        if(connerror == ECONNREFUSED)
+        {// 连接被拒绝
+            e.setcode(yrpc::detail::shared::ERR_NETWORK_ECONNREFUSED);
+            e.setinfo("connect refused %d",connerror);
+            onconnect_(e, servaddr_, nullptr);
+            return;
+        }
+        if(n<0)
+        {// 其他错误（对端不存在等）
+            e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OTHRE_ERR);
+            e.setinfo("connect failed! errno is %d", errno);
+            onconnect_(e, servaddr_, nullptr);
+            ERROR("[YRPC][Connector::onConnect] connect error, return is  %d",n);
+            return;
         }
         else
-            INFO("[YRPC][Connector::onConnect] onconnect_ is nullptr!");
+        {//成功建立新连接
+            ConnectionPtr conn = std::make_shared<Connection>(scheduler_,servfd_,servaddr_);
+            e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OK);
+            e.setinfo("connet success peer %s",conn->StrIPPort().c_str());
+            onconnect_(e, servaddr_, conn);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
+        }
     }
+    else
+    {
+        INFO("[YRPC][Connector::onConnect] onconnect_ is nullptr!");
+    }
+
 }
 
 

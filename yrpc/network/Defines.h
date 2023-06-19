@@ -16,6 +16,7 @@ namespace yrpc::detail::net
 {
 
 class Connection;
+class YAddress;
 typedef std::shared_ptr<Connection> ConnectionPtr;
 typedef yrpc::detail::shared::errorcode errorcode;
 using std::placeholders::_1;
@@ -24,9 +25,10 @@ using std::placeholders::_3;
 using std::placeholders::_4;
 using std::placeholders::_5;
 
-typedef std::function<void(const errorcode&,ConnectionPtr)>    OnConnectHandle;
-typedef std::function<void(const errorcode&,yrpc::util::buffer::Buffer&)>            OnRecvHandle;
-typedef std::function<void(const errorcode&,const ConnectionPtr&)>          ConnCloseHandle;
+typedef std::function<void(const errorcode&, const yrpc::detail::net::YAddress&, ConnectionPtr)>    OnConnectHandle;
+typedef std::function<void(const errorcode&, ConnectionPtr)>    OnAcceptHandle;
+typedef std::function<void(const errorcode&, yrpc::util::buffer::Buffer&)>       OnRecvHandle;
+typedef std::function<void(const errorcode&, const ConnectionPtr&)>          ConnCloseHandle;
 typedef std::function<void(const errorcode&)>                               OnCloseHandle;
 
 

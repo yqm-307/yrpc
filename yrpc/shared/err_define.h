@@ -20,6 +20,7 @@ enum ERR_NETWORK : int32_t
     ERR_NETWORK_SEND_FAIL       = 1001, // 发送失败
     ERR_NETWORK_RECV_FAIL       = 1002, // 接受数据失败
     ERR_NETWORK_CONN_CLOSED     = 1010, // 连接已关闭
+    ERR_NETWORK_CONN_OTHRE_ERR  = 1011, // 连接建立失败，返回errno
     ERR_NETWORK_ECONNREFUSED    = 1111, // 连接被拒绝
     ERR_NETWORK_ACCEPT_FAIL     = 1121, // 接受连接失败
 
