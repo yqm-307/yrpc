@@ -53,7 +53,7 @@ int YRPoll(Socket* socket,int events,int* revents,int timeout_ms)
         else
         {
             errno = EINVAL;
-            return 0;
+            return -1;
         }
     }else if((*revents) == yrpc::coroutine::poller::EpollREvent_Timeout)
     {
@@ -114,10 +114,9 @@ int YRAccept(Socket &listenfd, struct sockaddr *addr, socklen_t *addrlen)
         else
         {//可能listen队列没有新连接，加入epoll，让出cpu，等待listenfd可读
             int revent =0;
-            //加入epoll，让出cpu，等listenfd可读
+            //加入epoll，让出cpu，等listenfd可读/超时/错误
             int nfds = YRPoll(&listenfd,EPOLLIN,&revent,-1);
-            //可读
-            if(nfds >= 0)//在此accept
+            if(nfds >= 0 && (revent <= 0))
                 return accept(listenfd.sockfd_,addr,addrlen);
             else
                 return -1;

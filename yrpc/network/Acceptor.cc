@@ -67,7 +67,12 @@ void Acceptor::ListenInEvloop()
         int newfd = yrpc::socket::YRAccept(*listenfd_,reinterpret_cast<sockaddr*>(&cliaddr),&len);  //主动让出cpu，直到错误或者成功返回
         //新连接到达
         if(newfd < 0)
-            ERROR("Acceptor::listen() error , YRAcceptor error!");
+        {
+            int save_errno = errno;
+            if( save_errno != EAGAIN ) {
+                ERROR("[YRPC][Acceptor::ListenInEvloop] accept error, errno is %d!", save_errno);
+            }
+        }
         else
         {//创建conn
             errorcode e; e.settype(yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK);

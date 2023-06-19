@@ -8,12 +8,11 @@ namespace yrpc::detail::shared
 enum YRPC_ERR_TYPE : int32_t
 {
     ERR_TYPE_OK         = 0,
-    ERRTYPE_NETWORK     = 100,
-
+    ERRTYPE_NETWORK     = 100,  // 网络io错误
 
 };
 
-
+/* 网络错误码 */
 enum ERR_NETWORK : int32_t
 {
     // err

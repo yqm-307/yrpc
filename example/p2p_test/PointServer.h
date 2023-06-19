@@ -87,7 +87,7 @@ public:
         }, 5000);
         y_scheduler->AddTimer([this](){
             SendOnce();
-        }, 10);
+        }, 1000);
     }
 private:
     MsgPtr Remote_Add(MsgPtr ReqPtr)
@@ -113,20 +113,20 @@ private:
         int nCanSendNum = 5000 - (m_total_req.load() - m_complete_req.load());
         while (nCanSendNum--){
             auto call_obj = Generate();
-            while (1) {
-                int err = rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
-                if (err == -3) {
-                    assert(yrpc::socket::YRSleep(y_scheduler, 1000) >= 0);
-                    printf("连接失败，重试\n");
-                }
-                else if (err > 0)
-                    break;
+            int err = rpc::Rpc::RemoteOnce(peer_addr, "Remote_Add", call_obj);
+            if (err == -3) {
+                printf("连接失败，重试\n");
+                break;
             }
-            m_total_req++;
+            else if (err > 0)
+            {
+                m_total_req++;
+                break;
+            }
         }
         y_scheduler->AddTimer([this](){
             SendOnce();
-        }, 100);
+        }, 1000);
     }
 private:
     yrpc::detail::net::YAddress peer_addr;   // 对端地址
