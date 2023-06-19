@@ -56,3 +56,4 @@ _deps
 # 忽略目录
 build/
 bin/
+yrpc/protocol/protoc/
