@@ -47,8 +47,10 @@ _deps
 
 # 忽略文件
 *.log
-*.proto.h
-*.proto.cc
+example/**/*.pb.h
+example/**/*.pb.cc
+yrpc/**/*.pb.h
+yrpc/**/*.pb.cc
 
 !third-lib/*/*
 
