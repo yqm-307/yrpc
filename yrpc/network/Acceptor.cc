@@ -59,8 +59,8 @@ int Acceptor::StartListen()
 
 void Acceptor::ListenInEvloop()
 {
-    while (!close_)
-    {
+    // 创建一个协程任务,每50ms执行一次,处理连接事件
+    y_scheduler->AddTimer([this](){
         /*监听到新的socket连接，创建conn，并注册 协程任务*/
         struct sockaddr_in cliaddr;
         socklen_t len;
@@ -89,7 +89,8 @@ void Acceptor::ListenInEvloop()
             //handle(newconn->GetPtr());  //不对，这里如果让出cpu， 程序就会阻塞到执行完，还是要runinloop 在epoll中执行
             this->onconnection_(e,newconn); // onconnection 不可以是长时间阻塞的调用
         }
-    }
+
+    },50,50,-1);
 }
 
 
