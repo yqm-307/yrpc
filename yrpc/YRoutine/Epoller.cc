@@ -164,20 +164,13 @@ bool Epoller::QueueFull()
 
 void Epoller::DoPendingList()
 {
-    decltype(pending_tasks_) queue;
-
-    {// 减少临界区
-        // yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> lock(m_lock);
-        queue.swap(pending_tasks_);
-    }
-
-    while(!queue.empty())
+    while(!pending_tasks_.empty())
     {
-        auto task = queue.front();
+        auto task = pending_tasks_.front();
         YRoutine_t co_t = runtime_.Add(task.first,task.second);
         if(!runtime_.Resume(co_t))
             TRACE("Epoller::DoPendingList() runtime_.Resume() false");
-        queue.pop();
+        pending_tasks_.pop();
     }
 }
 

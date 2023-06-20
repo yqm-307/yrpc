@@ -58,19 +58,13 @@ public:
     RpcSession(ChannelPtr channel,Epoller* loop);
     ~RpcSession();
 
-
-
-    //////////////////////
-    ///// 协议控制 ///////
-    //////////////////////
-    
-    // 获取一个协议包，失败返回的protocol 字节数为0。线程安全
-    Protocol GetAPacket();
-    // 获取当前所有协议包，失败返回一个空的queue,尽量使用GetAllPacket。线程安全
-    PckQueue GetAllPacket();
-    // 当前是否有协议，线程安全
-    bool HasPacket();
-    // 向output追加数据，线程安全
+    // RpcSession 对外提供数据发送接口
+    /**
+     * @brief 追加到output
+     * 
+     * @param pck 
+     * @return size_t 
+     */
     size_t Append(const std::string_view pck);
     // 向output追加数据，线程安全
     size_t Append(const Buffer& bytearray);
@@ -109,8 +103,14 @@ private:
     /* 设置调用结果 */
     int CallObj_CallResult(Buffer&& buf);
     /* 连接活跃了，更新超时 */
-    void SetActive();
-
+    void UpdateTimeout();
+    
+    // 获取一个协议包，失败返回的protocol 字节数为0。线程安全
+    Protocol GetAPacket();
+    // 获取当前所有协议包，失败返回一个空的queue,尽量使用GetAllPacket。线程安全
+    PckQueue GetAllPacket();
+    // 当前是否有协议，线程安全
+    bool HasPacket();
 
     /**
      * @brief 将当前数据进行分解，并放在c2s、s2c队列中
@@ -118,12 +118,6 @@ private:
     std::vector<Protocol> GetProtocolsFromInput();
 
     void HandleProtocol(const std::vector<Protocol>& protocols);
-
-    // thread unsafe,Session上行数据
-    void Input(const char*,size_t);
-
-    // thread unsafe,Session下行数据
-    void Output(const char*,size_t);
 
     void AddPacket(const Protocol& pck);
 

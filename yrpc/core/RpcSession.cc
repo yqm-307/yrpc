@@ -9,7 +9,8 @@ using namespace yrpc::rpc::detail;
 RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
     :m_channel(channel),
     m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
-    m_can_used(true)
+    m_can_used(true),
+    m_last_active_time(yrpc::util::clock::now<yrpc::util::clock::ms>())
 {
 }
 
@@ -19,25 +20,6 @@ RpcSession::~RpcSession()
     {
         Close();
     }
-}
-
-
-
-void RpcSession::Output(const char* data,size_t len)
-{
-    if(len ==  0)
-        return;
-    m_channel->Send(data,len);
-}
-
-
-void RpcSession::Input(const char* data,size_t len)
-{
-    // lock_guard<Mutex> lock(m_input_mutex);
-    m_input_buffer.Append(data,len);
-#ifdef YRPC_DEBUG
-    m_byterecord.Addrecv_bytes(len);
-#endif
 }
 
 
@@ -126,18 +108,19 @@ void RpcSession::UpdataAllCallbackAndRunInEvloop()
 void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
 {
     m_byterecord.Addrecv_bytes(buff.DataSize());
-    // 将数据保存到Buffer里
     if(e.err() == yrpc::detail::shared::ERR_NETWORK_RECV_OK)    // 正常接收
     {
-        DEBUG("[YRPC][RpcSession::RecvFunc] recv %ld byte. total recv %ld bytes!", buff.DataSize(), m_byterecord.Getrecv_bytes());
+        UpdateTimeout();    // 刷新超时时间
         std::vector<Protocol> protos;
         {
-            // lock_guard<Mutex> lock(m_input_mutex);
-            Input(buff.Peek(),buff.DataSize());
+            m_input_buffer.Append(buff.Peek(), buff.DataSize());
+#ifdef YRPC_DEBUG
+            m_byterecord.Addrecv_bytes(buff.DataSize());
+#endif
             protos = GetProtocolsFromInput();
         }
-        // do handle    
         HandleProtocol(protos);
+        DEBUG("[YRPC][RpcSession::RecvFunc] recv %ld byte. total recv %ld bytes!", buff.DataSize(), m_byterecord.Getrecv_bytes());
     }
     else
     {
@@ -177,8 +160,10 @@ void RpcSession::Close()
 
 void RpcSession::SendFunc(const errorcode& e,size_t len)
 {
+
     if( e.err() == yrpc::detail::shared::ERR_NETWORK_SEND_OK )
     {        
+        UpdateTimeout();
 #ifdef YRPC_DEBUG
         m_byterecord.Addsend_bytes(len);
         DEBUG("[YRPC][RpcSession::SendFunc] send %ld bytes. total send %ld bytes!", len, m_byterecord.Getsend_bytes());
@@ -187,6 +172,7 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
     else
     {
         // todo 错误处理
+        ERROR("[YRPC][RpcSession::SendFunc] %s", e.what().c_str());
         return;
     }
 
@@ -208,15 +194,15 @@ void RpcSession::CloseFunc(const errorcode& e)
     INFO("[YRPC][RpcSession::CloseFunc] info: Session Stop  peer = {%s}",m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
 }
 
-void RpcSession::SetActive()
+void RpcSession::UpdateTimeout()
 {
     m_last_active_time = yrpc::util::clock::now<yrpc::util::clock::ms>();
 }
 
 void RpcSession::TimeOut(Socket* socket)
 {
-    auto alrealy_timeout_ms = 
-        (yrpc::util::clock::now<yrpc::util::clock::ms>() - m_last_active_time).count();
+    auto timenow_ms = yrpc::util::clock::now<yrpc::util::clock::ms>();
+    auto alrealy_timeout_ms = (timenow_ms - m_last_active_time).count();
     if (alrealy_timeout_ms >= YRPC_SESSION_TIMEOUT)
     {
         m_timeoutcallback(socket);

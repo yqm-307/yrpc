@@ -74,12 +74,6 @@ SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ConnPtr connptr)
             sessionptr->Close();    // 触发 CloseCallback
     });
 
-    // // 设置服务处理函数
-    // sessionptr->SetToServerCallback([this](Buffer&&pck, SessionPtr ptr)
-    //                                     { this->Dispatch(std::forward<Buffer>(pck), ptr); });
-    // // 设置结果接受函数
-    // sessionptr->SetToClientCallback([this](Buffer&&pck, SessionPtr ptr)
-    //                                     { ptr-> });
     /**
      *  这里要支持连接复用，要检查是否已经建立了和目标进程的连接（目标进程标识{ip:port}）
      */

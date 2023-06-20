@@ -83,6 +83,7 @@ public:
 
     void SetRecvCallback(RecvCallback cb)  
     { m_recvcallback = cb;  }
+    /* 注册数据发送完成后回调, 调用时机为send调用之后，失败|成功都会立即执行 */
     void SetSendCallback(SendCallback cb)
     { m_sendcallback = cb; }
     void SetErrorCallback(ErrorCallback cb)
