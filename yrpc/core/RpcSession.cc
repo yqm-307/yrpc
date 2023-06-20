@@ -1,5 +1,6 @@
 #include "RpcSession.h"
-
+#include "ServiceModule.h"
+// #include "yrpc/protocol/all.h"
 using namespace yrpc::rpc::detail;
 
 
@@ -69,7 +70,7 @@ std::vector<RpcSession::Protocol> RpcSession::GetProtocolsFromInput()
         }
         else
         {
-            DEBUG("[YRPC][RpcSession::GetProtocolsFromInput] buffer size: %d",m_input_buffer.Length());
+            // DEBUG("[YRPC][RpcSession::GetProtocolsFromInput] buffer size: %d", m_input_buffer.Length());
             break;
         }
     }
@@ -128,8 +129,7 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
     // 将数据保存到Buffer里
     if(e.err() == yrpc::detail::shared::ERR_NETWORK_RECV_OK)    // 正常接收
     {
-        DEBUG("[YRPC]RpcSession::RecvFunc()  , info: recv succ %ld bytes!",buff.DataSize());
-        DEBUG("[YRPC]RpcSession::RecvFunc()  , total recv %ld bytes!",m_byterecord.Getrecv_bytes());
+        DEBUG("[YRPC][RpcSession::RecvFunc] recv %ld byte. total recv %ld bytes!", buff.DataSize(), m_byterecord.Getrecv_bytes());
         std::vector<Protocol> protos;
         {
             // lock_guard<Mutex> lock(m_input_mutex);
@@ -154,18 +154,11 @@ void RpcSession::HandleProtocol(const std::vector<Protocol>& protocols)
         yrpc::detail::protocol::YProtocolResolver resolver(proto.data); // todo 复用机制
         if ( resolver.GetProtoType() < type_YRPC_PROTOCOL_CS_LIMIT )
         {// c2s 请求
-            if(m_ctoserver != nullptr)
-                m_ctoserver(std::move(proto.data),shared_from_this());
-            else
-                NoneServerHandler();    
+            Dispatch(std::move(proto.data), shared_from_this());
         }
         else
         {// s2c 响应
-            if (m_stoclient != nullptr)
-                m_stoclient(std::move(proto.data),shared_from_this());
-            else
-                NoneClientHandler();
-            CallObj_DelObj(resolver.GetProtoID());
+            CallObj_CallResult(std::move(proto.data));
         }
     }
 }
@@ -188,8 +181,7 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
     {        
 #ifdef YRPC_DEBUG
         m_byterecord.Addsend_bytes(len);
-        DEBUG("[YRPC][RpcSession::SendFunc] info: send succ %ld bytes!",len);
-        INFO("[YRPC][RpcSession::SendFunc] total send %ld bytes!",m_byterecord.Getsend_bytes());
+        DEBUG("[YRPC][RpcSession::SendFunc] send %ld bytes. total send %ld bytes!", len, m_byterecord.Getsend_bytes());
 #endif
     }
     else
@@ -298,12 +290,12 @@ int RpcSession::CallObj_AddObj(detail::CallObj::Ptr obj) /* 发起一次调用�
     auto it = m_call_map.find(obj->GetID());
     if ( it == m_call_map.end() )
     {
-        return -1;
+        m_call_map.insert(std::make_pair(obj->GetID(),obj));
+        return 1;
     }
     else
     {
-        m_call_map.insert(std::make_pair(obj->GetID(),obj));
-        return 1;
+        return -1;
     }
 }
 
@@ -344,4 +336,29 @@ int RpcSession::SendACallObj(detail::CallObj::Ptr obj)
     }while(0);
     
     return ret;
+}
+
+void RpcSession::Dispatch(Buffer&& buf, SessionPtr sess)
+{
+    yrpc::rpc::detail::Service_Base::GetInstance()->Dispatch(std::forward<Buffer>(buf), sess);
+}
+
+int RpcSession::CallObj_CallResult(Buffer&& buf)
+{
+    yrpc::detail::protocol::YProtocolResolver rsl(buf);
+    auto protoid = rsl.GetProtoID();
+    // 获取包id,很重要，to select callobjmap
+    {
+        yrpc::util::lock::lock_guard<Mutex> lock(m_mutex_call_map);
+        auto it = m_call_map.find(protoid);
+        if (it == m_call_map.end())
+        {
+            ERROR("RpcClient::OnPckHandler() , info: cann`t find package id");
+        }
+        else
+        {
+            it->second->SetResult(rsl);    //设置结果
+        }
+    }
+    CallObj_DelObj(protoid);
 }

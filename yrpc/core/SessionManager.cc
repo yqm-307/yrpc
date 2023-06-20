@@ -55,16 +55,16 @@ SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ConnPtr connptr)
      */
     auto nextloop = m_sub_loop[BalanceNext];
     auto channelptr = Channel::Create(connptr,nextloop);
-    auto sessionptr = RpcSession::Create(channelptr,m_sub_loop[BalanceNext]);
+    auto sessionptr = RpcSession::Create(channelptr,nextloop);
     // 创建并初始化新Session
     sessionptr->SetCloseFunc([this](const yrpc::detail::shared::errorcode& e,const yrpc::detail::net::YAddress& addr){
         // 连接断开，从SessionMap中删除此Session
         if (this->DelSession(addr))
         {
-            INFO("[YRPC][__YRPC_SessionManager] session closed!");
+            INFO("[YRPC][__YRPC_SessionManager] session closed! ,%s", addr.GetIPPort().c_str());
         }
         else{
-            WARN("[YRPC][__YRPC_SessionManager] session closed! but not exist in SessionManager!");
+            WARN("[YRPC][__YRPC_SessionManager] session closed! ,%s ,but not exist in SessionManager!", addr.GetIPPort().c_str());
         }
     });
     // 超时
@@ -74,9 +74,12 @@ SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ConnPtr connptr)
             sessionptr->Close();    // 触发 CloseCallback
     });
 
-    // 设置服务处理函数
-    sessionptr->SetToServerCallback([this](Buffer&&pck, SessionPtr ptr)
-                                        { this->Dispatch(std::forward<Buffer>(pck), ptr); });
+    // // 设置服务处理函数
+    // sessionptr->SetToServerCallback([this](Buffer&&pck, SessionPtr ptr)
+    //                                     { this->Dispatch(std::forward<Buffer>(pck), ptr); });
+    // // 设置结果接受函数
+    // sessionptr->SetToClientCallback([this](Buffer&&pck, SessionPtr ptr)
+    //                                     { ptr-> });
     /**
      *  这里要支持连接复用，要检查是否已经建立了和目标进程的连接（目标进程标识{ip:port}）
      */

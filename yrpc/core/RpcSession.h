@@ -53,8 +53,6 @@ public:
         const yrpc::detail::shared::errorcode&,
         const yrpc::detail::net::YAddress&)>   SessionCloseCallback;
 
-    typedef std::function<void(Buffer&&,SessionPtr)>        DispatchCallback_Server;
-    typedef std::function<void(Buffer&&,SessionPtr)>        DispatchCallback_Client;
 
 public:
     RpcSession(ChannelPtr channel,Epoller* loop);
@@ -76,13 +74,6 @@ public:
     size_t Append(const std::string_view pck);
     // 向output追加数据，线程安全
     size_t Append(const Buffer& bytearray);
-
-    // 将 pck 给 client
-    void SetToClientCallback(DispatchCallback_Client cb)
-    { m_stoclient = cb; }
-    // 将 pck 给 server
-    void SetToServerCallback(DispatchCallback_Server cb)
-    { m_ctoserver = cb; }
 
     //////////////////////
     ///// 连接控制 ///////
@@ -115,6 +106,8 @@ private:
     int CallObj_AddObj(detail::CallObj::Ptr obj);
     /* 从objmap中删除一个obj，成功返回1，失败返回-1。线程安全 */
     int CallObj_DelObj(Protocol_PckIdType id);
+    /* 设置调用结果 */
+    int CallObj_CallResult(Buffer&& buf);
     /* 连接活跃了，更新超时 */
     void SetActive();
 
@@ -145,6 +138,10 @@ private:
     void NoneServerHandler();
     // client handler 尚未注册
     void NoneClientHandler();
+
+private:
+    void Dispatch(Buffer&& buf, SessionPtr sess);
+    // void CallResult(Buffer&& buf, SessionPtr sess);
 private:
     /// 当前所在的eventloop
     Epoller*        m_current_loop{nullptr};
@@ -170,8 +167,6 @@ private:
     Mutex           m_mutex_call_map;
 
     SessionCloseCallback            m_closecb{nullptr};
-    DispatchCallback_Client         m_stoclient{nullptr};
-    DispatchCallback_Server         m_ctoserver{nullptr};
     Channel::TimeOutCallback        m_timeoutcallback{nullptr};
 };
 }

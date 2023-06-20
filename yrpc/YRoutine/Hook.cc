@@ -177,7 +177,7 @@ ssize_t YRRecv(Socket &socket, void *buf, size_t len, const int flags)
         {
             int revents=0;
             if(YRPoll(&socket,EPOLLIN,&revents,socket.socket_timeout_ms_) >= 0) //让出cpu，直到可读事件触发
-                nbytes = ::recv(socket.sockfd_,buf,len,flags);
+                nbytes = ::recv(socket.sockfd_, buf, len, flags);
             else
                 nbytes = -1;
         }

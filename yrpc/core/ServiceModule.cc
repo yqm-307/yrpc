@@ -102,6 +102,6 @@ void Service_Base::SendPacket(RpcSessionPtr sess,MessagePtr pck,const ProtocolHe
     }
     else
     {
-        ERROR("peer {%s} is closed, send failed!",sess->GetPeerAddress().GetIPPort().c_str());
+        ERROR("[YRPC][Service_Base::SendPacket] peer {%s} is closed, send failed!",sess->GetPeerAddress().GetIPPort().c_str());
     }
 }
