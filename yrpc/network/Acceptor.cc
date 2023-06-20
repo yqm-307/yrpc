@@ -62,9 +62,9 @@ void Acceptor::ListenInEvloop()
     // 创建一个协程任务,每50ms执行一次,处理连接事件
     y_scheduler->AddTimer([this](){
         /*监听到新的socket连接，创建conn，并注册 协程任务*/
-        struct sockaddr_in cliaddr;
+        struct sockaddr_in localaddr, peeraddr;
         socklen_t len;
-        int newfd = yrpc::socket::YRAccept(*listenfd_,reinterpret_cast<sockaddr*>(&cliaddr),&len);  //主动让出cpu，直到错误或者成功返回
+        int newfd = yrpc::socket::YRAccept(*listenfd_,reinterpret_cast<sockaddr*>(&localaddr),&len);  //主动让出cpu，直到错误或者成功返回
         //新连接到达
         if(newfd < 0)
         {
@@ -84,10 +84,19 @@ void Acceptor::ListenInEvloop()
 
             auto evloop = ( lber_ == nullptr ) ? y_scheduler : lber_();  // 走不走负载均衡，不走就默认在当前线程进行IO
             Socket* clisock = evloop->CreateSocket(newfd,socket_timeout_ms_,connect_timeout_ms_);  //普通连接
-            YAddress cli(inet_ntoa(cliaddr.sin_addr),ntohs(len));
-            Connection::ConnectionPtr newconn = std::make_shared<Connection>(evloop,clisock,std::move(cli));
-            //handle(newconn->GetPtr());  //不对，这里如果让出cpu， 程序就会阻塞到执行完，还是要runinloop 在epoll中执行
-            this->onconnection_(e,newconn); // onconnection 不可以是长时间阻塞的调用
+            // 获取对端ip地址和端口
+            len = sizeof(peeraddr);
+            int succ = ::getpeername(newfd, reinterpret_cast<sockaddr*>(&peeraddr), &len);
+            if (succ >= 0) {
+                YAddress cli(inet_ntoa(peeraddr.sin_addr), htons(peeraddr.sin_port));
+                Connection::ConnectionPtr newconn = std::make_shared<Connection>(evloop,clisock,std::move(cli));
+                //handle(newconn->GetPtr());  //不对，这里如果让出cpu， 程序就会阻塞到执行完，还是要runinloop 在epoll中执行
+                this->onconnection_(e,newconn); // onconnection 不可以是长时间阻塞的调用
+            }
+            else 
+            {
+                FATAL("[YRPC][Acceptor::ListenInEvloop] getpeername call failed!");
+            }
         }
 
     },50,50,-1);
