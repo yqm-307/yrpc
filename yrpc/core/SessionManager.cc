@@ -13,8 +13,7 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     m_sub_loop_size(Nthread - 1),
     m_sub_loop(m_sub_loop_size),
     m_loop_latch(Nthread),
-    m_undone_conn_queue(std::make_unique<ConnQueue>()),
-    port(7912)
+    m_undone_conn_queue(std::make_unique<ConnQueue>())
 {
     // 初始化 main eventloop，但是不运行
     m_main_thread = new std::thread([this](){

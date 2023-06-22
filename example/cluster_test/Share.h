@@ -3,7 +3,7 @@
 #include "yrpc/core/YRpc.h"
 #include <memory>
 #include <bbt/timer/interval.hpp>
-#include <bbt/config/GlobalConfig.hpp>
+#include <bbt/Define.hpp>
 
 using namespace yrpc;
 using namespace yrpc::util;
@@ -19,8 +19,7 @@ class TestService
 {
 public:
     TestService(){
-        bbt::config::GlobalConfig::GetInstance()->GetDynamicCfg()->SetEntry(
-                bbt::config::BBTSysCfg[bbt::config::BBT_LOG_STDOUT_OPEN], &debug_log);
+        BBT_CONFIG_QUICK_SET_DYNAMIC_ENTRY(int, &debug_log, bbt::config::BBT_LOG_STDOUT_OPEN);
         rpc::Rpc::register_service<AddReq,AddRsp>("add",std::bind(&TestService::AddHandle,this,std::placeholders::_1));
         rpc::Rpc::register_service<EchoReq,EchoRsp>("Echo",std::bind(&TestService::EchoHandle,this,std::placeholders::_1));
         

@@ -1,7 +1,7 @@
 #pragma once
 #include "ConnQueue.hpp"
 #include "Define.h"
-
+#include "bbt/uuid/Uuid.hpp"
 namespace yrpc::rpc::detail
 {
 
@@ -34,7 +34,7 @@ public:
     /* 当前地址是否正在连接中 */
     bool IsConnecting(const Address& peer);
 private:
-    __YRPC_SessionManager(int Nthread);  
+    __YRPC_SessionManager(int Nthread);
     ~__YRPC_SessionManager();
 
     // 运行在 main loop 中的，只做新连接的分发
@@ -44,10 +44,6 @@ private:
     // 被连接后
     void OnAccept(const errorcode &e, ConnectionPtr conn);
     void OnConnect(const errorcode &e, const Address& addr, ConnectionPtr conn);
-
-    // 注意这是线程不安全的,获取一个新的session uid
-    SessionID GetNewID()
-    { return (++m_id_key); }
     Epoller* LoadBalancer();
     void SubLoop(int idx);
     void MainLoop();
@@ -77,14 +73,7 @@ private:
     Mutex               m_mutex_session_map;
     /////////////////////////////////
 
-    std::hash<std::string>  m_addrhash;     // 地址hash
+    std::shared_ptr<bbt::uuid::UuidBase>    m_sessionmgr_uuid;
 
-    uint64_t            m_id_key{10000};  // session id 起名用的
-
-    // main loop 控制
-    std::atomic_bool    m_run;
-
-    
-    const int port;  
 };
 }

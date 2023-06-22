@@ -17,8 +17,8 @@ int main(int argc, char* argv[])
     }
     const int debug = 1;
     const int nthread = 2;
-    BBT_CONFIG()->GetDynamicCfg()->SetEntry<int>(bbt::config::BBTSysCfg[bbt::config::BBT_LOG_STDOUT_OPEN], &debug);
-    BBT_CONFIG()->GetDynamicCfg()->SetEntry<int>(yrpc::config::SysCfg[yrpc::config::THREAD_NUM], &nthread);
+    BBT_CONFIG_QUICK_SET_DYNAMIC_ENTRY(int, &debug, bbt::config::BBT_LOG_STDOUT_OPEN);
+    YRPC_CONFIG_QUICK_SET_ENTRY(int, &nthread, yrpc::config::THREAD_NUM);
 
     std::string peer_ip(argv[1]);
     int peer_port = std::stoi(argv[2]);

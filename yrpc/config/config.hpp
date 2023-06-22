@@ -19,3 +19,8 @@ static std::unordered_map<SysCfgType,std::string>  SysCfg = {
 
 #undef Entry
 }
+
+
+#define YRPC_CONFIG_QUICK_SET_ENTRY(type, value, entry) (BBT_CONFIG()->GetDynamicCfg()->SetEntry<type>( \
+        yrpc::config::SysCfg[entry], value))
+
