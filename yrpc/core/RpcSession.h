@@ -6,6 +6,7 @@
 #include "../network/SessionBuffer.h"
 #include "CallObjFactory.h"
 #include "Define.h"
+#include <bbt/pool_util/idpool.hpp>
 
 namespace yrpc::rpc::detail
 {
@@ -58,29 +59,26 @@ public:
     RpcSession(ChannelPtr channel,Epoller* loop);
     ~RpcSession();
 
-    // RpcSession 对外提供数据发送接口
-    /**
-     * @brief 追加到output
-     * 
-     * @param pck 
-     * @return size_t 
-     */
+    /* 发送数据 */
     size_t Append(const std::string_view pck);
-    // 向output追加数据，线程安全
+    /* 发送数据 */
     size_t Append(const Buffer& bytearray);
 
     //////////////////////
     ///// 连接控制 ///////
     //////////////////////
+    /* 连接是否已经关闭 */
     bool IsClosed();
-
+    /* 关闭连接 */
     void Close();
 
-    void ForceClose();
+    // void ForceClose();
 
+    /* 创建一个Session */
     static SessionPtr Create(ChannelPtr channel,Epoller* ep)
     { return std::make_shared<RpcSession>(channel,ep); }
 
+    /* 获取对端地址 */
     const Channel::Address& GetPeerAddress();
         
     /* 不要在多线程环境调用。线程不安全 */
@@ -90,11 +88,14 @@ public:
     void SetTimeOutFunc(Channel::TimeOutCallback f)
     { m_timeoutcallback = f; }
 
-
+    /* 初始化所有回调 */
     void UpdataAllCallbackAndRunInEvloop();
     
     /* 发送一个CallObj。线程安全 */
     int SendACallObj(detail::CallObj::Ptr obj);
+
+    /* 握手 */
+    int HandShake();
 private:
     /* 添加一个obj到objmap中，成功返回1，失败返回-1。线程安全 */
     int CallObj_AddObj(detail::CallObj::Ptr obj);
@@ -162,5 +163,8 @@ private:
 
     SessionCloseCallback            m_closecb{nullptr};
     Channel::TimeOutCallback        m_timeoutcallback{nullptr};
+    static bbt::pool_util::IDPool<int,true>
+                                    g_sessionid_mgr;    /* session id 管理 */
+    
 };
 }

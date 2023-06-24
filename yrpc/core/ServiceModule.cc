@@ -40,7 +40,8 @@ void Service_Base::Dispatch(Buffer&& pck,RpcSessionPtr sess)
 
         //服务调用
         MessagePtr ret = service->first(
-            req_ptr
+            req_ptr,
+            sess
         );  //调用服务，问题：如果是非常耗时的操作，就会形成类似阻塞的效果，影响线程内主协程的调度
         if ( ret!= nullptr)
         {
