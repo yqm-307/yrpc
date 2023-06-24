@@ -19,7 +19,7 @@ private:
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
-    static __YRPC_SessionManager* GetInstance();  
+    static __YRPC_SessionManager* GetInstance();
     /**
      * @brief 发起一个异步连接
      * 
@@ -47,6 +47,10 @@ private:
     Epoller* LoadBalancer();
     void SubLoop(int idx);
     void MainLoop();
+
+////////////////////////////////////////////////////////////////////////
+//////// m_session_map 操作
+////////////////////////////////////////////////////////////////////////
 private:
     // thread unsafe: 添加一个新的Session 到 SessionMap 中
     SessionPtr AddNewSession(Channel::ConnPtr newconn);
@@ -55,6 +59,15 @@ private:
     void Dispatch(Buffer&&string, SessionPtr sess);
     SessionID AddressToID(const Address&key);
 
+////////////////////////////////////////////////////////////////////////
+//////// 握手
+////////////////////////////////////////////////////////////////////////
+private:
+    /* 接受握手请求，并响应 */
+    MessagePtr Handler_HandShake(MessagePtr, const SessionPtr sess);
+
+    /* 发送握手请求 */
+    void StartHandShake(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
     Acceptor*           m_main_acceptor; 
@@ -73,7 +86,8 @@ private:
     Mutex               m_mutex_session_map;
     /////////////////////////////////
 
-    std::shared_ptr<bbt::uuid::UuidBase>    m_sessionmgr_uuid;
+    std::shared_ptr<bbt::uuid::UuidBase>    m_node_id;
 
+    std::vector<bbt::uuid::UuidBase> m_node_id_list;
 };
 }

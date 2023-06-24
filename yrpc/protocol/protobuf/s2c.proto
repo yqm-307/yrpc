@@ -16,3 +16,9 @@ message S2C_RPC_ERROR
 }
 
 
+// 连接前握手，数据交换
+message C2S_HANDSHAKE_RSP
+{
+    string uuid = 1;    // 被连接方 node id
+    int32  sid  = 2;    // 双方通识 session id
+}

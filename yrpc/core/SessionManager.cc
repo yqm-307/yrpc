@@ -13,8 +13,10 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     m_sub_loop_size(Nthread - 1),
     m_sub_loop(m_sub_loop_size),
     m_loop_latch(Nthread),
-    m_undone_conn_queue(std::make_unique<ConnQueue>())
+    m_undone_conn_queue(std::make_unique<ConnQueue>()),
+    
 {
+    m_node_id = bbt::uuid::UuidMgr::CreateUUid();
     // 初始化 main eventloop，但是不运行
     m_main_thread = new std::thread([this](){
         this->MainLoop();
@@ -28,19 +30,15 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
             this->SubLoop(i);
         }));
     }
-    m_loop_latch.wait();    
+    m_loop_latch.wait();
     INFO("[YRPC][__YRPC_SessionManager] info: SessionManager Init Success!");
 }
 
 __YRPC_SessionManager::~__YRPC_SessionManager()
 {
-    // for(auto && ptr : m_sub_loop)
-    // {
-    //     delete ptr;
-    // }
     delete m_main_acceptor;
     m_main_acceptor = nullptr;
-    // delete m_main_loop;
+    ERROR("[YRPC][~__YRPC_SessionManager] session manager destory!");
 }
 
 
@@ -185,7 +183,7 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, const Address& addr, C
     if (e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
     {
         // 更新SessionMap
-        SessionPtr newSession{nullptr}; 
+        SessionPtr newSession{nullptr};
         {
             lock_guard<Mutex> lock(m_mutex_session_map);
             newSession = this->AddNewSession(conn);
@@ -382,6 +380,24 @@ bool __YRPC_SessionManager::IsConnecting(const Address& peer)
         return false;
     else
         return true;
+}
+
+
+MessagePtr __YRPC_SessionManager::Handler_HandShake(MessagePtr, const SessionPtr sess)
+{
+    // todo 
+    // 1、保存数据到 node list
+    // 2、返回握手成功结果 + 数据
+    // 3、连接成功，操作 m_session_map
+    // 4、清空超时定时器
+}
+
+void __YRPC_SessionManager::StartHandShake(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
+{
+    // todo
+    // 1、发送开始握手请求
+    // 2、携带数据发送
+    // 3、设置超时定时器
 }
 
 

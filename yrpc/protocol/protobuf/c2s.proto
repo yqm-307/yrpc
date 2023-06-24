@@ -5,3 +5,9 @@ message C2S_HEARTBEAT_REQ
 {
     int32 tick  = 1;
 }
+
+// 连接前握手，数据交换
+message C2S_HANDSHAKE_REQ
+{
+    string uuid = 1;    // 连接发起方 node id
+}
