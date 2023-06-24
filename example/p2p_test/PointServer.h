@@ -38,7 +38,7 @@ public:
         m_min_call_wait_num(max),
         m_stop(false)
     {
-        rpc::Rpc::register_service<AddReq, AddRsp>("Remote_Add", [this](MsgPtr m){ return Remote_Add(m); });
+        rpc::Rpc::register_service<AddReq, AddRsp>("Remote_Add", [this](MsgPtr m,const yrpc::rpc::detail::SessionPtr){ return Remote_Add(m); });
     }
     ~PointServer(){}
 
