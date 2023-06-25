@@ -7,6 +7,7 @@
 #include "CallObjFactory.h"
 #include "Define.h"
 #include <bbt/pool_util/idpool.hpp>
+#include <bbt/uuid/Uuid.hpp>
 
 namespace yrpc::rpc::detail
 {
@@ -50,9 +51,9 @@ public:
     typedef std::shared_ptr<RpcSession>         SessionPtr;
     typedef session_detail_protocol             Protocol;
     typedef std::queue<Protocol>                PckQueue;
-    typedef std::function<void(
-        const yrpc::detail::shared::errorcode&,
-        const yrpc::detail::net::YAddress&)>   SessionCloseCallback;
+    typedef std::function<void(const yrpc::detail::shared::errorcode&, SessionPtr)>   SessionCloseCallback;
+    typedef std::function<void(const yrpc::detail::shared::errorcode&, SessionPtr)>   SessionTimeOutCallback;
+    typedef std::function<void(const yrpc::detail::shared::errorcode&, SessionPtr)>   SessionHandShakeTimeOutCallback;
 
 
 public:
@@ -85,7 +86,7 @@ public:
     void SetCloseFunc(SessionCloseCallback f)
     { m_closecb = f; } 
     /* 不要在多线程环境调用。线程不安全 */ 
-    void SetTimeOutFunc(Channel::TimeOutCallback f)
+    void SetTimeOutFunc(SessionTimeOutCallback f)
     { m_timeoutcallback = f; }
 
     /* 初始化所有回调 */
@@ -93,9 +94,6 @@ public:
     
     /* 发送一个CallObj。线程安全 */
     int SendACallObj(detail::CallObj::Ptr obj);
-
-    /* 握手 */
-    int HandShake();
 private:
     /* 添加一个obj到objmap中，成功返回1，失败返回-1。线程安全 */
     int CallObj_AddObj(detail::CallObj::Ptr obj);
@@ -123,16 +121,22 @@ private:
     void AddPacket(const Protocol& pck);
 
     void InitFunc();
+    ////////////////////////////////////////////////////////////////////////
+    //////// 回调操作
+    ////////////////////////////////////////////////////////////////////////
     // thread safe
     void RecvFunc(const errorcode&,Buffer&);
     void SendFunc(const errorcode&,size_t);
     void CloseFunc(const errorcode&);
     void TimeOut(Socket* socket);
-
-    // server handler 尚未注册
-    void NoneServerHandler();
-    // client handler 尚未注册
-    void NoneClientHandler();
+public:
+    ////////////////////////////////////////////////////////////////////////
+    //////// 握手相关操作
+    ////////////////////////////////////////////////////////////////////////
+    /* 开启握手定时器并设置超时回调 */
+    void StartHandShakeTimer(const SessionHandShakeTimeOutCallback& f, int timeout_ms);
+    /* 关闭握手定时器 */
+    void StopHandShakeTimer();
 
 private:
     void Dispatch(Buffer&& buf, SessionPtr sess);
@@ -162,9 +166,12 @@ private:
     Mutex           m_mutex_call_map;
 
     SessionCloseCallback            m_closecb{nullptr};
-    Channel::TimeOutCallback        m_timeoutcallback{nullptr};
+    SessionTimeOutCallback          m_timeoutcallback{nullptr};
+    SessionHandShakeTimeOutCallback m_handshake_callback{nullptr};
+    std::atomic_bool                m_handshake_time_isstop;
+
     static bbt::pool_util::IDPool<int,true>
                                     g_sessionid_mgr;    /* session id 管理 */
-    
+    bbt::uuid::UuidBase::Ptr        peer_node_uuid;     /* 对端节点uuid */
 };
 }

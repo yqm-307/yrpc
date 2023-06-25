@@ -12,10 +12,10 @@ namespace yrpc::rpc::detail
 class __YRPC_SessionManager : bbt::noncopyable
 {
 public:
-    typedef std::function<void(SessionPtr)>     OnSession;
+    typedef std::function<void(SessionPtr)>     OnSession;  
 private:
-
-    typedef std::unordered_map<SessionID,SessionPtr>   SessionMap;
+    typedef bbt::uuid::UuidBase::Ptr UuidPtr;
+    typedef std::unordered_map<UuidPtr,SessionPtr>   SessionMap;
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
@@ -37,37 +37,60 @@ private:
     __YRPC_SessionManager(int Nthread);
     ~__YRPC_SessionManager();
 
+    ////////////////////////////////////////////////////////////////////////
+    //////// 普通回调操作
+    ////////////////////////////////////////////////////////////////////////
     // 运行在 main loop 中的，只做新连接的分发
     void RunInMainLoop();
     // 运行在 sub loop 中的，只做io、协议解析
     void RunInSubLoop(Epoller*);
-    // 被连接后
+    /* 成功接收到连接 */
     void OnAccept(const errorcode &e, ConnectionPtr conn);
+    /* 连接对端成功 */
     void OnConnect(const errorcode &e, const Address& addr, ConnectionPtr conn);
+    /* 负载均衡策略 */
     Epoller* LoadBalancer();
+    /* 子线程 */
     void SubLoop(int idx);
+    /* 主线程 */
     void MainLoop();
+    /* RpcSession 析构时调用 */
+    void OnSessionClose(const yrpc::detail::shared::errorcode& e, SessionPtr addr);
+    /* RpcSession 超时时调用 */
+    void OnSessionTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr addr);
 
-////////////////////////////////////////////////////////////////////////
-//////// m_session_map 操作
-////////////////////////////////////////////////////////////////////////
 private:
-    // thread unsafe: 添加一个新的Session 到 SessionMap 中
+    ////////////////////////////////////////////////////////////////////////
+    //////// m_session_map 操作
+    ////////////////////////////////////////////////////////////////////////
+    // thread safe: 添加一个新的Session 到 SessionMap 中
     SessionPtr AddNewSession(Channel::ConnPtr newconn);
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
-    bool DelSession(const Address&);
+    bool DelSession(UuidPtr peer_uuid);
     void Dispatch(Buffer&&string, SessionPtr sess);
     SessionID AddressToID(const Address&key);
 
-////////////////////////////////////////////////////////////////////////
-//////// 握手
-////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    //////// m_undone_conn_queue 操作
+    ////////////////////////////////////////////////////////////////////////
+    /* thread safe: 添加一个新的Session 到 undone queue 中 */
+    SessionPtr AddUnDoneSession(Channel::ConnPtr newconn);
+    
+
+    
+    ////////////////////////////////////////////////////////////////////////
+    //////// 握手
+    ////////////////////////////////////////////////////////////////////////
 private:
     /* 接受握手请求，并响应 */
     MessagePtr Handler_HandShake(MessagePtr, const SessionPtr sess);
 
     /* 发送握手请求 */
     void StartHandShake(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
+    /* 握手成功回调 */
+    void OnHandShakeSucc(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
+    /* 握手超时 */
+    void OnHandShakeTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
     Acceptor*           m_main_acceptor; 
@@ -81,7 +104,7 @@ private:
     std::vector<std::thread*>       m_sub_threads;   
 
     /////////////////////////////////
-    SessionMap                  m_session_map;      // 全连接 map
+    SessionMap                  m_session_map;      // 全连接 map <uuid, session>
     ConnQueue::Ptr      m_undone_conn_queue;        // 半连接 queue 
     Mutex               m_mutex_session_map;
     /////////////////////////////////

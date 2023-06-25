@@ -10,7 +10,8 @@ RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
     :m_channel(channel),
     m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
     m_can_used(true),
-    m_last_active_time(yrpc::util::clock::now<yrpc::util::clock::ms>())
+    m_last_active_time(yrpc::util::clock::now<yrpc::util::clock::ms>()),
+    m_handshake_time_isstop(true)
 {
 }
 
@@ -185,7 +186,7 @@ void RpcSession::CloseFunc(const errorcode& e)
 
     // 通知SessionManager
     if(m_closecb != nullptr)
-        m_closecb(e,m_channel->GetConnInfo()->GetPeerAddress());
+        m_closecb(e, shared_from_this());
     
     if(e.err())
     {
@@ -243,19 +244,6 @@ bool RpcSession::HasPacket()
 {
     lock_guard<Mutex> lock(m_mutex_pck);   
     return !m_pck_queue.empty();
-}
-
-
-
-
-void RpcSession::NoneServerHandler()
-{
-    WARN("[YRPC][RpcSession::NoneServerHandler] server handler is not set!");
-}   
-
-void RpcSession::NoneClientHandler()
-{
-    WARN("[YRPC][RpcSession::NoneClientHandler] client handler is not set!");
 }
 
 const Channel::Address& RpcSession::GetPeerAddress()
@@ -347,4 +335,31 @@ int RpcSession::CallObj_CallResult(Buffer&& buf)
         }
     }
     CallObj_DelObj(protoid);
+}
+
+void RpcSession::StartHandShakeTimer(const SessionHandShakeTimeOutCallback& handshake_timeout_func, int timeout_ms)
+{
+    if( m_handshake_time_isstop )
+    {
+        WARN("[YRPC][RpcSession::StartHandShakeTimer] repeat start shake timer!");
+        return;
+    }
+    m_handshake_time_isstop.exchange(false);
+    using namespace yrpc::detail::shared;
+
+    m_handshake_time_isstop = m_current_loop->AddTimer([this,handshake_timeout_func](){
+        yrpc::detail::shared::errorcode e(
+            "session handshake timeout!",
+            ERRTYPE_HANDSHAKE,
+            ERR_HANDSHAKE::ERR_HANDSHAKE_TIMEOUT);
+        if( !m_handshake_time_isstop )
+        {
+            handshake_timeout_func(e, shared_from_this());
+        }
+    },timeout_ms);
+}
+
+void RpcSession::StopHandShakeTimer()
+{
+    m_handshake_time_isstop.exchange(true);
 }

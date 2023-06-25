@@ -7,9 +7,9 @@ namespace yrpc::detail::shared
 
 enum YRPC_ERR_TYPE : int32_t
 {
-    ERR_TYPE_OK         = 0,
+    ERRTYPE_NOTHING     = 0,
     ERRTYPE_NETWORK     = 100,  // 网络io错误
-
+    ERRTYPE_HANDSHAKE   = 101,  // Session握手
 };
 
 /* 网络错误码 */
@@ -30,6 +30,12 @@ enum ERR_NETWORK : int32_t
     ERR_NETWORK_CONN_OK         = 2004, // 连接建立成功
     ERR_NETWORK_CLOSE_OK        = 2005, // 连接关闭成功
     ERR_NETWORK_ACCEPT_OK       = 2006, // 接受连接成功
+};
+
+enum ERR_HANDSHAKE : int32_t
+{
+    ERR_HANDSHAKE_SUCCESS       = 0,    // 握手成功完成
+    ERR_HANDSHAKE_TIMEOUT       = 1001, // 握手超时
 };
 
 }

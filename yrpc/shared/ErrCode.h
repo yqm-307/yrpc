@@ -27,7 +27,7 @@ public:
 
     errorcode()
         :m_err_info("nothing"),
-        m_err_type(YRPC_ERR_TYPE::ERR_TYPE_OK),
+        m_err_type(YRPC_ERR_TYPE::ERRTYPE_NOTHING),
         m_errcode(0)
     {}
 
