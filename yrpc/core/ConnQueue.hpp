@@ -8,6 +8,12 @@
 namespace yrpc::rpc::detail
 {
 
+struct HandShakeData
+{
+    typedef std::function<void(const yrpc::detail::shared::errorcode&, SessionPtr)>     
+                            OnHandShakeSuccCallback;
+    OnHandShakeSuccCallback m_succ;
+};
 
 /**
  * @brief 半连接队列
@@ -32,13 +38,12 @@ class ConnQueue : bbt::noncopyable
 {
     typedef uint64_t SessionID;
     typedef std::shared_ptr<RpcSession>         SessionPtr;
-    typedef std::function<void(SessionPtr)>     OnSessionCallback;
-    typedef yrpc::detail::net::YAddress         YAddress;
-    typedef std::map<SessionID,OnSessionCallback>       Map;
+    typedef yrpc::detail::net::YAddress         Address;
+    typedef std::unordered_map<Address,HandShakeData>   Map;
 public:
     typedef std::unique_ptr<ConnQueue>  Ptr;
     /* 弹出一个元素 , 失败返回 nullptr*/
-    std::pair<OnSessionCallback,bool> PopUpById(SessionID id);
+    std::pair<HandShakeData,bool> PopUpById(const Address& addr);
     /**
      * @brief 查找并插入一个半连接SessionID(连接中的Session)
      * 
@@ -46,8 +51,8 @@ public:
      * @param func  会话建立时的回调
      * @return int  # -1(已经存在), 1(插入成功)
      */
-    int FindAndPush(SessionID id, const OnSessionCallback& func);
-    OnSessionCallback Find(SessionID id);
+    int FindAndPush(const Address& addr, const HandShakeData& func);
+    const HandShakeData* Find(SessionID id);
 
 private:
     Map m_map;
