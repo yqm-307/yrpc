@@ -58,7 +58,7 @@ Channel::Channel(ConnPtr newconn,Epoller* ep)
 
 Channel::~Channel()
 {
-    errorcode e("channel is destory",yrpc::detail::shared::ERR_TYPE_OK,0);
+    errorcode e("channel is destory",yrpc::detail::shared::ERRTYPE_NOTHING,0);
     if (!m_is_closed)
     {
         m_conn->Close();
@@ -75,7 +75,7 @@ Channel::~Channel()
 
 void Channel::Close()
 {
-    errorcode e("call func : Channel::Close,info: disconnection",yrpc::detail::shared::ERR_TYPE_OK,0);
+    errorcode e("call func : Channel::Close,info: disconnection",yrpc::detail::shared::ERRTYPE_NOTHING,0);
     m_conn->Close();
     // m_closecallback(e,m_conn); // 重复调用了?
     m_is_closed = true;
