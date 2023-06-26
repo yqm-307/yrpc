@@ -39,23 +39,29 @@ class ConnQueue : bbt::noncopyable
     typedef uint64_t SessionID;
     typedef std::shared_ptr<RpcSession>         SessionPtr;
     typedef yrpc::detail::net::YAddress         Address;
-    typedef std::unordered_map<Address,HandShakeData>   Map;
+    typedef std::unordered_map<Address,HandShakeData>   RpcSessionMap;
+    typedef std::unordered_set<Address>         TcpConnMap;
 public:
     typedef std::unique_ptr<ConnQueue>  Ptr;
     /* 弹出一个元素 , 失败返回 nullptr*/
     std::pair<HandShakeData,bool> PopUpById(const Address& addr);
-    /**
-     * @brief 查找并插入一个半连接SessionID(连接中的Session)
-     * 
-     * @param id    会话ID
-     * @param func  会话建立时的回调
-     * @return int  # -1(已经存在), 1(插入成功)
-     */
     int FindAndPush(const Address& addr, const HandShakeData& func);
-    const HandShakeData* Find(SessionID id);
+    const HandShakeData* Find(const Address& id);
+
+    /* 是否有等待中的session或tcp连接 */
+    bool HasWaitting(const Address& addr);
+    /* 添加一个tcp连接 */
+    bool AddTcpConn(const Address& addr);
+    /* 是否有某个tcp连接 */
+    bool HasTcpConn(const Address& addr);
+    /* 删除一个TcpConn */
+    bool DelTcpConn(const Address& addr);
+
+    // void GetTcpConn(std::vector<const Address&>& addrlist);
 
 private:
-    Map m_map;
+    RpcSessionMap   m_undone_rpc_session_map;   // session 半连接队列
+    TcpConnMap      m_undone_tcp_conn_map;      // tcp 发起连接队列
 };
 
 }// yrpc::rpc::detail

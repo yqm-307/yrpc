@@ -20,14 +20,10 @@ private:
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
     static __YRPC_SessionManager* GetInstance();
-    /**
-     * @brief 发起一个异步连接
-     * 
-     * @param peer      对端地址
-     * @param onsession 连接建立成功时触发回调
-     * @return int      # 0(连接中), 1(连接已完成)
-     */
-    int AsyncConnect(Address peer,OnSession onsession);
+
+    /* 发起一个异步连接,成功后会调用回调 */
+    void AsyncConnect(Address peer,OnSession onsession);
+    /* 异步接收连接 */
     void AsyncAccept(const Address& peer);
     /* 尝试获取Session，Session不存在或者正在连接中返回nullptr，线程安全 */
     SessionPtr TryGetSession(const Address& peer);
@@ -58,33 +54,33 @@ private:
     void OnSessionClose(const yrpc::detail::shared::errorcode& e, SessionPtr addr);
     /* RpcSession 超时时调用 */
     void OnSessionTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr addr);
-
-private:
     ////////////////////////////////////////////////////////////////////////
-    //////// m_session_map 操作
+    //////// 其他
+    ////////////////////////////////////////////////////////////////////////
+    /* 初始化一个rpc session */
+    SessionPtr InitRpcSession(ConnPtr);
+
+    ////////////////////////////////////////////////////////////////////////
+    //////// 已连接队列
     ////////////////////////////////////////////////////////////////////////
     // thread safe: 添加一个新的Session 到 SessionMap 中
-    SessionPtr AddNewSession(Channel::ConnPtr newconn);
+    SessionPtr AddNewSession(ConnPtr newconn);
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(UuidPtr peer_uuid);
     void Dispatch(Buffer&&string, SessionPtr sess);
     SessionID AddressToID(const Address&key);
 
     ////////////////////////////////////////////////////////////////////////
-    //////// m_undone_conn_queue 操作
+    //////// 半连接队列
     ////////////////////////////////////////////////////////////////////////
-    /* thread safe: 添加一个新的Session 到 undone queue 中 */
+    /* thread unsafe: 添加一个新的Session 到 undone queue 中 */
     SessionPtr AddUnDoneSession(Channel::ConnPtr newconn);
-    
-
     
     ////////////////////////////////////////////////////////////////////////
     //////// 握手
     ////////////////////////////////////////////////////////////////////////
-private:
     /* 接受握手请求，并响应 */
     MessagePtr Handler_HandShake(MessagePtr, const SessionPtr sess);
-
     /* 发送握手请求 */
     void StartHandShake(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
     /* 握手成功回调 */
@@ -101,16 +97,18 @@ private:
     std::atomic_int     m_balance;          // 新连接轮转负载，跨线程（需要atomic，还需要考虑 memory order）
     
     std::thread*        m_main_thread;      
-    std::vector<std::thread*>       m_sub_threads;   
+    std::vector<std::thread*> m_sub_threads;   
 
     /////////////////////////////////
-    SessionMap                  m_session_map;      // 全连接 map <uuid, session>
+    SessionMap          m_session_map;      // 全连接 map <uuid, session>
     ConnQueue::Ptr      m_undone_conn_queue;        // 半连接 queue 
+    std::unordered_map<Address,bbt::uuid::UuidBase::Ptr>   
+                        m_knownode_map;
     Mutex               m_mutex_session_map;
     /////////////////////////////////
 
-    std::shared_ptr<bbt::uuid::UuidBase>    m_node_id;
+    bbt::uuid::UuidBase::Ptr                m_node_id;
 
-    std::vector<bbt::uuid::UuidBase> m_node_id_list;
+    std::vector<bbt::uuid::UuidBase::Ptr>   m_node_id_list;
 };
 }

@@ -87,20 +87,9 @@ SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ConnPtr connptr)
     return sessionptr;
 }
 
-SessionPtr __YRPC_SessionManager::AddUnDoneSession(Channel::ConnPtr new_conn)
+SessionPtr __YRPC_SessionManager::AddUnDoneSession(ConnPtr new_conn)
 {
-    // 负载均衡，轮转法分配到io线程中
-    auto next_loop = m_sub_loop[BalanceNext];
-    auto channel_ptr = Channel::Create(new_conn, next_loop);
-    auto session_ptr = RpcSession::Create(channel_ptr, next_loop);
-
-    // 初始化新Session的回调
-    session_ptr->SetCloseFunc([this](const yrpc::detail::shared::errorcode& e, SessionPtr addr){
-        OnSessionClose(e, addr);
-    });
-    session_ptr->SetTimeOutFunc([this](const yrpc::detail::shared::errorcode& e, SessionPtr addr){
-        OnSessionTimeOut(e, addr);
-    });
+    auto session_ptr = InitRpcSession(new_conn);
     struct yrpc::rpc::detail::HandShakeData hand_shake_data;
     hand_shake_data.m_succ = [this](const yrpc::detail::shared::errorcode& e, SessionPtr sess){
         OnHandShakeSucc(e, sess);
@@ -111,11 +100,6 @@ SessionPtr __YRPC_SessionManager::AddUnDoneSession(Channel::ConnPtr new_conn)
     {
         return session_ptr;
     }
-    else
-    {
-        ERROR("[YRPC][__YRPC_SessionManager::AddUnDoneSession] peer address is error!");
-    }
-
     return nullptr;
 }
 
@@ -212,117 +196,91 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, ConnectionPtr conn)
     //     ERROR("[YRPC][__YRPC_SessionManager::OnAccept] %s",e.what().c_str());
     // }
 }
+
 void __YRPC_SessionManager::OnConnect(const errorcode &e, const Address& addr, ConnectionPtr conn)
 {
-    SessionID sid = this->AddressToID(addr);
-    // 构造新的Session
-    if (e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
+    // 无论成功失败
     {
-        // 更新SessionMap
-        SessionPtr newSession{nullptr};
+        lock_guard<Mutex> lock(m_mutex_session_map);
+        if( ! m_undone_conn_queue->DelTcpConn(addr) )
         {
-            lock_guard<Mutex> lock(m_mutex_session_map);
-            newSession = this->AddNewSession(conn);
-            SessionID tmpid = AddressToID(conn->GetPeerAddress());
-            // clean 连接等待队列，处理回调任务
-            auto [onsessfunc,exist] = this->m_undone_conn_queue->PopUpById(tmpid);
-            auto done_session = m_session_map.find(tmpid);
-            if ( exist )
-            {
-                if (done_session == m_session_map.end())
-                {
-                    newSession->Close();
-                    WARN("[YRPC][__YRPC_SessionManager::OnConnect] The connection may already exist!");
-                }
-                else{
-                    if (onsessfunc != nullptr)
-                        onsessfunc(newSession);
-                }
-            }
-            else
-            {
-                if (done_session != m_session_map.end())
-                {
-                    newSession->Close();
-                    WARN("[YRPC][__YRPC_SessionManager::OnConnect] The connection may already exist! but exist two queue :D?");
-                }
-                else
-                    ERROR("[YRPC][__YRPC_SessionManager::OnConnect] connection may be not exist!\
-                    because not in m_session_map or m_undone_conn_queue!");
-            }
+            WARN("[YRPC][__YRPC_SessionManager::OnConnect] tcp connect not exist!");
         }
     }
-    else
+    if (e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
     {
+        SessionPtr new_sess_ptr{nullptr};
         {
             lock_guard<Mutex> lock(m_mutex_session_map);
-            // 如果 connect 失败，只关闭等待队列中的连接。已完成的不关注
-            auto [onconnect, succ] = m_undone_conn_queue->PopUpById(sid);
-            // if (succ)
-            // {
-            //     onconnect();
-            // }
+            if( ! m_undone_conn_queue->DelTcpConn(addr) )
+            {
+                WARN("[YRPC][__YRPC_SessionManager::OnConnect] tcp connect not exist!");
+            }
+            // 1、创建新session，保存到半连接队列
+            auto new_sess_ptr = AddUnDoneSession(conn);
         }
-        /* todo 网络连接失败错误处理 */
+        if( new_sess_ptr == nullptr )
+        {
+            conn->Close();
+            ERROR("[YRPC][__YRPC_SessionManager::OnConnect] session create error!");
+            return;
+        }
+        // 2、发送握手请求
+        StartHandShake(e, new_sess_ptr);
+    }
+    else 
+    {
         ERROR("[YRPC][__YRPC_SessionManager::OnConnect] connect error!");
     }
 }
 
-int __YRPC_SessionManager::AsyncConnect(Address peer,OnSession onsession)
+void __YRPC_SessionManager::AsyncConnect(Address peer_addr,OnSession onsession)
 {
-    /**
-     * 异步的建立Session，Session建立完成，通过onsession返回 
-     * 
-     * 这里有点东西的，主要是我搞了个协议复用，本质上就是想让两个服务器之间互相提供服务
-     * 不去建立两条TCP信道，而是复用一条信道，所以加了一系列复杂机制。
-     * 
-     * 解决方案：
-     *    通过两个Map  address to id 和 id to session 区分已建立连接和尚未建立完毕。其实是个简单的状态，如果存在于
-     * addressid但是不存在与SessionMap中，说明正在建立连接，连接尚未完成。但是删除连接是完整的删除。建立连接分两阶段:
-     *      1、如果已经正在Connect中，则返回false
-     *    删除还是一个完整的原子操作。好处就是可以通过id去索引 RpcClinet 注册的回调.
-     */
     using namespace yrpc::detail::net;
+    bool is_need_connect{false};
 
-    int ret = -1;    
-    SessionID tmpid = AddressToID(peer);
     lock_guard<Mutex> lock(m_mutex_session_map);
-    auto it = m_session_map.find(tmpid);
-
-    /**
-     * 1、如果sessions中已经有了该连接，则直接返回即可
-     * 2、如果sessions中没有，则检查是否已经注册连接事件
-     *      (1) 如果 connect async wait queue 中没有对应的用户会话，注册一个新的connect事件
-     *      (2) 如果 connect async wait queue 中有对应的用户会话且注册失败，返回false
-     */
-    if( it == m_session_map.end() )
-    {
-        Socket* socket = Connector::CreateSocket();
-        auto status = m_undone_conn_queue->FindAndPush(tmpid,onsession);
-        if( status == -1 ) // 说明连接正在进行中
-        {
-            ret = 0;
+    auto it_uuid = m_knownode_map.find(peer_addr);
+    if( it_uuid != m_knownode_map.end() )
+    {// 此节点是已知节点
+        auto it_done_sess = m_session_map.find(it_uuid->second);
+        if( it_done_sess == m_session_map.end() )
+        {// 已完成连接中不存在Session
+            auto it_conned_sess = m_undone_conn_queue->Find(peer_addr);
+            if( it_conned_sess == nullptr )
+            {// 连接不存在，新建连接
+                is_need_connect = true;
+            }
         }
         else
-        {
-            m_connector->AsyncConnect(socket, peer, functor([this](const errorcode &e, const Address& peeraddr, ConnectionPtr conn)
-            {
-                this->OnConnect(std::forward<const errorcode>(e), std::forward<const Address&>(peeraddr), std::forward<ConnectionPtr>(conn));
-            }));
-            ret = 0;
+        {// 已存在session，回调通知
+            onsession(it_done_sess->second);
         }
     }
     else
-    {
-        if (onsession != nullptr)
-            onsession(it->second);
-        else
-            WARN("[YRPC][__YRPC_SessionManager::AsyncConnect] async connect success callback is nullptr, maybe warning");
-        ret = 1;
+    {// 连接一个未知节点
+        auto it_undone_sess = m_undone_conn_queue->Find(peer_addr);
+        if( it_undone_sess == nullptr )
+        {// 半连接队列中不存在，需发起连接
+            is_need_connect = true;
+        }
     }
-
-    return ret;
+    if( is_need_connect )
+    {
+        Socket* socket = Connector::CreateSocket();
+        m_undone_conn_queue->AddTcpConn(peer_addr);
+        m_connector->AsyncConnect(socket, peer_addr, functor([this](const errorcode& e, const Address& peer_addr, ConnectionPtr conn){
+            OnConnect(e, peer_addr, conn);
+        }));
+    }
 }
+
+int __YRPC_SessionManager::Connect(const Address& peer_addr, SessionPtr sess)
+{
+
+
+}
+
 
 
 void __YRPC_SessionManager::AsyncAccept(const Address& peer)
@@ -448,5 +406,21 @@ void __YRPC_SessionManager::OnHandShakeTimeOut(const yrpc::detail::shared::error
     WARN("[YRPC][__YRPC_SessionManager::OnHandShakeTimeOut] 函数未实现!");
 }
 
+SessionPtr __YRPC_SessionManager::InitRpcSession(ConnPtr new_conn)
+{
+    auto next_loop = m_sub_loop[BalanceNext];
+    auto channel_ptr = Channel::Create(new_conn, next_loop);
+    auto session_ptr = RpcSession::Create(channel_ptr, next_loop);
+
+    // 初始化新Session的回调
+    session_ptr->SetCloseFunc([this](const yrpc::detail::shared::errorcode& e, SessionPtr addr){
+        OnSessionClose(e, addr);
+    });
+    session_ptr->SetTimeOutFunc([this](const yrpc::detail::shared::errorcode& e, SessionPtr addr){
+        OnSessionTimeOut(e, addr);
+    });
+    session_ptr->UpdataAllCallbackAndRunInEvloop();
+    return session_ptr;
+}
 
 #undef BalanceNext
