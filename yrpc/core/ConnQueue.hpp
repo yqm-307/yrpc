@@ -12,7 +12,10 @@ struct HandShakeData
 {
     typedef std::function<void(const yrpc::detail::shared::errorcode&, SessionPtr)>     
                             OnHandShakeSuccCallback;
+    typedef yrpc::rpc::detail::RpcSession::SessionPtr   SessionPtr;
+    
     OnHandShakeSuccCallback m_succ;
+    SessionPtr m_sess;
 };
 
 /**
@@ -44,7 +47,8 @@ class ConnQueue : bbt::noncopyable
 public:
     typedef std::unique_ptr<ConnQueue>  Ptr;
     /* 弹出一个元素 , 失败返回 nullptr*/
-    std::pair<HandShakeData,bool> PopUpById(const Address& addr);
+    std::pair<HandShakeData,bool> 
+        PopUpById(const Address& addr);
     int FindAndPush(const Address& addr, const HandShakeData& func);
     const HandShakeData* Find(const Address& id);
 

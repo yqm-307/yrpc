@@ -2,6 +2,7 @@
 #include "ConnQueue.hpp"
 #include "Define.h"
 #include "bbt/uuid/Uuid.hpp"
+#include <unordered_map>
 namespace yrpc::rpc::detail
 {
 
@@ -64,7 +65,7 @@ private:
     //////// 已连接队列
     ////////////////////////////////////////////////////////////////////////
     // thread safe: 添加一个新的Session 到 SessionMap 中
-    SessionPtr AddNewSession(ConnPtr newconn);
+    SessionPtr AddSession(bbt::uuid::UuidBase::Ptr uuid, SessionPtr newconn);
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(UuidPtr peer_uuid);
     void Dispatch(Buffer&&string, SessionPtr sess);
@@ -83,13 +84,16 @@ private:
     MessagePtr Handler_HandShake(MessagePtr, const SessionPtr sess);
     /* 发送握手请求 */
     void StartHandShake(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
-    /* 握手成功回调 */
-    void OnHandShakeSucc(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
-    /* 握手超时 */
+    /* 处理握手响应 */
+    void HandShakeRsp(MessagePtr);
+    /* 握手完成回调 */
+    void OnHandShakeFinal(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
+    /* 握手超时, 对于调用方和被调用方都是一样的操作 */
     void OnHandShakeTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
-    Acceptor*           m_main_acceptor; 
+    Acceptor*           m_main_acceptor;
+    Address             m_local_addr;       // 服务器本地地址（监听地址）
     Connector*          m_connector;        
     const size_t        m_sub_loop_size;    // sub eventloop 数量
     std::vector<Epoller*>           m_sub_loop;         // sub eventloop
@@ -107,7 +111,7 @@ private:
     Mutex               m_mutex_session_map;
     /////////////////////////////////
 
-    bbt::uuid::UuidBase::Ptr                m_node_id;
+    bbt::uuid::UuidBase::Ptr                m_local_node_id;
 
     std::vector<bbt::uuid::UuidBase::Ptr>   m_node_id_list;
 };

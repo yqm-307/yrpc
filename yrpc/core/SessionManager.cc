@@ -1,5 +1,7 @@
 #include "SessionManager.h"
 #include "yrpc/config/config.hpp"
+#include "yrpc/protocol/protoc/c2s.pb.h"
+#include "yrpc/protocol/protoc/s2c.pb.h"
 #include <unistd.h>
 using namespace yrpc::rpc::detail;
 
@@ -13,15 +15,14 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     m_sub_loop_size(Nthread - 1),
     m_sub_loop(m_sub_loop_size),
     m_loop_latch(Nthread),
-    m_undone_conn_queue(std::make_unique<ConnQueue>())
-
+    m_undone_conn_queue(std::make_unique<ConnQueue>()),
+    m_knownode_map()
 {
-    m_node_id = bbt::uuid::UuidMgr::CreateUUid();
+    m_local_node_id = bbt::uuid::UuidMgr::CreateUUid();
     // 初始化 main eventloop，但是不运行
     m_main_thread = new std::thread([this](){
         this->MainLoop();
     });
-
     // 初始化 sub eventloop，并运行（由于队列为空，都挂起）
     assert(Nthread>=2);
     for (int i=0;i<Nthread - 1;++i)
@@ -43,56 +44,29 @@ __YRPC_SessionManager::~__YRPC_SessionManager()
 
 
 
-SessionPtr __YRPC_SessionManager::AddNewSession(Channel::ConnPtr connptr)
+SessionPtr __YRPC_SessionManager::AddSession(bbt::uuid::UuidBase::Ptr uuid, SessionPtr sess)
 {
     /**
-     * 建立新连接
-     * 
-     * 建立新连接，并保存在Manager中，注意注册超时、关闭时回调
+     * 新连接，如果已经存在，立即关闭
      */
-    auto nextloop = m_sub_loop[BalanceNext];
-    auto channelptr = Channel::Create(connptr,nextloop);
-    auto sessionptr = RpcSession::Create(channelptr,nextloop);
-    // 创建并初始化新Session
-    sessionptr->SetCloseFunc([this](const yrpc::detail::shared::errorcode& e,const yrpc::detail::net::YAddress& addr){
-        // 连接断开，从SessionMap中删除此Session
-        if (this->DelSession(addr))
-        {
-            INFO("[YRPC][__YRPC_SessionManager] session closed! ,%s", addr.GetIPPort().c_str());
-        }
-        else{
-            WARN("[YRPC][__YRPC_SessionManager] session closed! ,%s ,but not exist in SessionManager!", addr.GetIPPort().c_str());
-        }
-    });
-    // 超时
-    sessionptr->SetTimeOutFunc([sessionptr](Socket* socket){
-        // 实际上还没有使用
-        if (!sessionptr->IsClosed())
-            sessionptr->Close();    // 触发 CloseCallback
-    });
-
-    /**
-     *  这里要支持连接复用，要检查是否已经建立了和目标进程的连接（目标进程标识{ip:port}）
-     */
-    auto it = m_session_map.insert(std::make_pair(AddressToID(channelptr->GetConnInfo()->GetPeerAddress()),sessionptr));        // session 映射
-    
-    if( !it.second )
-    {
-        sessionptr->Close();
-        return it.first->second;
+    auto [it, succ] = m_session_map.insert(std::make_pair(uuid, sess));
+    if( !succ )
+    {// 已经存在
+        sess->Close();
+        WARN("[YRPC][__YRPC_SessionManager::AddSession] Connection duplication is a small probability event, maybe error!");
+        return nullptr;
     }
 
-    sessionptr->UpdataAllCallbackAndRunInEvloop();
-    
-    return sessionptr;
+    return sess;
 }
 
 SessionPtr __YRPC_SessionManager::AddUnDoneSession(ConnPtr new_conn)
 {
     auto session_ptr = InitRpcSession(new_conn);
     struct yrpc::rpc::detail::HandShakeData hand_shake_data;
+    hand_shake_data.m_sess = session_ptr;
     hand_shake_data.m_succ = [this](const yrpc::detail::shared::errorcode& e, SessionPtr sess){
-        OnHandShakeSucc(e, sess);
+        OnHandShakeFinal(e, sess);
     };
     // 加入到半连接队列
     int status = m_undone_conn_queue->FindAndPush(new_conn->GetPeerAddress(), hand_shake_data);
@@ -199,14 +173,7 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, ConnectionPtr conn)
 
 void __YRPC_SessionManager::OnConnect(const errorcode &e, const Address& addr, ConnectionPtr conn)
 {
-    // 无论成功失败
-    {
-        lock_guard<Mutex> lock(m_mutex_session_map);
-        if( ! m_undone_conn_queue->DelTcpConn(addr) )
-        {
-            WARN("[YRPC][__YRPC_SessionManager::OnConnect] tcp connect not exist!");
-        }
-    }
+
     if (e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
     {
         SessionPtr new_sess_ptr{nullptr};
@@ -225,8 +192,9 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, const Address& addr, C
             ERROR("[YRPC][__YRPC_SessionManager::OnConnect] session create error!");
             return;
         }
-        // 2、发送握手请求
-        StartHandShake(e, new_sess_ptr);
+        new_sess_ptr->m_current_loop->AddTask([=](void*){
+            StartHandShake(e, new_sess_ptr);
+        });
     }
     else 
     {
@@ -275,14 +243,6 @@ void __YRPC_SessionManager::AsyncConnect(Address peer_addr,OnSession onsession)
     }
 }
 
-int __YRPC_SessionManager::Connect(const Address& peer_addr, SessionPtr sess)
-{
-
-
-}
-
-
-
 void __YRPC_SessionManager::AsyncAccept(const Address& peer)
 {
     /**
@@ -303,6 +263,7 @@ void __YRPC_SessionManager::AsyncAccept(const Address& peer)
     m_main_acceptor->setOnAccept(functor([this](const yrpc::detail::shared::errorcode&e,yrpc::detail::net::ConnectionPtr conn)->void{
         this->OnAccept(e,conn);
     }),nullptr);
+    m_local_addr = peer;
     m_main_loop->AddTask([this](void*){
         this->RunInMainLoop();
     });
@@ -356,9 +317,13 @@ void __YRPC_SessionManager::MainLoop()
 
 SessionPtr __YRPC_SessionManager::TryGetSession(const Address& peer)
 {
-    SessionID sid = AddressToID(peer);
     lock_guard<Mutex> lock(m_mutex_session_map);
-    auto it = m_session_map.find(sid);
+    auto it_uuid = m_knownode_map.find(peer);
+    if( it_uuid == m_knownode_map.end() )
+    {
+        return nullptr;
+    }
+    auto it = m_session_map.find(it_uuid->second);
     if (it == m_session_map.end())
         return nullptr;
     else
@@ -377,33 +342,112 @@ bool __YRPC_SessionManager::IsConnecting(const Address& peer)
 }
 
 
-MessagePtr __YRPC_SessionManager::Handler_HandShake(MessagePtr, const SessionPtr sess)
+MessagePtr __YRPC_SessionManager::Handler_HandShake(MessagePtr msg, const SessionPtr sess)
 {
-    // todo 
-    // 1、保存数据到 node list
-    // 2、返回握手成功结果 + 数据
-    // 3、连接成功，操作 m_session_map
-    // 4、清空超时定时器
-    WARN("[YRPC][__YRPC_SessionManager::Handler_HandShake] 函数未实现!");
+    auto req = std::static_pointer_cast<C2S_HANDSHAKE_REQ>(msg);
+    req->connector_ip();
+    req->connector_port();
+    auto peer_addr = Address(req->connector_ip(), req->connector_port());
+    auto peer_uuid = bbt::uuid::UuidMgr::CreateUUid(req->uuid());
+    // 保存到 knownode map
+    auto [_, succ] = m_knownode_map.insert(std::make_pair(peer_addr, peer_uuid));
+    // 保存到 session map
+    AddSession(peer_uuid, sess);
+    // 握手成功，设置rsp
+    auto rsp = std::make_shared<S2C_HANDSHAKE_RSP>();
+    rsp->set_uuid(m_local_node_id->GetRawString());
+    // 关闭定时器
+    sess->StopHandShakeTimer();
+    // 握手成功回调
+    errorcode err(
+        "handshake ok!", 
+        yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_HANDSHAKE, 
+        yrpc::detail::shared::ERR_HANDSHAKE_SUCCESS);
+    OnHandShakeFinal(err, sess);
+    return rsp;
 }
 
 void __YRPC_SessionManager::StartHandShake(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
 {
-    // todo
-    // 1、发送开始握手请求
-    // 2、携带数据发送
-    // 3、设置超时定时器
+    if( e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK )
+    {
+        C2S_HANDSHAKE_REQ req;
+        req.set_uuid(m_local_node_id);
+        req.set_connector_ip(m_local_addr.GetIP());
+        req.set_connector_port(m_local_addr.GetPort());
+        auto callobj = CallObjFactory::GetInstance()->Create<C2S_HANDSHAKE_REQ, S2C_HANDSHAKE_RSP>(std::move(req), "YRPC_HandShake", 
+                [=](MessagePtr rsp){ HandShakeRsp(rsp); });
+        if( 0 > sess->SendACallObj(callobj) )
+        {
+            ERROR("[YRPC][__YRPC_SessionManager::StartHandShake] send handshake failed!");
+        }
+        sess->StartHandShakeTimer([this](const errorcode& e, SessionPtr sess){
+            OnHandShakeTimeOut(e, sess);
+        },3000);
+    }
+    else
+    {
+        FATAL("[YRPC][__YRPC_SessionManager::StartHandShake] fatal! maybe coroutine error!");
+    }
+    
     WARN("[YRPC][__YRPC_SessionManager::StartHandShake] 函数未实现!");
 }
 
-void __YRPC_SessionManager::OnHandShakeSucc(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
+void __YRPC_SessionManager::OnHandShakeFinal(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
 {
-    WARN("[YRPC][__YRPC_SessionManager::OnHandShakeSucc] 函数未实现!");
+    INFO("[YRPC][__YRPC_SessionManager::OnHandShakeFinal] handshake success!");
 }
 
 void __YRPC_SessionManager::OnHandShakeTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
 {
-    WARN("[YRPC][__YRPC_SessionManager::OnHandShakeTimeOut] 函数未实现!");
+    if( e.err() == yrpc::detail::shared::ERR_HANDSHAKE_TIMEOUT )
+    {
+        auto [handshakedata, exist] = m_undone_conn_queue->PopUpById(sess->GetPeerAddress());
+        errorcode err;
+        err.settype(yrpc::detail::shared::ERRTYPE_HANDSHAKE);
+        err.setcode(yrpc::detail::shared::ERR_HANDSHAKE_TIMEOUT);
+        if( !exist )
+        {
+            err.setcode(yrpc::detail::shared::ERR_HANDSHAKE_SESS_NOTEXIST);
+            FATAL("[YRPC][__YRPC_SessionManager::OnHandShakeTimeOut] undone queue order timing error!");
+        }
+        sess->Close();
+        handshakedata.m_succ(err, nullptr); // 握手完成回调通知
+    }
+    else
+    {
+        ERROR("[YRPC][__YRPC_SessionManager::OnHandShakeTimeOut] other errors!");
+    }
+}
+
+void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg)
+{
+    /* 处理握手响应 */
+    auto rsp = std::make_shared<S2C_HANDSHAKE_RSP>();
+    auto peer_uuid = bbt::uuid::UuidMgr::CreateUUid(rsp->uuid());
+    auto peer_addr = Address(rsp->acceptor_ip(), rsp->acceptor_port());
+    // 从半连接队列总取出session
+    auto [sess_data, succ] = m_undone_conn_queue->PopUpById(peer_addr);
+    errorcode err("",
+            yrpc::detail::shared::ERRTYPE_HANDSHAKE,
+            yrpc::detail::shared::ERR_HANDSHAKE_UNDONE_FAILED);
+    if( !succ )
+    {
+        sess_data.m_succ(err, sess_data.m_sess);
+        ERROR("[YRPC][__YRPC_SessionManager::HandShakeRsp] undone session map not found!");
+        return;
+    }
+    // 插入到 session map 中
+    auto [_, succ] = m_session_map.insert(std::make_pair(peer_uuid, sess_data.m_sess));
+    if( !succ )
+    {
+        sess_data.m_succ(err, sess_data.m_sess);
+        sess_data.m_sess->Close();
+        ERROR("[YRPC][__YRPC_SessionManager::HandShakeRsp] handshake error!");
+        return;
+    }
+    err.setcode(yrpc::detail::shared::ERR_HANDSHAKE_SUCCESS);
+    sess_data.m_succ(err, sess_data.m_sess);
 }
 
 SessionPtr __YRPC_SessionManager::InitRpcSession(ConnPtr new_conn)

@@ -78,3 +78,19 @@ private:
 };
 
 }
+
+namespace std
+{
+template<> 
+struct hash<yrpc::detail::net::YAddress>
+{
+    typedef yrpc::detail::net::YAddress argument_type;
+    typedef std::size_t result_type;
+    result_type operator()(argument_type const& addr) const
+    {
+        result_type const h1 ( std::hash<std::string>{}(addr.GetIP()) );
+        result_type const h2 ( std::hash<int>{}(addr.GetPort()) );
+        return h1 ^ (h2 << 1); // 或使用 boost::hash_combine （见讨论）
+    }
+};
+}
