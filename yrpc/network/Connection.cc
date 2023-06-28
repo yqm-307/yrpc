@@ -72,7 +72,7 @@ size_t Connection::recv(char* buffer,size_t buflen)
                 {
                     continue;
                 }
-                ERROR("[YRPC][Connection::recv] YRRecv error : %d ,errno is %s!", n, strerror(errno));
+                ERROR("[YRPC][Connection::recv] YRRecv error : %d ,errno is %s!", errno, strerror(errno));
             }
             else
                 break;

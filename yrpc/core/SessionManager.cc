@@ -362,6 +362,8 @@ MessagePtr __YRPC_SessionManager::Handler_HandShake(const MessagePtr msg,Session
     // 握手成功，设置rsp
     auto rsp = std::make_shared<S2C_HANDSHAKE_RSP>();
     rsp->set_uuid(m_local_node_id->GetRawString());
+    rsp->set_acceptor_ip(m_local_addr.GetIP());
+    rsp->set_acceptor_port(m_local_addr.GetPort());
     // 关闭定时器
     sess->StopHandShakeTimer();
     // 握手成功回调
@@ -382,7 +384,7 @@ void __YRPC_SessionManager::StartHandShake(const yrpc::detail::shared::errorcode
         req.set_connector_ip(m_local_addr.GetIP());
         req.set_connector_port(m_local_addr.GetPort());
         auto callobj = CallObjFactory::GetInstance()->Create<C2S_HANDSHAKE_REQ, S2C_HANDSHAKE_RSP>(std::move(req), "YRPC_HandShake", 
-                [=](MessagePtr rsp){ HandShakeRsp(rsp); });
+                [=](MessagePtr rsp){ HandShakeRsp(rsp, sess); });
         if( 0 > sess->SendACallObj(callobj) )
         {
             ERROR("[YRPC][__YRPC_SessionManager::StartHandShake] send handshake failed!");
@@ -424,20 +426,20 @@ void __YRPC_SessionManager::OnHandShakeTimeOut(const yrpc::detail::shared::error
     }
 }
 
-void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg)
+void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg, SessionPtr sess)
 {
     /* 处理握手响应 */
     auto rsp = std::make_shared<S2C_HANDSHAKE_RSP>();
     auto peer_uuid = bbt::uuid::UuidMgr::CreateUUid(rsp->uuid());
     auto peer_addr = Address(rsp->acceptor_ip(), rsp->acceptor_port());
     // 从半连接队列总取出session
-    auto [sess_data, undone_succ] = m_undone_conn_queue->PopUpById(peer_addr);
+    auto [sess_data, undone_succ] = m_undone_conn_queue->PopUpById(sess->GetPeerAddress());
     errorcode err("",
             yrpc::detail::shared::ERRTYPE_HANDSHAKE,
             yrpc::detail::shared::ERR_HANDSHAKE_UNDONE_FAILED);
     if( !undone_succ )
     {
-        ERROR("[YRPC][__YRPC_SessionManager::HandShakeRsp] undone session map not found!");
+        ERROR("[YRPC][__YRPC_SessionManager::HandShakeRsp] {%s} not found in undone session map!", peer_addr.GetIPPort().c_str());
         return;
     }
     // 插入到 session map 中

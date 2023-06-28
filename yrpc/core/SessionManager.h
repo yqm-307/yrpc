@@ -87,7 +87,7 @@ private:
     /* 发送握手请求 */
     void StartHandShake(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
     /* 处理握手响应 */
-    void HandShakeRsp(MessagePtr);
+    void HandShakeRsp(MessagePtr, SessionPtr);
     /* 握手完成回调 */
     void OnHandShakeFinal(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
     /* 握手超时, 对于调用方和被调用方都是一样的操作 */
