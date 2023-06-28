@@ -60,3 +60,12 @@ build/
 bin/
 yrpc/protocol/protoc/
 .vscode/
+
+
+# vscode add line
+yrpc/protocol/protoc/c2s.pb.cc
+yrpc/protocol/protoc/c2s.pb.h
+yrpc/protocol/protoc/s2c.pb.cc
+yrpc/protocol/protoc/s2c.pb.h
+example/all_example.pb.cc
+example/all_example.pb.h
