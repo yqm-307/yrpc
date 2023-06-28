@@ -9,7 +9,7 @@ message C2S_HEARTBEAT_REQ
 // 发起握手请求
 message C2S_HANDSHAKE_REQ
 {
-    string uuid         = 1;    // 连接发起方 node id
+    bytes uuid         = 1;    // 连接发起方 node id
     string connector_ip = 2;    // 连接发起方 ip
     int32 connector_port= 3;    // 连接发起方 port       
 }

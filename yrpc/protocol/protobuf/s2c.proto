@@ -19,7 +19,7 @@ message S2C_RPC_ERROR
 // 连接前握手，数据交换
 message S2C_HANDSHAKE_RSP
 {
-    string uuid = 1;    // 被连接方 node id
+    bytes uuid = 1;    // 被连接方 node id
     string acceptor_ip = 2;    // 连接发起方 ip
     int32 acceptor_port= 3;    // 连接发起方 port     
 }
