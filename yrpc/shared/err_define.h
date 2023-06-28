@@ -10,6 +10,7 @@ enum YRPC_ERR_TYPE : int32_t
     ERRTYPE_NOTHING     = 0,
     ERRTYPE_NETWORK     = 100,  // 网络io错误
     ERRTYPE_HANDSHAKE   = 101,  // Session握手
+    ERRTYPE_YCO         = 102,  // 协程相关
 };
 
 /* 网络错误码 */
@@ -38,6 +39,11 @@ enum ERR_HANDSHAKE : int32_t
     ERR_HANDSHAKE_TIMEOUT       = 1001, // 握手超时
     ERR_HANDSHAKE_SESS_NOTEXIST = 1002, // Session 找不到
     ERR_HANDSHAKE_UNDONE_FAILED = 1003, // 半连接队列错误
+};
+
+enum ERR_YCO : int32_t
+{
+    ERR_YCO_TIMEOUT       = 0,    // 任务正常超时
 };
 
 }
