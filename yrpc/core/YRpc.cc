@@ -25,12 +25,8 @@ int Rpc::RemoteOnce(const detail::Address& addr,const std::string& funcname,deta
         }
         else
         {
-            int retcode = detail::SessionManager::GetInstance()->AsyncConnect(addr,nullptr);
-            if (retcode <= 0)
-                ret = -3;   // 连接未完成, 重试
-            else
-                ret = 2;   // 连接成功, 重试(重试大概率成功，除非对端关闭)
-            break;
+            detail::SessionManager::GetInstance()->AsyncConnect(addr,nullptr);
+            ret = -3;   // 连接未完成, 重试
         }
     }while(0);
 
@@ -38,12 +34,19 @@ int Rpc::RemoteOnce(const detail::Address& addr,const std::string& funcname,deta
 }
 
 
-int Rpc::AsyncConnect(const detail::Address& addr,const detail::CommCallback& cb)
+void Rpc::AsyncConnect(const detail::Address& addr,const detail::CommCallback& cb)
 {
-    return detail::SessionManager::GetInstance()->AsyncConnect(addr,[=](detail::SessionPtr){cb();});
+    detail::SessionManager::GetInstance()->AsyncConnect(addr,[=](detail::SessionPtr){cb();});
 }
 
 void Rpc::StartServerListen(const detail::Address& addr)
 {
-    yrpc::rpc::detail::__YRPC_SessionManager::GetInstance()->AsyncAccept(addr);
+    detail::SessionManager::GetInstance()->AsyncAccept(addr);
+}
+
+int Rpc::YRpcInit()
+{
+    detail::SessionManager::GetInstance()->RegisterService();
+    // register_service<C2S_HANDSHAKE_REQ, S2C_HANDSHAKE_RSP>("YRPC_HandShake", detail::SessionManager::);
+
 }

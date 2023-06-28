@@ -14,11 +14,7 @@ public:
     Rpc(){}
     ~Rpc(){}
 
-    /** 
-     * 返回值含义:
-     * 小于等于0失败，大于0成功.
-     * -1,连接已关闭 | -2,发送失败 | -3、-4,连接中,请重试 | 
-     */
+    static int YRpcInit();
 
     /**
      * @brief 发起一次远程调用 
@@ -36,9 +32,8 @@ public:
      * 
      * @param addr  对端地址
      * @param cb    连接建立完成后回调
-     * @return int  # -1(未连接), 0(连接中), 1(连接已完成)
      */
-    static int AsyncConnect(const detail::Address& addr,const detail::CommCallback& cb);
+    static void AsyncConnect(const detail::Address& addr,const detail::CommCallback& cb);
 
     /**
      * @brief 设置服务器监听端口，并开启Main Loop，如果不设置服务器将没有服务提供功能
