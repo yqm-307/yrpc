@@ -11,7 +11,8 @@ RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
     m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
     m_can_used(true),
     m_last_active_time(yrpc::util::clock::now<yrpc::util::clock::ms>()),
-    m_handshake_time_isstop(true)
+    m_handshake_time_isstop(true),
+    m_current_loop(loop)
 {
 }
 
@@ -20,6 +21,7 @@ RpcSession::~RpcSession()
     if( !IsClosed() )
     {
         Close();
+        DEBUG("[YRPC][RpcSession::~RpcSession] RpcSession is destory!");
     }
 }
 
@@ -206,7 +208,8 @@ void RpcSession::TimeOut(Socket* socket)
     auto alrealy_timeout_ms = (timenow_ms - m_last_active_time).count();
     if (alrealy_timeout_ms >= YRPC_SESSION_TIMEOUT)
     {
-        m_timeoutcallback(socket);
+        yrpc::detail::shared::errorcode err("", yrpc::detail::shared::ERRTYPE_YCO, yrpc::detail::shared::ERR_YCO::ERR_YCO_TIMEOUT);
+        m_timeoutcallback(err, shared_from_this());
     }
     else
     {
@@ -339,14 +342,13 @@ int RpcSession::CallObj_CallResult(Buffer&& buf)
 
 void RpcSession::StartHandShakeTimer(const SessionHandShakeTimeOutCallback& handshake_timeout_func, int timeout_ms)
 {
-    if( m_handshake_time_isstop )
+    using namespace yrpc::detail::shared;
+    if( !m_handshake_time_isstop )
     {
         WARN("[YRPC][RpcSession::StartHandShakeTimer] repeat start shake timer!");
         return;
     }
     m_handshake_time_isstop.exchange(false);
-    using namespace yrpc::detail::shared;
-
     m_handshake_time_isstop = m_current_loop->AddTimer([this,handshake_timeout_func](){
         yrpc::detail::shared::errorcode e(
             "session handshake timeout!",
