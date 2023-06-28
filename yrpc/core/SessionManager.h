@@ -1,6 +1,7 @@
 #pragma once
 #include "ConnQueue.hpp"
 #include "Define.h"
+#include "yrpc/core/YRpc.h"
 #include "bbt/uuid/Uuid.hpp"
 #include <unordered_map>
 namespace yrpc::rpc::detail
@@ -30,6 +31,7 @@ public:
     SessionPtr TryGetSession(const Address& peer);
     /* 当前地址是否正在连接中 */
     bool IsConnecting(const Address& peer);
+    void RegisterService();
 private:
     __YRPC_SessionManager(int Nthread);
     ~__YRPC_SessionManager();
@@ -81,7 +83,7 @@ private:
     //////// 握手
     ////////////////////////////////////////////////////////////////////////
     /* 接受握手请求，并响应 */
-    MessagePtr Handler_HandShake(MessagePtr, const SessionPtr sess);
+    MessagePtr Handler_HandShake(const MessagePtr, SessionPtr sess);
     /* 发送握手请求 */
     void StartHandShake(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
     /* 处理握手响应 */

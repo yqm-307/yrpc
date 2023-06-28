@@ -42,6 +42,12 @@ __YRPC_SessionManager::~__YRPC_SessionManager()
     ERROR("[YRPC][~__YRPC_SessionManager] session manager destory!");
 }
 
+void __YRPC_SessionManager::RegisterService()
+{
+    yrpc::rpc::Rpc::register_service<C2S_HANDSHAKE_REQ, S2C_HANDSHAKE_RSP>("YRPC_HandShake", [=](const MessagePtr msg, SessionPtr sess_ptr){
+        return Handler_HandShake(msg, sess_ptr);
+    });
+}
 
 
 SessionPtr __YRPC_SessionManager::AddSession(bbt::uuid::UuidBase::Ptr uuid, SessionPtr sess)
@@ -184,7 +190,7 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, const Address& addr, C
                 WARN("[YRPC][__YRPC_SessionManager::OnConnect] tcp connect not exist!");
             }
             // 1、创建新session，保存到半连接队列
-            auto new_sess_ptr = AddUnDoneSession(conn);
+            new_sess_ptr = AddUnDoneSession(conn);
         }
         if( new_sess_ptr == nullptr )
         {
@@ -342,7 +348,7 @@ bool __YRPC_SessionManager::IsConnecting(const Address& peer)
 }
 
 
-MessagePtr __YRPC_SessionManager::Handler_HandShake(MessagePtr msg, const SessionPtr sess)
+MessagePtr __YRPC_SessionManager::Handler_HandShake(const MessagePtr msg,SessionPtr sess)
 {
     auto req = std::static_pointer_cast<C2S_HANDSHAKE_REQ>(msg);
     req->connector_ip();
@@ -372,7 +378,7 @@ void __YRPC_SessionManager::StartHandShake(const yrpc::detail::shared::errorcode
     if( e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK )
     {
         C2S_HANDSHAKE_REQ req;
-        req.set_uuid(m_local_node_id);
+        req.set_uuid(m_local_node_id->GetRawString());
         req.set_connector_ip(m_local_addr.GetIP());
         req.set_connector_port(m_local_addr.GetPort());
         auto callobj = CallObjFactory::GetInstance()->Create<C2S_HANDSHAKE_REQ, S2C_HANDSHAKE_RSP>(std::move(req), "YRPC_HandShake", 
@@ -389,8 +395,6 @@ void __YRPC_SessionManager::StartHandShake(const yrpc::detail::shared::errorcode
     {
         FATAL("[YRPC][__YRPC_SessionManager::StartHandShake] fatal! maybe coroutine error!");
     }
-    
-    WARN("[YRPC][__YRPC_SessionManager::StartHandShake] 函数未实现!");
 }
 
 void __YRPC_SessionManager::OnHandShakeFinal(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
@@ -427,19 +431,18 @@ void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg)
     auto peer_uuid = bbt::uuid::UuidMgr::CreateUUid(rsp->uuid());
     auto peer_addr = Address(rsp->acceptor_ip(), rsp->acceptor_port());
     // 从半连接队列总取出session
-    auto [sess_data, succ] = m_undone_conn_queue->PopUpById(peer_addr);
+    auto [sess_data, undone_succ] = m_undone_conn_queue->PopUpById(peer_addr);
     errorcode err("",
             yrpc::detail::shared::ERRTYPE_HANDSHAKE,
             yrpc::detail::shared::ERR_HANDSHAKE_UNDONE_FAILED);
-    if( !succ )
+    if( !undone_succ )
     {
-        sess_data.m_succ(err, sess_data.m_sess);
         ERROR("[YRPC][__YRPC_SessionManager::HandShakeRsp] undone session map not found!");
         return;
     }
     // 插入到 session map 中
-    auto [_, succ] = m_session_map.insert(std::make_pair(peer_uuid, sess_data.m_sess));
-    if( !succ )
+    auto [_, sess_succ] = m_session_map.insert(std::make_pair(peer_uuid, sess_data.m_sess));
+    if( !sess_succ )
     {
         sess_data.m_succ(err, sess_data.m_sess);
         sess_data.m_sess->Close();
@@ -453,6 +456,7 @@ void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg)
 SessionPtr __YRPC_SessionManager::InitRpcSession(ConnPtr new_conn)
 {
     auto next_loop = m_sub_loop[BalanceNext];
+    assert(next_loop);
     auto channel_ptr = Channel::Create(new_conn, next_loop);
     auto session_ptr = RpcSession::Create(channel_ptr, next_loop);
 
@@ -466,5 +470,17 @@ SessionPtr __YRPC_SessionManager::InitRpcSession(ConnPtr new_conn)
     session_ptr->UpdataAllCallbackAndRunInEvloop();
     return session_ptr;
 }
+
+void __YRPC_SessionManager::OnSessionTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr addr)
+{
+    // todo
+}
+
+void __YRPC_SessionManager::OnSessionClose(const yrpc::detail::shared::errorcode& e, SessionPtr addr)
+{
+    // todo
+}
+
+
 
 #undef BalanceNext
