@@ -90,7 +90,6 @@ void Acceptor::ListenInEvloop()
             if (succ >= 0) {
                 YAddress cli(inet_ntoa(peeraddr.sin_addr), htons(peeraddr.sin_port));
                 Connection::ConnectionPtr newconn = std::make_shared<Connection>(evloop,clisock,std::move(cli));
-                //handle(newconn->GetPtr());  //不对，这里如果让出cpu， 程序就会阻塞到执行完，还是要runinloop 在epoll中执行
                 this->onconnection_(e,newconn); // onconnection 不可以是长时间阻塞的调用
             }
             else 

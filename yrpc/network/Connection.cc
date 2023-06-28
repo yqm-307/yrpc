@@ -14,7 +14,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
     // m_socket->socket_timeout_ms_ = 3000;
     // m_schedule->AddTask([this](void*ptr){RunInEvloop();},nullptr);      //  注册recv handler
     m_schedule->AddSocketTimer(m_socket);                               //  注册超时事件
-    INFO("[YRPC][Connection::Connection] info: connect success ! peer addr : %s",cli.GetIPPort().c_str());
+    DEBUG("[YRPC][Connection::Connection] info: connect success ! peer addr : %s",cli.GetIPPort().c_str());
 }
 
 
@@ -38,12 +38,12 @@ size_t Connection::send(const char* data,size_t len)
             int errorp = yrpc::util::tcp::GetSockErrCode(m_socket->sockfd_);
             if(errorp == EPIPE) //对端断开
                 Close();
-            ERROR("Connection::send() error , socket error %d",errorp);
+            ERROR("[YRPC][Connection::send] send errno: %d, %s",errorp, strerror(errorp));
         }
     }
     else if(m_conn_status == disconnect)
     {
-        ERROR("Connection::send() error , conn_status is disconnect!");
+        ERROR("[YRPC][Connection::send] conn_status is disconnect!");
         return -1;
     }
     return n;
@@ -72,7 +72,7 @@ size_t Connection::recv(char* buffer,size_t buflen)
                 {
                     continue;
                 }
-                ERROR("Connection::recv() error , YRRecv error : %d ,errno is %s!", n, strerror(errno));
+                ERROR("[YRPC][Connection::recv] YRRecv error : %d ,errno is %s!", n, strerror(errno));
             }
             else
                 break;
@@ -80,7 +80,7 @@ size_t Connection::recv(char* buffer,size_t buflen)
     }
     else if (m_conn_status == disconnect)
     {
-        ERROR("Connection::recv() error , conn_status is disconnect!");
+        ERROR("[YRPC][Connection::recv] conn_status is disconnect!");
         return -1;
     }
     return n;
@@ -103,7 +103,7 @@ size_t Connection::recv(Buffer& data)
 void Connection::Close()
 {
     m_conn_status = disconnect;
-    INFO("[YRPC][Connection::Close] disconnect");
+    DEBUG("[YRPC][Connection::Close] disconnect");
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
     e.setinfo("disconnect");
