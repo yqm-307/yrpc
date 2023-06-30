@@ -51,9 +51,8 @@ example/**/*.pb.h
 example/**/*.pb.cc
 yrpc/**/*.pb.h
 yrpc/**/*.pb.cc
-
 !third-lib/*/*
-
+pbuild.sh
 
 # 忽略目录
 build/

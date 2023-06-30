@@ -1,3 +1,4 @@
+#!/bin/bash
 ##
 ## 自动生成 protobuf 文件
 ##

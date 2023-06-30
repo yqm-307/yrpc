@@ -1,3 +1,4 @@
+#!/bin/bash
 ##
 ## 生成protobuf 文件，并构建项目
 ##
