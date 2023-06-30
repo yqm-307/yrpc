@@ -49,10 +49,6 @@ _deps
 *.log
 *.pb.h
 *.pb.cc
-example/**/*.pb.h
-example/**/*.pb.cc
-yrpc/**/*.pb.h
-yrpc/**/*.pb.cc
 !third-lib/*/*
 pbuild.sh
 
@@ -60,12 +56,3 @@ pbuild.sh
 build/
 bin/
 .vscode/
-
-
-# vscode add line
-yrpc/protocol/protoc/c2s.pb.cc
-yrpc/protocol/protoc/c2s.pb.h
-yrpc/protocol/protoc/s2c.pb.cc
-yrpc/protocol/protoc/s2c.pb.h
-example/all_example.pb.cc
-example/all_example.pb.h
