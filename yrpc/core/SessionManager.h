@@ -98,7 +98,7 @@ private:
     Address             m_local_addr;       // 服务器本地地址（监听地址）
     Connector*          m_connector;        
     const size_t        m_sub_loop_size;    // sub eventloop 数量
-    std::vector<Epoller*>           m_sub_loop;         // sub eventloop
+    std::vector<Epoller*>           m_sub_loop;// sub eventloop
     CountDownLatch      m_loop_latch;       // 
     std::atomic_int     m_balance;          // 新连接轮转负载，跨线程（需要atomic，还需要考虑 memory order）
     
@@ -107,7 +107,7 @@ private:
 
     /////////////////////////////////
     SessionMap          m_session_map;      // 全连接 map <uuid, session>
-    ConnQueue::Ptr      m_undone_conn_queue;        // 半连接 queue 
+    ConnQueue::Ptr      m_undone_conn_queue;// 半连接 queue 
     std::unordered_map<Address,bbt::uuid::UuidBase::Ptr>   
                         m_knownode_map;
     Mutex               m_mutex_session_map;

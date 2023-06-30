@@ -44,7 +44,7 @@ int Acceptor::StartListen()
     if (onconnection_ == nullptr)
         return -2;
     y_scheduler->AddTask([this](void*){ListenInEvloop();},nullptr); // 注册监听任务
-    INFO("[YRPC][Acceptor::listen] acceptor begin!");
+    INFO("[YRPC][Acceptor::StartListen][%d] acceptor begin!", y_scheduler_id);
     return 0;
 }
 
@@ -60,45 +60,47 @@ int Acceptor::StartListen()
 void Acceptor::ListenInEvloop()
 {
     // 创建一个协程任务,每50ms执行一次,处理连接事件
-    y_scheduler->AddTimer([this](){
-        /*监听到新的socket连接，创建conn，并注册 协程任务*/
-        struct sockaddr_in localaddr, peeraddr;
-        socklen_t len;
-        int newfd = yrpc::socket::YRAccept(*listenfd_,reinterpret_cast<sockaddr*>(&localaddr),&len);  //主动让出cpu，直到错误或者成功返回
-        //新连接到达
-        if(newfd < 0)
-        {
-            int save_errno = errno;
-            if( save_errno != EAGAIN ) {
-                ERROR("[YRPC][Acceptor::ListenInEvloop] accept error, errno is %d!", save_errno);
-            }
+    /*监听到新的socket连接，创建conn，并注册 协程任务*/
+    struct sockaddr_in localaddr, peeraddr;
+    memset(&localaddr, '\0', sizeof(localaddr));
+    memset(&peeraddr, '\0', sizeof(peeraddr));
+    socklen_t len;
+    int newfd = yrpc::socket::YRAccept(*listenfd_, reinterpret_cast<sockaddr*>(&localaddr), &len);  //主动让出cpu，直到错误或者成功返回
+    //新连接到达
+    if(newfd < 0)
+    {
+        int save_errno = errno;
+        if( save_errno != EAGAIN ) {
+            ERROR("[YRPC][Acceptor::ListenInEvloop][%d] accept error, errno is %d!", y_scheduler_id, save_errno);
         }
+    }
+    else
+    {//创建conn
+        errorcode e; e.settype(yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK);
+        if (newfd >= 0)
+            e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_OK);
         else
-        {//创建conn
-            errorcode e; e.settype(yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK);
-            if (newfd >= 0)
-                e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_OK);
-            else
-                e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_FAIL);
-            //创建socket
+            e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_FAIL);
+        //创建socket
 
-            auto evloop = ( lber_ == nullptr ) ? y_scheduler : lber_();  // 走不走负载均衡，不走就默认在当前线程进行IO
-            Socket* clisock = evloop->CreateSocket(newfd,socket_timeout_ms_,connect_timeout_ms_);  //普通连接
-            // 获取对端ip地址和端口
-            len = sizeof(peeraddr);
-            int succ = ::getpeername(newfd, reinterpret_cast<sockaddr*>(&peeraddr), &len);
-            if (succ >= 0) {
-                YAddress cli(inet_ntoa(peeraddr.sin_addr), htons(peeraddr.sin_port));
-                Connection::ConnectionPtr newconn = std::make_shared<Connection>(evloop,clisock,std::move(cli));
-                this->onconnection_(e,newconn); // onconnection 不可以是长时间阻塞的调用
-            }
-            else 
-            {
-                FATAL("[YRPC][Acceptor::ListenInEvloop] getpeername call failed!");
-            }
+        auto evloop = ( lber_ == nullptr ) ? y_scheduler : lber_();  // 走不走负载均衡，不走就默认在当前线程进行IO
+        Socket* clisock = evloop->CreateSocket(newfd,socket_timeout_ms_,connect_timeout_ms_);  //普通连接
+        // 获取对端ip地址和端口
+        len = sizeof(peeraddr);
+        int succ = ::getpeername(newfd, reinterpret_cast<sockaddr*>(&peeraddr), &len);
+        if (succ >= 0) {
+            YAddress cli(inet_ntoa(peeraddr.sin_addr), htons(peeraddr.sin_port));
+            Connection::ConnectionPtr newconn = std::make_shared<Connection>(evloop,clisock,std::move(cli));
+            this->onconnection_(e,newconn); // onconnection 不可以是长时间阻塞的调用
         }
-
-    },50,50,-1);
+        else 
+        {
+            FATAL("[YRPC][Acceptor::ListenInEvloop][%d] getpeername call failed!", y_scheduler_id);
+        }
+    }
+    y_scheduler->AddTask([this](void *){
+        ListenInEvloop();
+    });
 }
 
 

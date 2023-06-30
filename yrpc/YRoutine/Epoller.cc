@@ -12,6 +12,7 @@
 #include "yrpc/Util/Locker.h"
 
 using namespace yrpc::coroutine::poller;
+bbt::pool_util::IDPool<int,true> Epoller::m_id_pool{65535};
 
 
 Epoller::Epoller(size_t stacksize,int maxqueue,bool protect)
@@ -20,8 +21,12 @@ Epoller::Epoller(size_t stacksize,int maxqueue,bool protect)
     timer_(),
     epollfd_(epoll_create(max_size_)),
     close_(false),
-    forever_(false)
+    forever_(false),
+    m_id()
 {
+    auto [success, id] = m_id_pool.GetID();
+    assert(success);
+    m_id = id;
     if(epollfd_ < 0)
         FATAL("[YRPC][Epoller::Epoller] error ret : %d",epollfd_);
     else
@@ -32,8 +37,13 @@ Epoller::~Epoller()
 {
     if(epollfd_>=0)
         close(epollfd_);
+    m_id_pool.ReleaseID(m_id);
 }
 
+int Epoller::GetID()
+{
+    return m_id;
+}
 
 // void Epoller::AddTask(yrpc::coroutine::context::YRoutineFunc&&func,void* args)
 // {
@@ -136,13 +146,16 @@ void Epoller::DoTimeoutTask()
     {
         std::vector<TTaskPtr> queue;
         {// 减小临界区
-            lock_guard<Mutex> lock(mutex_socket_timer_);
+        lock_guard<Mutex> lock(mutex_socket_timer_);
             socket_timer_.GetAllTimeoutTask(queue);
         }
         for (auto && task : queue)   // 处理超时任务
         {
             task->Data()->eventtype_ = EpollREvent_Timeout;
-            DEBUG("[YRPC][Epoller::DoTimeoutTask] socket addr : %x  callback addr : %x",task->Data(),task->Data()->socket_timeout_);
+            DEBUG("[YRPC][Epoller::DoTimeoutTask] socket timeout! \nms: %d\tsockfd: %d\tepollfd: %d",
+                task->Data()->socket_timeout_ms_,
+                task->Data()->sockfd_,
+                task->Data()->epollfd_);
             task->Data()->socket_timeout_(task->Data());    // callback
         }
     }

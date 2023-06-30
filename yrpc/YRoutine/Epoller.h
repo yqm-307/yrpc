@@ -35,6 +35,7 @@
 #include "../Util/noncopyable.h"
 #include "../Util/TcpUtil.h"
 #include "../Util/Locker.h"
+#include "bbt/pool_util/idpool.hpp"
 
 
 namespace yrpc::coroutine::poller
@@ -257,6 +258,8 @@ public:
      */
     size_t Size();
 
+    /* 获取 Epoller 的id */
+    int GetID();
 private:
 
     
@@ -310,7 +313,10 @@ private:
     int         epollfd_;               
     bool        close_;   
     bool        forever_;     
+    static bbt::pool_util::IDPool<int,true>    m_id_pool;
+    int m_id;
 };
+
 
 class YRPCCoSchedulerHelper {
 public:
@@ -326,3 +332,4 @@ public:
 }// namespace yrpc::coroutine::poller
 
 #define y_scheduler yrpc::coroutine::poller::YRPCCoSchedulerHelper::GetCurrentScheduler()
+#define y_scheduler_id (yrpc::coroutine::poller::YRPCCoSchedulerHelper::GetCurrentScheduler()->GetID())

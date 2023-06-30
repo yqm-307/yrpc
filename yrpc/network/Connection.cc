@@ -14,7 +14,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
     // m_socket->socket_timeout_ms_ = 3000;
     // m_schedule->AddTask([this](void*ptr){RunInEvloop();},nullptr);      //  注册recv handler
     m_schedule->AddSocketTimer(m_socket);                               //  注册超时事件
-    DEBUG("[YRPC][Connection::Connection] info: connect success ! peer addr : %s",cli.GetIPPort().c_str());
+    DEBUG("[YRPC][Connection::Connection][%d] info: connect success ! peer addr : %s", y_scheduler_id, cli.GetIPPort().c_str());
 }
 
 
@@ -38,12 +38,12 @@ size_t Connection::send(const char* data,size_t len)
             int errorp = yrpc::util::tcp::GetSockErrCode(m_socket->sockfd_);
             if(errorp == EPIPE) //对端断开
                 Close();
-            ERROR("[YRPC][Connection::send] send errno: %d, %s",errorp, strerror(errorp));
+            ERROR("[YRPC][Connection::send][%d] send errno: %d, %s", y_scheduler_id, errorp, strerror(errorp));
         }
     }
     else if(m_conn_status == disconnect)
     {
-        ERROR("[YRPC][Connection::send] conn_status is disconnect!");
+        ERROR("[YRPC][Connection::send][%d] conn_status is disconnect!", y_scheduler_id);
         return -1;
     }
     return n;
@@ -72,7 +72,7 @@ size_t Connection::recv(char* buffer,size_t buflen)
                 {
                     continue;
                 }
-                ERROR("[YRPC][Connection::recv] YRRecv error : %d ,errno is %s!", errno, strerror(errno));
+                ERROR("[YRPC][Connection::recv][%d] YRRecv error : %d ,errno is %s!", y_scheduler_id, errno, strerror(errno));
             }
             else
                 break;
@@ -80,7 +80,7 @@ size_t Connection::recv(char* buffer,size_t buflen)
     }
     else if (m_conn_status == disconnect)
     {
-        ERROR("[YRPC][Connection::recv] conn_status is disconnect!");
+        ERROR("[YRPC][Connection::recv][%d] conn_status is disconnect!", y_scheduler_id);
         return -1;
     }
     return n;
@@ -103,7 +103,7 @@ size_t Connection::recv(Buffer& data)
 void Connection::Close()
 {
     m_conn_status = disconnect;
-    DEBUG("[YRPC][Connection::Close] disconnect");
+    DEBUG("[YRPC][Connection::Close][%d] disconnect", y_scheduler_id);
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
     e.setinfo("disconnect");
@@ -111,7 +111,7 @@ void Connection::Close()
     if(m_closecb != nullptr)
         m_closecb(e,shared_from_this());
     else
-        WARN("[YRPC][Connection::Close] close func is nullptr");
+        WARN("[YRPC][Connection::Close][%d] close func is nullptr", y_scheduler_id);
 }
 
 void Connection::RunInSubLoop()
@@ -130,13 +130,13 @@ void Connection::RunInSubLoop()
         {
             e.setcode(yrpc::detail::shared::ERR_NETWORK_RECV_OK);
             
-            DEBUG("[YRPC][Connection::RunInSubLoop] info: from internet recv %d bytes",n);
+            DEBUG("[YRPC][Connection::RunInSubLoop][%d] info: from internet recv %d bytes", y_scheduler->GetID(), n);
             if(m_onrecv)
             {
                 m_onrecv(e,buffer);
             }
             else
-                ERROR("[YRPC][Connection::recvhandler] info: recv handler is illegal!");
+                ERROR("[YRPC][Connection::RunInSubLoop][%d] info: recv handler is illegal!", y_scheduler_id);
         }
     }
 }
@@ -194,10 +194,8 @@ void Connection::TimeOut(Socket* socket)
 {
     // 超时被调用,做超时处理
     // 网络层不做处理，交给上层处理超时的连接
-    if ( ( m_timeoutcb != nullptr ) && ( m_conn_status == connected ) )
+    if ( m_timeoutcb != nullptr )
         m_timeoutcb(socket);
-    else
-        WARN("[YRPC][Connection::TimeOut] connection status anomaly!");  
 }
 }
 

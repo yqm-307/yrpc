@@ -41,7 +41,7 @@ void Connector::onConnect(Socket* servfd_,const YAddress& servaddr_,const OnConn
             e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OTHRE_ERR);
             e.setinfo("connect failed! errno is %d", errno);
             onconnect_(e, servaddr_, nullptr);
-            ERROR("[YRPC][Connector::onConnect] connect error, return is  %d",n);
+            ERROR("[YRPC][Connector::onConnect] connect error, errno is %d", errno);
             return;
         }
         else

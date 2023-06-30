@@ -21,7 +21,7 @@ RpcSession::~RpcSession()
     if( !IsClosed() )
     {
         Close();
-        DEBUG("[YRPC][RpcSession::~RpcSession] RpcSession is destory!");
+        DEBUG("[YRPC][RpcSession::~RpcSession][%d] RpcSession is destory!", y_scheduler_id);
     }
 }
 
@@ -38,7 +38,7 @@ std::vector<RpcSession::Protocol> RpcSession::GetProtocolsFromInput()
             proto.data = m_input_buffer.GetAPck();
             if (proto.data.DataSize() == 0)
             {
-                DEBUG("[YRPC][RpcSession::GetProtocolsFromInput]GetAPck error!");
+                DEBUG("[YRPC][RpcSession::GetProtocolsFromInput][%d] GetAPck error!", y_scheduler_id);
                 continue;
             }
             yrpc::detail::protocol::YProtocolResolver resolver(proto.data);
@@ -122,12 +122,12 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
 #endif
             protos = GetProtocolsFromInput();
         }
+        // DEBUG("[YRPC][RpcSession::RecvFunc] recv %ld byte. total recv %ld bytes!", buff.DataSize(), m_byterecord.Getrecv_bytes());
         HandleProtocol(protos);
-        DEBUG("[YRPC][RpcSession::RecvFunc] recv %ld byte. total recv %ld bytes!", buff.DataSize(), m_byterecord.Getrecv_bytes());
     }
     else
     {
-        ERROR("recv error!");
+        ERROR("[YRPC][RpcSession::RecvFunc][%d] recv error!", y_scheduler_id);
         // todo 错误处理
     }
 }
@@ -169,13 +169,13 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
         UpdateTimeout();
 #ifdef YRPC_DEBUG
         m_byterecord.Addsend_bytes(len);
-        DEBUG("[YRPC][RpcSession::SendFunc] send %ld bytes. total send %ld bytes!", len, m_byterecord.Getsend_bytes());
+        DEBUG("[YRPC][RpcSession::SendFunc][%d] send %ld bytes. total send %ld bytes!", y_scheduler_id, len, m_byterecord.Getsend_bytes());
 #endif
     }
     else
     {
         // todo 错误处理
-        ERROR("[YRPC][RpcSession::SendFunc] %s", e.what().c_str());
+        ERROR("[YRPC][RpcSession::SendFunc][%d] %s", y_scheduler_id, e.what().c_str());
         return;
     }
 
@@ -194,7 +194,7 @@ void RpcSession::CloseFunc(const errorcode& e)
     {
         /* todo 完善错误码 */
     }
-    INFO("[YRPC][RpcSession::CloseFunc] info: Session Stop  peer = {%s}",m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
+    INFO("[YRPC][RpcSession::CloseFunc][%d] info: Session Stop  peer = {%s}", y_scheduler_id, m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
 }
 
 void RpcSession::UpdateTimeout()
@@ -299,7 +299,7 @@ int RpcSession::SendACallObj(detail::CallObj::Ptr obj)
     do{
         if (CallObj_AddObj(obj) < 0)
         {
-            ERROR("[YRPC][RpcSession::SendACallObj] call map , id is repeat!");
+            ERROR("[YRPC][RpcSession::SendACallObj][%d] call map , id is repeat!", y_scheduler_id);
             ret = -2;
             break;   
         }
@@ -330,7 +330,7 @@ int RpcSession::CallObj_CallResult(Buffer&& buf)
         auto it = m_call_map.find(protoid);
         if (it == m_call_map.end())
         {
-            ERROR("RpcClient::OnPckHandler() , info: cann`t find package id");
+            ERROR("[YRPC][RpcSession::CallObj_CallResult][%d] info: cann`t find package id", y_scheduler_id);
         }
         else
         {
@@ -345,7 +345,7 @@ void RpcSession::StartHandShakeTimer(const SessionHandShakeTimeOutCallback& hand
     using namespace yrpc::detail::shared;
     if( !m_handshake_time_isstop )
     {
-        WARN("[YRPC][RpcSession::StartHandShakeTimer] repeat start shake timer!");
+        WARN("[YRPC][RpcSession::StartHandShakeTimer][%d] repeat start shake timer!", y_scheduler_id);
         return;
     }
     m_handshake_time_isstop.exchange(false);
