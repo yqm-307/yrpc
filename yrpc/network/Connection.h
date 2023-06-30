@@ -146,6 +146,12 @@ protected:
     OnRecvHandle            m_onrecv;
     ConnCloseHandle         m_closecb;   // 
     OnTimeoutCallback       m_timeoutcb;  // 超时回调通知
+
+    int     m_init_buffer_size{4096};               // 初始化buffer大小      
+    // input buffer
+    yrpc::util::buffer::Buffer  m_input_buffer;     // 接收缓存
+    yrpc::util::buffer::Buffer  m_output_buffer;    // 接收缓存
+    
 };
 
 

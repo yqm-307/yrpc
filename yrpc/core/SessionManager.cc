@@ -434,7 +434,7 @@ void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg, SessionPtr sess)
     /* 处理握手响应 */
     auto rsp = std::make_shared<S2C_HANDSHAKE_RSP>();
     auto peer_uuid = bbt::uuid::UuidMgr::CreateUUid(rsp->uuid());
-    auto peer_addr = Address(rsp->acceptor_ip(), rsp->acceptor_port());
+    auto peer_addr = Address(sess->GetPeerAddress().GetIP(), sess->GetPeerAddress().GetPort());
     errorcode err("",
             yrpc::detail::shared::ERRTYPE_HANDSHAKE,
             yrpc::detail::shared::ERR_HANDSHAKE_UNDONE_FAILED);
@@ -454,10 +454,10 @@ void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg, SessionPtr sess)
     }
     auto&& sess_data = it_undone_sess.first;
     if( !it_session.second )
-    {
+    {// 已经存在，关闭此连接
         sess_data.m_succ(err, sess_data.m_sess);
         sess_data.m_sess->Close();
-        ERROR("[YRPC][__YRPC_SessionManager::HandShakeRsp][%d] handshake error!", y_scheduler_id);
+        INFO("[YRPC][__YRPC_SessionManager::HandShakeRsp][%d] handshake error!", y_scheduler_id);
         return;
     }
     err.setcode(yrpc::detail::shared::ERR_HANDSHAKE_SUCCESS);

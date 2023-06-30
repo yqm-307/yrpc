@@ -7,7 +7,9 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
     :m_socket(sockfd),
     m_schedule(scheduler),
     m_conn_status(connecting),
-    m_cliaddr(cli)
+    m_cliaddr(cli),
+    m_input_buffer(4096),
+    m_output_buffer(4096)
 {
     m_conn_status = connected;
     m_socket->socket_timeout_ = [this](Socket* socket){TimeOut(socket);};
@@ -116,16 +118,15 @@ void Connection::Close()
 
 void Connection::RunInSubLoop()
 {
-    const int init_buffsize{4096};
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
-    yrpc::util::buffer::Buffer buffer(init_buffsize);
+    // yrpc::util::buffer::Buffer buffer(init_buffsize);
 
-    while(m_conn_status == connected)
+    if( m_conn_status == connected )
     {
-        buffer.InitAll();
-        int n = recv(buffer.Peek(),init_buffsize);
-        buffer.WriteNull(n);
+        m_input_buffer.InitAll();
+        int n = recv(m_input_buffer.Peek(), m_init_buffer_size);
+        m_input_buffer.WriteNull(n);
         if(n > 0) 
         {
             e.setcode(yrpc::detail::shared::ERR_NETWORK_RECV_OK);
@@ -133,11 +134,12 @@ void Connection::RunInSubLoop()
             DEBUG("[YRPC][Connection::RunInSubLoop][%d] info: from internet recv %d bytes", y_scheduler->GetID(), n);
             if(m_onrecv)
             {
-                m_onrecv(e,buffer);
+                m_onrecv(e,m_input_buffer);
             }
             else
                 ERROR("[YRPC][Connection::RunInSubLoop][%d] info: recv handler is illegal!", y_scheduler_id);
         }
+        y_scheduler->AddTask([=](void* ){ RunInEvLoop(); });
     }
 }
 
