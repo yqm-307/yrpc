@@ -47,6 +47,8 @@ _deps
 
 # 忽略文件
 *.log
+*.pb.h
+*.pb.cc
 example/**/*.pb.h
 example/**/*.pb.cc
 yrpc/**/*.pb.h
@@ -57,7 +59,6 @@ pbuild.sh
 # 忽略目录
 build/
 bin/
-yrpc/protocol/protoc/
 .vscode/
 
 
