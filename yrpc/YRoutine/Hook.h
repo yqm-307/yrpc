@@ -54,23 +54,15 @@ void YRSetSocketTimeout(Socket &socket, const int socket_timeout_ms);
 
 int YRSocketFd(Socket &socket);
 
-//size_t YRSocketTimerID(Socket &socket);
-
-//void YRSocketSetTimerID(Socket &socket, size_t timer_id);
-
 Socket *YRCreateSocket();
-
-// void YRSetArgs(Socket &socket, void *args);
-
-// void *YRGetArgs(Socket &socket);
 
 void YRWait(Socket &socket, const int timeout_ms);
 
-// void YRLazyDestory(Socket &socket);
-
-// bool YRDestory(Socket &socket);
-
 int YRSleep(yrpc::coroutine::poller::Epoller* poll, int sleep_ms); //挂起当前协程指定时间
+
+Socket::RawPtr CreateSocket(const int sockfd, yrpc::coroutine::poller::Epoller* poll, int poll_fd, int timeout_ms=5000, int connect_out_ms=3000,bool noblocking = true, bool nodelay=true);
+
+void DestorySocket(Socket::RawPtr socket);
 
 }
 

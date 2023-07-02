@@ -89,7 +89,7 @@ int YRConnect(Socket &socket, const struct sockaddr *addr, socklen_t addrlen)
             //交给epoll、协程去处理
             int nfds = YRPoll(&socket,EPOLLOUT,&revents,socket.connect_timeout_ms_);
             if(nfds > 0)
-                return 0;
+                return ::connect(socket.sockfd_, addr, addrlen);
             else
                 return -1;
         }
@@ -117,7 +117,7 @@ int YRAccept(Socket &listenfd, struct sockaddr *addr, socklen_t *addrlen)
             //加入epoll，让出cpu，等listenfd可读/超时/错误
             int nfds = YRPoll(&listenfd,EPOLLIN,&revent,-1);
             if(nfds >= 0 && (revent <= 0))
-                return accept(listenfd.sockfd_,addr,addrlen);
+                return ::accept(listenfd.sockfd_,addr,addrlen);
             else
                 return -1;
         }
@@ -319,7 +319,7 @@ Epoll_Cond_t::Epoll_Cond_t()
 
 Epoll_Cond_t::~Epoll_Cond_t()
 {
-    scheduler_->DestorySocket(socket_);
+    DestorySocket(socket_);
     if (pipe_fds_[0] != -1) {
         close(pipe_fds_[0]);
     }
@@ -334,6 +334,7 @@ int Epoll_Cond_t::Init(yrpc::coroutine::poller::Epoller* scheduler,int timeout)
     if (0 != ret)
         return ret;
     fcntl(pipe_fds_[1], F_SETFL, O_NONBLOCK);
+    CreateSocket(pipe_fds_[0], scheduler, scheduler->GetPollFd(), timeout);
     socket_ = scheduler->CreateSocket(pipe_fds_[0], timeout, -1, true,false);
 
     return 0;
@@ -367,7 +368,7 @@ int Epoll_Cond_t::Notify()
 int YRSleep(yrpc::coroutine::poller::Epoller *poll, int sleep_ms)
 {
     int ret{-1};
-    yrpc::coroutine::poller::RoutineSocket *socket = poll->CreateSocket(-1);
+    yrpc::coroutine::poller::RoutineSocket *socket = CreateSocket(-1, poll, poll->GetPollFd());
     do
     {
 
@@ -404,8 +405,34 @@ int YRSleep(yrpc::coroutine::poller::Epoller *poll, int sleep_ms)
     return ret;
 }
 
-#ifdef YRAfter
+Socket::RawPtr CreateSocket(const int sockfd, yrpc::coroutine::poller::Epoller* poll, int poll_fd, int socket_timeout_ms, int connect_out_ms,bool noblocking,bool nodelay)
+{
+    auto y_socket = (Socket*)calloc(1, sizeof(Socket));
+    // auto y_socket = std::make_shared<Socket>();
+    if( sockfd >= 0 )
+    {
+        if( noblocking )
+            util::tcp::SetNonBlockFd(sockfd);
+        if( nodelay )
+            util::tcp::SetNoDelay(sockfd, nodelay);
+    }
+    y_socket->socket_timeout_ms_  = socket_timeout_ms;
+    y_socket->connect_timeout_ms_ = connect_out_ms;
+    y_socket->scheduler = poll;
+    y_socket->epollfd_ = poll_fd;
+    y_socket->sockfd_ = sockfd;
+    y_socket->event_.data.ptr = y_socket;
+    y_socket->eventtype_ = 0;
+    y_socket->last_recv_time = 0;
+
+    return y_socket;
+}
+
+void DestorySocket(Socket::RawPtr socket)
+{
+    free(socket);
+}
+
 #undef YRAFter
-#endif
 
 }

@@ -3,7 +3,7 @@
 #include "yrpc/core/YRpc.h"
 #include "yrpc/core/Define.h"
 #include <memory>
-#include <bbt/timer/interval.hpp>
+#include <bbt/timer/Interval.hpp>
 #include <bbt/config/GlobalConfig.hpp>
 #include <string>
 

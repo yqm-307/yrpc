@@ -12,6 +12,7 @@
 #include "Defines.h"
 #include "IPAddress.h"
 #include "../YRoutine/Hook.h"
+#include <bbt/templateutil/BaseType.hpp>
 
 
 namespace yrpc::detail::net
@@ -26,20 +27,15 @@ enum CONN_STATUS : int32_t
     disconnect=2    //断开连接
 };
 
-class Connection : public std::enable_shared_from_this<Connection>
+class Connection : public std::enable_shared_from_this<Connection>, public bbt::templateutil::BaseType<Connection>
 {
-public:
-    typedef std::shared_ptr<Connection> ConnectionPtr;
+    // typedef std::shared_ptr<Connection> ConnectionPtr;
     typedef std::function<void(Socket*)>       OnTimeoutCallback;
     typedef yrpc::util::buffer::Buffer Buffer;
 public:
 
     Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli);
-    ~Connection();
-
-    // 获取 shared_form_this
-    ConnectionPtr GetPtr();
-    
+    ~Connection();    
     /**
      * @brief 发送数据
      * 
@@ -63,79 +59,44 @@ public:
     size_t recv(Buffer& data);
 
 
-    /**
-     * @brief   关闭本次连接，但是等待缓冲区数据发送完毕
-     */
+    /* 关闭本次连接，但是等待缓冲区数据发送完毕 */
     void Close();
 
-
-    /**
-     * @brief   强制关闭 socket fd, 释放资源
-     */
-    // void ForceClose();
-    
-
-    /**
-     * @param cb std::function<void(const errorcode&,yrpc::util::buffer::Buffer&)>
-     */
+    /* 接收数据时回调 */
     void setOnRecvCallback(OnRecvHandle cb);
-    /**
-     * @param cb std::function<void(const errorcode&,const ConnectionPtr&)>
-     */
+    /* socket 关闭时回调 */
     void setOnCloseCallback(ConnCloseHandle cb);
-
+    /* socket 空闲超时回调 */
     void setOnTimeoutCallback(OnTimeoutCallback cb);
 
 
-    // 初始化并设置完成所有选项，需要注册协程到evloop
-    void RunInEvLoop();
-
-    /**
-     * @brief 
-     * 
-     * @return true 
-     * @return false 
-     */
+    // 启动 Connection 的接收函数
+    void StartRecvFunc();
+    /* 是否已经超时 */
     bool IsTimeOut();
-
-
-    /**
-     * @brief 判断连接是否端开
-     * 
-     * @return true 
-     * @return false 
-     */
+    /* 连接是否关闭 */
     bool IsClosed();
-    
-    /**
-     * @brief 获取对端地址
-     * 
-     * @return const YAddress&  
-     */
+    /* 获取对端地址 */
     const YAddress& GetPeerAddress() const;
-    
-    
-    
-    /**
-     * @brief 获取对端IP Port 字符串形式
-     * 
-     * @return std::string 
-     */
+    /* 获取对端ip port 的字符串 */
     std::string StrIPPort();
+    /* 创建一个Connection，并返回智能指针 */
+    static SPtr Create(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli);
+
+    yrpc::coroutine::poller::Epoller* GetScheudler();
 protected:
     //是否已经建立连接
-    bool is_connected()
-    {return m_conn_status == connected;}
-
-    // sub loop 中运行
-    void RunInSubLoop();
-
+    bool is_connected();
+    // socket 层接收处理函数
+    void RecvFunc();
+    // socket 空闲超时
     void TimeOut(Socket* socket);
+    // 检查调度器是否和当前运行中的调度器一致
+    bool CheckScheduler();
 protected:
     //todo outputbuffer ，不会让服务的写操作阻塞。但是rpc对于这个有要求吗？毕竟服务完成到返回都可以算作整体，而且有协程，处理完该发不出去还是发不出去
     Socket*          m_socket; // m_ssl_socket
-    // ssl_socket;  //
-    yrpc::coroutine::poller::Epoller* m_schedule;    //由拥有者赋予
+    yrpc::coroutine::poller::Epoller* m_schedule;
     
     volatile CONN_STATUS             m_conn_status;
     YAddress                m_cliaddr;

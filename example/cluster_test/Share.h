@@ -2,7 +2,7 @@
 #include "../all_example.pb.h"
 #include "yrpc/core/YRpc.h"
 #include <memory>
-#include <bbt/timer/interval.hpp>
+#include <bbt/timer/Interval.hpp>
 #include <bbt/Define.hpp>
 
 using namespace yrpc;

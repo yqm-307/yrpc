@@ -3,6 +3,7 @@
 #include "Define.h"
 #include "yrpc/core/YRpc.h"
 #include "bbt/uuid/Uuid.hpp"
+#include "ChannelMgr.h"
 #include <unordered_map>
 namespace yrpc::rpc::detail
 {
@@ -46,7 +47,7 @@ private:
     /* 成功接收到连接 */
     void OnAccept(const errorcode &e, ConnectionPtr conn);
     /* 连接对端成功 */
-    void OnConnect(const errorcode &e, const Address& addr, ConnectionPtr conn);
+    void OnConnect(const errorcode &e, Channel::SPtr conn);
     /* 负载均衡策略 */
     Epoller* LoadBalancer();
     /* 子线程 */
@@ -61,7 +62,7 @@ private:
     //////// 其他
     ////////////////////////////////////////////////////////////////////////
     /* 初始化一个rpc session */
-    SessionPtr InitRpcSession(ConnPtr);
+    SessionPtr InitRpcSession(Channel::SPtr chan);
 
     ////////////////////////////////////////////////////////////////////////
     //////// 已连接队列
@@ -77,7 +78,7 @@ private:
     //////// 半连接队列
     ////////////////////////////////////////////////////////////////////////
     /* thread unsafe: 添加一个新的Session 到 undone queue 中 */
-    SessionPtr AddUnDoneSession(Channel::ConnPtr newconn);
+    SessionPtr AddUnDoneSession(Channel::SPtr newconn);
     
     ////////////////////////////////////////////////////////////////////////
     //////// 握手
@@ -94,9 +95,9 @@ private:
     void OnHandShakeTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
-    Acceptor*           m_main_acceptor;
+    Acceptor::SPtr      m_main_acceptor;
     Address             m_local_addr;       // 服务器本地地址（监听地址）
-    Connector*          m_connector;        
+    Connector::SPtr     m_connector;        
     const size_t        m_sub_loop_size;    // sub eventloop 数量
     std::vector<Epoller*>           m_sub_loop;// sub eventloop
     CountDownLatch      m_loop_latch;       // 
@@ -116,5 +117,7 @@ private:
     bbt::uuid::UuidBase::Ptr                m_local_node_id;
 
     std::vector<bbt::uuid::UuidBase::Ptr>   m_node_id_list;
+
+    ChannelMgr          m_channel_mgr;
 };
 }

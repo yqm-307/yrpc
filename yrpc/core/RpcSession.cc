@@ -6,13 +6,13 @@ using namespace yrpc::rpc::detail;
 
 
 
-RpcSession::RpcSession(ChannelPtr channel,Epoller* loop)
+RpcSession::RpcSession(ChannelPtr channel)
     :m_channel(channel),
     m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
     m_can_used(true),
     m_last_active_time(yrpc::util::clock::now<yrpc::util::clock::ms>()),
     m_handshake_time_isstop(true),
-    m_current_loop(loop)
+    m_current_loop(channel->GetConnInfo()->GetScheudler())
 {
 }
 
@@ -122,7 +122,7 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
 #endif
             protos = GetProtocolsFromInput();
         }
-        // DEBUG("[YRPC][RpcSession::RecvFunc] recv %ld byte. total recv %ld bytes!", buff.DataSize(), m_byterecord.Getrecv_bytes());
+        DEBUG("[YRPC][RpcSession::RecvFunc] recv %ld byte. total recv %ld bytes!", buff.DataSize(), m_byterecord.Getrecv_bytes());
         HandleProtocol(protos);
     }
     else
@@ -249,7 +249,7 @@ bool RpcSession::HasPacket()
     return !m_pck_queue.empty();
 }
 
-const Channel::Address& RpcSession::GetPeerAddress()
+const Address& RpcSession::GetPeerAddress()
 {
     return m_channel->GetConnInfo()->GetPeerAddress();
 }

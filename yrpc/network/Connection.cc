@@ -13,6 +13,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
 {
     m_conn_status = connected;
     m_socket->socket_timeout_ = [this](Socket* socket){TimeOut(socket);};
+    m_socket->scheduler = scheduler;
     // m_socket->socket_timeout_ms_ = 3000;
     // m_schedule->AddTask([this](void*ptr){RunInEvloop();},nullptr);      //  注册recv handler
     m_schedule->AddSocketTimer(m_socket);                               //  注册超时事件
@@ -24,7 +25,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
 Connection::~Connection()
 {
     Close();
-    m_schedule->DestorySocket(m_socket);
+    yrpc::socket::DestorySocket(m_socket);
 }
 
 
@@ -63,8 +64,14 @@ size_t Connection::recv(char* buffer,size_t buflen)
     int n = 0;
     if (m_conn_status == connected)
     {
+        int debug_cycle_count = 0;
         while (1)
         {
+            debug_cycle_count = debug_cycle_count > 0 ? (debug_cycle_count + 1) : debug_cycle_count;
+            if(debug_cycle_count > 10) {
+                ERROR("[YRPC][Connection::recv] cycle too much!");
+                debug_cycle_count = -1;
+            }
             n = yrpc::socket::YRRecv(*m_socket, buffer, buflen, 0);
             if (n == 0)
                 Close();
@@ -100,28 +107,32 @@ size_t Connection::recv(Buffer& data)
     return n;
 }
 
-
+bool Connection::is_connected()
+{
+    return m_conn_status == connected;
+}
 
 void Connection::Close()
 {
-    m_conn_status = disconnect;
     DEBUG("[YRPC][Connection::Close][%d] disconnect", y_scheduler_id);
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
     e.setinfo("disconnect");
     this->m_socket->scheduler->CancelSocketTimer(this->m_socket);
+    ::close(m_socket->sockfd_);
+    m_conn_status = disconnect;
     if(m_closecb != nullptr)
         m_closecb(e,shared_from_this());
     else
         WARN("[YRPC][Connection::Close][%d] close func is nullptr", y_scheduler_id);
 }
 
-void Connection::RunInSubLoop()
+void Connection::RecvFunc()
 {
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
-    // yrpc::util::buffer::Buffer buffer(init_buffsize);
-
+    assert(CheckScheduler());
+    
     if( m_conn_status == connected )
     {
         m_input_buffer.InitAll();
@@ -130,22 +141,24 @@ void Connection::RunInSubLoop()
         if(n > 0) 
         {
             e.setcode(yrpc::detail::shared::ERR_NETWORK_RECV_OK);
-            
-            DEBUG("[YRPC][Connection::RunInSubLoop][%d] info: from internet recv %d bytes", y_scheduler->GetID(), n);
             if(m_onrecv)
             {
                 m_onrecv(e,m_input_buffer);
             }
             else
-                ERROR("[YRPC][Connection::RunInSubLoop][%d] info: recv handler is illegal!", y_scheduler_id);
+                ERROR("[YRPC][Connection::RecvFunc][%d] info: recv handler is illegal!", y_scheduler_id);
         }
-        y_scheduler->AddTask([=](void* ){ RunInEvLoop(); });
+        y_scheduler->AddTask([=](void* ){ RecvFunc(); });
+    }
+    else
+    {
+        ERROR("[YRPC][Connection::RecvFunc] connection status anomaly!");
     }
 }
 
-Connection::ConnectionPtr Connection::GetPtr()
+bool Connection::CheckScheduler()
 {
-    return this->shared_from_this();
+    return y_scheduler_id == m_schedule->GetID();
 }
 
 void Connection::setOnRecvCallback(OnRecvHandle cb)
@@ -165,11 +178,9 @@ void Connection::setOnTimeoutCallback(OnTimeoutCallback cb)
 }
 
 
-void Connection::RunInEvLoop()
+void Connection::StartRecvFunc()
 {
-    m_schedule->AddTask([this](void *)
-                       { RunInSubLoop(); },
-                       nullptr);
+    m_schedule->AddTask([this](void *){ RecvFunc(); });
 }
 
 bool Connection::IsTimeOut()
@@ -199,6 +210,18 @@ void Connection::TimeOut(Socket* socket)
     if ( m_timeoutcb != nullptr )
         m_timeoutcb(socket);
 }
+
+ConnectionPtr Connection::Create(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli)
+{
+    return std::make_shared<Connection>(scheduler, sockfd, cli);
+}
+
+yrpc::coroutine::poller::Epoller* Connection::GetScheudler()
+{
+    return m_socket->scheduler;
+}
+
+
 }
 
 

@@ -181,8 +181,12 @@ void Epoller::DoPendingList()
     {
         auto task = pending_tasks_.front();
         YRoutine_t co_t = runtime_.Add(task.first,task.second);
+        if( y_scheduler_id == 2 )
+            DEBUG("[YRPC][TEMP][Epoller::DoPendingList] %d begin rid: %d", y_scheduler_id, co_t);
         if(!runtime_.Resume(co_t))
             TRACE("Epoller::DoPendingList() runtime_.Resume() false");
+        if( y_scheduler_id == 2 )
+            DEBUG("[YRPC][TEMP][Epoller::DoPendingList] %d end rid: %d", y_scheduler_id, co_t);
         pending_tasks_.pop();
     }
 }
@@ -313,5 +317,9 @@ int Epoller::ResetSocketTimer(RoutineSocket* socket)
     return this->AddSocketTimer(socket);
 }
 
+int Epoller::GetPollFd()
+{
+    return epollfd_;
+}
 
 

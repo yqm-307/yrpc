@@ -6,7 +6,7 @@
 #include "../network/SessionBuffer.h"
 #include "CallObjFactory.h"
 #include "Define.h"
-#include <bbt/pool_util/idpool.hpp>
+#include <bbt/poolutil/IDPool.hpp>
 #include <bbt/uuid/Uuid.hpp>
 
 namespace yrpc::rpc::detail
@@ -23,7 +23,7 @@ namespace yrpc::rpc::detail
 class RpcSession : public std::enable_shared_from_this<RpcSession>
 {
     friend SessionManager;
-    typedef Channel::Buffer                     Buffer;
+    typedef yrpc::util::buffer::Buffer                     Buffer;
     
     struct session_detail_protocol
     {
@@ -36,9 +36,9 @@ class RpcSession : public std::enable_shared_from_this<RpcSession>
         Buffer data{""};
         type t{type::done};
     };
-    typedef Channel::errorcode                  errorcode;
-    typedef Channel::ChannelPtr                 ChannelPtr;
-    typedef Channel::ConnPtr                    ConnPtr;
+    typedef yrpc::detail::shared::errorcode     errorcode;
+    typedef Channel::SPtr                       ChannelPtr;
+    typedef yrpc::detail::net::Connection::SPtr ConnPtr;
     typedef yrpc::util::lock::Mutex             Mutex;
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::detail::net::SessionBuffer    SessionBuffer;
@@ -57,7 +57,7 @@ public:
 
 
 public:
-    RpcSession(ChannelPtr channel,Epoller* loop);
+    RpcSession(ChannelPtr channel);
     ~RpcSession();
 
     /* 发送数据 */
@@ -76,11 +76,11 @@ public:
     // void ForceClose();
 
     /* 创建一个Session */
-    static SessionPtr Create(ChannelPtr channel,Epoller* ep)
-    { return std::make_shared<RpcSession>(channel,ep); }
+    static SessionPtr Create(ChannelPtr channel)
+    { return std::make_shared<RpcSession>(channel); }
 
     /* 获取对端地址 */
-    const Channel::Address& GetPeerAddress();
+    const Address& GetPeerAddress();
         
     /* 不要在多线程环境调用。线程不安全 */
     void SetCloseFunc(SessionCloseCallback f)

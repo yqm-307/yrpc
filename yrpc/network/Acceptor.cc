@@ -10,14 +10,13 @@ namespace yrpc::detail::net
 
 
 Acceptor::Acceptor(int port,int socket_timeout_ms,int connect_timeout_ms)
-    :listenfd_(nullptr),
-    port_(port),
-    close_(false),
-    onconnection_(nullptr),
-    connect_timeout_ms_(connect_timeout_ms),
-    socket_timeout_ms_(socket_timeout_ms)
+    :m_listenfd(nullptr),
+    m_port(port),
+    m_closed(false),
+    m_onconn(nullptr),
+    m_connect_timeout_ms(connect_timeout_ms),
+    m_socket_timeout_ms(socket_timeout_ms)
 {
-    assert(fd_>=0);
     Init();
 }
 
@@ -29,7 +28,7 @@ Acceptor::~Acceptor()
 
 void Acceptor::Init()
 {
-    if( yrpc::socket::YRCreateListen(&fd_,port_) < 0 )
+    if( yrpc::socket::YRCreateListen(&m_fd,m_port) < 0 )
         ERROR("Acceptor::Acceptor() error , YRCreateListen call failed!");
     CreateListenSocket();
     //listenfd创建完成
@@ -39,23 +38,14 @@ void Acceptor::Init()
 
 int Acceptor::StartListen()
 {
-    if (close_ != false)
+    if (m_closed != false)
         return -1;
-    if (onconnection_ == nullptr)
+    if (m_onconn == nullptr)
         return -2;
     y_scheduler->AddTask([this](void*){ListenInEvloop();},nullptr); // 注册监听任务
     INFO("[YRPC][Acceptor::StartListen][%d] acceptor begin!", y_scheduler_id);
     return 0;
 }
-
-
-// void Acceptor::ListenRunInLoop()
-// {
-//     while(!close_)
-//         listen();
-// }
-
-
 
 void Acceptor::ListenInEvloop()
 {
@@ -65,7 +55,7 @@ void Acceptor::ListenInEvloop()
     memset(&localaddr, '\0', sizeof(localaddr));
     memset(&peeraddr, '\0', sizeof(peeraddr));
     socklen_t len;
-    int newfd = yrpc::socket::YRAccept(*listenfd_, reinterpret_cast<sockaddr*>(&localaddr), &len);  //主动让出cpu，直到错误或者成功返回
+    int newfd = yrpc::socket::YRAccept(*m_listenfd, reinterpret_cast<sockaddr*>(&localaddr), &len);  //主动让出cpu，直到错误或者成功返回
     //新连接到达
     if(newfd < 0)
     {
@@ -81,17 +71,16 @@ void Acceptor::ListenInEvloop()
             e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_OK);
         else
             e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_FAIL);
-        //创建socket
 
-        auto evloop = ( lber_ == nullptr ) ? y_scheduler : lber_();  // 走不走负载均衡，不走就默认在当前线程进行IO
-        Socket* clisock = evloop->CreateSocket(newfd,socket_timeout_ms_,connect_timeout_ms_);  //普通连接
+        auto evloop = m_lber();
+        Socket* clisock = yrpc::socket::CreateSocket(newfd, evloop, evloop->GetPollFd(), m_socket_timeout_ms, m_connect_timeout_ms);  //普通连接
         // 获取对端ip地址和端口
         len = sizeof(peeraddr);
         int succ = ::getpeername(newfd, reinterpret_cast<sockaddr*>(&peeraddr), &len);
         if (succ >= 0) {
             YAddress cli(inet_ntoa(peeraddr.sin_addr), htons(peeraddr.sin_port));
-            Connection::ConnectionPtr newconn = std::make_shared<Connection>(evloop,clisock,std::move(cli));
-            this->onconnection_(e,newconn); // onconnection 不可以是长时间阻塞的调用
+            Connection::SPtr newconn = Connection::Create(evloop, clisock, std::move(cli));
+            this->m_onconn(e,newconn); // onconnection 不可以是长时间阻塞的调用
         }
         else 
         {
@@ -106,21 +95,31 @@ void Acceptor::ListenInEvloop()
 
 void Acceptor::CreateListenSocket()
 {
-    listenfd_ = y_scheduler->CreateSocket(fd_,-1,-1); //需要free
-    if(listenfd_ == nullptr) 
+    auto evloop = ( m_lber == nullptr ) ? y_scheduler : m_lber();  // 走不走负载均衡，不走就默认在当前线程进行IO
+    m_listenfd = yrpc::socket::CreateSocket(m_fd, evloop, evloop->GetPollFd(), -1, -1); //需要free
+    if(m_listenfd == nullptr) 
         ERROR("Acceptor::CreateListenSocket() error , Epoller::CreateSocket error!");
 }
 
 void Acceptor::ReleaseListenSocket()
 {
-    if(listenfd_ == nullptr)
+    if(m_listenfd == nullptr)
         ERROR("Acceptor::RelaseListenSocket() error , listenfd is null!");
-    y_scheduler->DestorySocket(listenfd_);   //释放socket内存
-    if(fd_ < 0 )
-        ERROR("Acceptor::RelaseListenSocket() error , listen socket fd = %d error\n",fd_);
-    ::close(fd_);
+    yrpc::socket::DestorySocket(m_listenfd);   //释放socket内存
+    if(m_fd < 0 )
+        ERROR("Acceptor::RelaseListenSocket() error , listen socket fd = %d error\n",m_fd);
+    ::close(m_fd);
 }
 
+Acceptor::SPtr Acceptor::Create(int port, int socket_timeout_ms, int connect_timeout_ms)
+{
+    if( socket_timeout_ms > 0 && connect_timeout_ms > 0 )
+        return std::make_shared<Acceptor>(port, socket_timeout_ms, connect_timeout_ms);
+    else if( socket_timeout_ms )
+        return std::make_shared<Acceptor>(port, socket_timeout_ms);
+    else
+        return std::make_shared<Acceptor>(port);
+}
 
 
 }

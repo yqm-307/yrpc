@@ -23,8 +23,11 @@ namespace yrpc::detail::net
  * 类似ECS那样，网络库本身不保存数据，数据层在 channel 、 session
  * 
 */
-class Connector : public std::enable_shared_from_this<Connector>
+class Connector : public std::enable_shared_from_this<Connector>, public bbt::templateutil::BaseType<Connector>
 {
+    typedef yrpc::coroutine::poller::Epoller    Epoller;
+    typedef std::function<Epoller*()>           LoadBalancer;
+    typedef std::function<void(const yrpc::detail::shared::errorcode&, Connection::SPtr)> OnConnectCallback;    // 连接建立完成回调
 public:
     /**
      * @brief Construct a new Connector object
@@ -34,36 +37,37 @@ public:
     Connector(yrpc::coroutine::poller::Epoller* loop);
     ~Connector();
 
-
-    /**
-     * @brief 注册一个异步Connect，提供socket，服务端地址，回调。
-     *  完成连接之后会回调通知
-     * 
-     * @param servaddr 服务端地址
-     * @param onconn  连接成功时回调
-     */
-    template<typename T,if_same_as(T,OnConnectHandle)>
-    void AsyncConnect(Socket* socket,YAddress servaddr,const T& onconn)
+    /* 向 servaddr 发起一个连接 */
+    void AsyncConnect(YAddress servaddr)
     {   
-
-        scheduler_->AddTask([this,socket,servaddr,onconn](void*){
-            this->onConnect(socket,servaddr,onconn);
+        scheduler_->AddTask([this,servaddr](void*){
+            this->Connect(servaddr);
         });
     }
+    
+    template<typename LBer,if_same_as(LBer,LoadBalancer)>
+    void setLoadBalancer(const LBer& lber)
+    { m_lber = lber; }
 
-    void SyncConnect(Socket* socket, YAddress servaddr);
+    template<typename T,if_same_as(T, OnConnectCallback)>
+    void SetOnConnectCallback(const T& cb)
+    { m_onconn = cb; }
 
     static Socket* CreateSocket();
     static void DestorySocket(Socket*);
-
+    static SPtr Create(yrpc::coroutine::poller::Epoller* loop);
 protected:
     auto GetPtr()
     {
         return this->shared_from_this();
     }
-    void onConnect(Socket* servfd_,const YAddress& servaddr_,const OnConnectHandle& onconnect_);
+    void Connect(const YAddress& servaddr);
 private:
     yrpc::coroutine::poller::Epoller* scheduler_;
+
+    OnConnectCallback   m_onconn;
+    
+    LoadBalancer    m_lber;
 };
 
 }

@@ -1,6 +1,6 @@
 #include "yrpc/Util/cter_tsf.h"
 #include <thread>
-#include <bbt/random/random.hpp>
+#include <bbt/random/Random.hpp>
 using namespace yrpc::util::thread_safe_cter;
 
 void nthread_map()

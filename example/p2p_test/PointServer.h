@@ -12,7 +12,7 @@
 #include <yrpc/core/YRpc.h>
 #include "yrpc/network/all.h"
 #include "../all_example.pb.h"
-#include <bbt/random/random.hpp>
+#include <bbt/random/Random.hpp>
 
 using namespace yrpc;
 typedef yrpc::detail::ProtoMsgPtr MsgPtr;

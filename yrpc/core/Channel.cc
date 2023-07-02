@@ -16,14 +16,16 @@ using namespace yrpc::rpc::detail;
 
 void Channel::CloseInitFunc(const errorcode& e)
 { 
-    INFO("[YRPC][Channel::CloseInitFunc] info[errcode : %d]: peer:{ip:port} = {%s}\t",
+    INFO("[YRPC][Channel::CloseInitFunc][%d] info[errcode : %d]: peer:{ip:port} = {%s}\t",
+        y_scheduler_id,
         e.err(),
         m_conn->StrIPPort().c_str()); 
 }
 
 void Channel::ErrorInitFunc(const errorcode& e)
 { 
-    INFO("[YRPC][Channel::ErrorCallback] info[errocde : %d]:: peer:{ip:port} = {%s}\t",
+    INFO("[YRPC][Channel::ErrorCallback][%d] info[errocde : %d]:: peer:{ip:port} = {%s}\t",
+        y_scheduler_id,
         e.err(),
         m_conn->StrIPPort().c_str()); 
 }
@@ -31,7 +33,8 @@ void Channel::ErrorInitFunc(const errorcode& e)
 
 void Channel::SendInitFunc(const errorcode&e,size_t len)
 { 
-    INFO("[YRPC][Channel::SendInitFunc] info[errcode : %d]: peer:{ip:port} = {%s}\t",
+    INFO("[YRPC][Channel::SendInitFunc][%d] info[errcode : %d]: peer:{ip:port} = {%s}\t",
+        y_scheduler_id,
         e.err(),
         m_conn->StrIPPort().c_str()); 
 }
@@ -47,13 +50,10 @@ Channel::Channel()
 {
 }
 
-Channel::Channel(ConnPtr newconn,Epoller* ep)
-    :m_eventloop(ep),
-    m_conn(newconn)
+Channel::Channel(yrpc::detail::net::Connection::SPtr new_conn)
+    :m_conn(new_conn),
+    m_eventloop(new_conn->GetScheudler())
 {
-    assert(m_eventloop != nullptr);
-    DEBUG("[YRPC][Channel::Channel] construction channel peer:{ip:port} = {%s}",
-            newconn->StrIPPort().c_str());
 }
 
 Channel::~Channel()
@@ -67,10 +67,27 @@ Channel::~Channel()
         m_closecallback(e, m_conn);
     }
 
-    DEBUG("[YRPC][Channel::~Channel] info: destory channel peer:{ip:port} = {%s}",
+    DEBUG("[YRPC][Channel::~Channel][%d] info: destory channel peer:{ip:port} = {%s}",
+            y_scheduler_id,
             m_conn->StrIPPort().c_str());
 }
 
+
+void Channel::SetAcceptor(Acceptor::SPtr acceptor)
+{
+    m_acceptor = acceptor;
+}
+
+void Channel::SetConnector(Connector::SPtr connector)
+{
+    m_connector = connector;
+}
+
+void Channel::Init(Acceptor::SPtr acceptor, Connector::SPtr connector)
+{
+    m_acceptor = acceptor;
+    m_connector = connector;
+}
 
 
 void Channel::Close()
@@ -133,14 +150,14 @@ void Channel::InitFunc()
         this->m_closecallback(e, p);
     });
 
-    m_conn->RunInEvLoop();
+    m_conn->StartRecvFunc();
 }
 
 
 
-Channel::ChannelPtr Channel::Create(ConnPtr conn,Epoller* ep)
+Channel::ChannelPtr Channel::Create(ConnPtr conn)
 {
-    return std::make_shared<Channel>(conn,ep);
+    return std::make_shared<Channel>(conn);
 }
 
 

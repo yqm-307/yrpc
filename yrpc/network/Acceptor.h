@@ -1,16 +1,16 @@
 #pragma once
 #include "Connection.h"
 #include "../shared/all.h"
-
-
+#include <bbt/templateutil/BaseType.hpp>
 namespace yrpc::detail::net
 {
 
-class Acceptor
+class Acceptor: public bbt::templateutil::BaseType<Acceptor>
 {
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef std::function<Epoller*()>           LoadBalancer;
     typedef yrpc::detail::shared::errorcode     errorcode;
+    typedef std::function<void(const yrpc::detail::shared::errorcode&, Connection::SPtr)> OnAcceptCallback;
 public:
     /**
      * @brief Construct a new Acceptor object
@@ -35,7 +35,7 @@ public:
     /**
      * @brief 停止监听
      */
-    void Close(){ close_.store(true); }
+    void Close(){ m_closed.store(true); }
 
     
     /**
@@ -45,13 +45,15 @@ public:
      * @param onconn 新连接建立时回调
      * @param args  函数参数(保留，可能用到)
      */
-    template<typename Func,if_same_as(Func, OnAcceptHandle)>
+    template<typename Func,if_same_as(Func, OnAcceptCallback)>
     void setOnAccept(Func&& onconn, void* args = nullptr)
-    { onconnection_ = onconn; args_ = args;}
+    { m_onconn = onconn; args_ = args;}
 
     template<typename LBer,if_same_as(LBer,LoadBalancer)>
     void setLoadBalancer(const LBer& lber)
-    { lber_ = lber; }
+    { m_lber = lber; }
+
+    static SPtr Create(int port, int socket_timeout_ms = 0, int connect_timeout_ms = 0);
 protected:
     /* main loop 运行的函数 */
     void ListenInEvloop();
@@ -60,17 +62,17 @@ protected:
     void CreateListenSocket();
     void ReleaseListenSocket();
 private:
-    // Epoller*        scheduler_;   // listen所在的evloop
-    LoadBalancer    lber_;   
-    Socket*         listenfd_;
-    int             port_;
-    int             fd_;
-    std::atomic_bool    close_;
-    OnAcceptHandle     onconnection_;  //handle 去解析rpc request ，调用请求的服务
+    LoadBalancer    m_lber;   
+    Socket*         m_listenfd;
+    int             m_port;
+    int             m_fd;
+    std::atomic_bool    m_closed;
+    OnAcceptCallback    m_onconn;
     void*               args_;
 
-    int                 connect_timeout_ms_;
-    int                 socket_timeout_ms_;
+    int                 m_connect_timeout_ms;
+    int                 m_socket_timeout_ms;
+
 };  
 
 }

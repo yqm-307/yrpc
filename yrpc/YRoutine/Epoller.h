@@ -35,8 +35,8 @@
 #include "../Util/noncopyable.h"
 #include "../Util/TcpUtil.h"
 #include "../Util/Locker.h"
-#include "bbt/pool_util/idpool.hpp"
-
+#include "bbt/poolutil/IDPool.hpp"
+#include <bbt/templateutil/BaseType.hpp>
 
 namespace yrpc::coroutine::poller
 {
@@ -54,7 +54,7 @@ enum EpollREventStatus  : int32_t
 
 
 
-struct RoutineSocket
+struct RoutineSocket: public bbt::templateutil::BaseType<RoutineSocket>
 {
 private:
     typedef int YRoutine_t;
@@ -260,6 +260,8 @@ public:
 
     /* 获取 Epoller 的id */
     int GetID();
+
+    int GetPollFd();
 private:
 
     
