@@ -27,7 +27,7 @@ public:
     /* 发起一个异步连接,成功后会调用回调 */
     void AsyncConnect(Address peer,OnSession onsession);
     /* 异步接收连接 */
-    void AsyncAccept(const Address& peer);
+    void StartListen(const Address& peer);
     /* 尝试获取Session，Session不存在或者正在连接中返回nullptr，线程安全 */
     SessionPtr TryGetSession(const Address& peer);
     /* 当前地址是否正在连接中 */
@@ -45,7 +45,7 @@ private:
     // 运行在 sub loop 中的，只做io、协议解析
     void RunInSubLoop(Epoller*);
     /* 成功接收到连接 */
-    void OnAccept(const errorcode &e, ConnectionPtr conn);
+    void OnAccept(const errorcode &e, Channel::SPtr conn);
     /* 连接对端成功 */
     void OnConnect(const errorcode &e, Channel::SPtr conn);
     /* 负载均衡策略 */

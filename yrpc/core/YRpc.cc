@@ -41,7 +41,7 @@ void Rpc::AsyncConnect(const detail::Address& addr,const detail::CommCallback& c
 
 void Rpc::StartServerListen(const detail::Address& addr)
 {
-    detail::SessionManager::GetInstance()->AsyncAccept(addr);
+    detail::SessionManager::GetInstance()->StartListen(addr);
 }
 
 int Rpc::YRpcInit()

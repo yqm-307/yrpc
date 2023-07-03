@@ -40,13 +40,10 @@ public:
     
     /**
      * @brief 上层持有者,通过注册该回调来开始运行
-     *  (ps:我们希望使用万能引用,因此需要使用模板,但是又想要限定类型,
-     *  因此需要偏特化模板,所以使用 if_same_as )
      * @param onconn 新连接建立时回调
      * @param args  函数参数(保留，可能用到)
      */
-    template<typename Func,if_same_as(Func, OnAcceptCallback)>
-    void setOnAccept(Func&& onconn, void* args = nullptr)
+    void setOnAccept(const OnAcceptHandle& onconn, void* args = nullptr)
     { m_onconn = onconn; args_ = args;}
 
     template<typename LBer,if_same_as(LBer,LoadBalancer)>

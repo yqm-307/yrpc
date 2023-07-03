@@ -100,7 +100,7 @@ bool __YRPC_SessionManager::DelSession(UuidPtr peer_uuid)
 void __YRPC_SessionManager::RunInMainLoop()
 {
     assert(m_main_acceptor != nullptr);
-    m_main_acceptor->StartListen();
+    m_channel_mgr.StartListen();
 }
 
 void __YRPC_SessionManager::RunInSubLoop(Epoller* lp)
@@ -131,23 +131,30 @@ __YRPC_SessionManager *__YRPC_SessionManager::GetInstance()
     return manager;
 }
 
-void __YRPC_SessionManager::OnAccept(const errorcode &e, ConnectionPtr conn)
+void __YRPC_SessionManager::OnAccept(const errorcode &e, Channel::SPtr chan)
 {
-    /* 1、创建Session，保存在undone queue中 */
-    auto new_sess_ptr = this->AddUnDoneSession(conn);
+    if( e.err() == yrpc::detail::shared::ERR_NETWORK_ACCEPT_OK )
+    {
+        /* 1、创建Session，保存在undone queue中 */
+        auto new_sess_ptr = this->AddUnDoneSession(chan);
 
-    /* 2、设置超时定时器 */
-    /* todo: 将握手超时配置化 */
-    new_sess_ptr->StartHandShakeTimer([this](const yrpc::detail::shared::errorcode& e, SessionPtr sess){
-        OnHandShakeTimeOut(e, sess);
-    }, 3000);
+        /* 2、设置超时定时器 */
+        /* todo: 将握手超时配置化 */
+        new_sess_ptr->StartHandShakeTimer([this](const yrpc::detail::shared::errorcode& e, SessionPtr sess){
+            OnHandShakeTimeOut(e, sess);
+        }, 3000);
+    }
+    else
+    {
+        ERROR("[YRPC][__YRPC_SessionManager::OnAccept][%d] accept failed! msg: %s", y_scheduler_id, e.what().c_str());
+    }
 }
 
 void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan)
 {
-    auto addr = chan->GetConnInfo()->GetPeerAddress();
     if (e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
     {
+        auto addr = chan->GetConnInfo()->GetPeerAddress();
         SessionPtr new_sess_ptr{nullptr};
         {
             lock_guard<Mutex> lock(m_mutex_session_map);
@@ -170,7 +177,7 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan)
     }
     else 
     {
-        ERROR("[YRPC][__YRPC_SessionManager::OnConnect][%d] connect error!", y_scheduler_id);
+        ERROR("[YRPC][__YRPC_SessionManager::OnConnect][%d] connect error! msg: %s", y_scheduler_id, e.what().c_str());
     }
 }
 
@@ -214,7 +221,7 @@ void __YRPC_SessionManager::AsyncConnect(Address peer_addr,OnSession onsession)
     }
 }
 
-void __YRPC_SessionManager::AsyncAccept(const Address& peer)
+void __YRPC_SessionManager::StartListen(const Address& peer)
 {
     /**
      * 创建服务器地址，设置服务提供方处理函数
@@ -224,15 +231,14 @@ void __YRPC_SessionManager::AsyncAccept(const Address& peer)
      * Todo : 被连接也要保存到SessionMap 
      */
     if(m_main_acceptor != nullptr)
-    {
-        m_main_acceptor = nullptr;
-    }
+        return;
     m_main_acceptor = Acceptor::Create(peer.GetPort(),3000,5000);
     
     m_main_acceptor->setLoadBalancer(functor([this]()->auto {return this->LoadBalancer(); }));
-    m_main_acceptor->setOnAccept(functor([this](const yrpc::detail::shared::errorcode&e,yrpc::detail::net::ConnectionPtr conn)->void{
-        this->OnAccept(e,conn);
-    }),nullptr);
+    m_channel_mgr.SetAcceptor(m_main_acceptor);
+    m_channel_mgr.SetOnAccept([this](const yrpc::detail::shared::errorcode&e, Channel::SPtr chan)->void{
+        this->OnAccept(e,chan);
+    });
     m_local_addr = peer;
     m_main_loop->AddTask([this](void*){
         this->RunInMainLoop();

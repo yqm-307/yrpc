@@ -23,5 +23,5 @@ void RpcServer::SetAddress(const Address& addr)
 
 void RpcServer::Start()
 {
-    yrpc::rpc::detail::__YRPC_SessionManager::GetInstance()->AsyncAccept(m_serv_addr);
+    yrpc::rpc::detail::__YRPC_SessionManager::GetInstance()->StartListen(m_serv_addr);
 }
