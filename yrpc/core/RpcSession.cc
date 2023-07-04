@@ -364,3 +364,13 @@ void RpcSession::StopHandShakeTimer()
 {
     m_handshake_time_isstop.exchange(true);
 }
+
+void RpcSession::SetPeerUuid(bbt::uuid::UuidBase::Ptr uuid)
+{
+    m_peer_node_uuid = uuid;
+}
+
+bbt::uuid::UuidBase::Ptr RpcSession::GetPeerUuid()
+{
+    return m_peer_node_uuid;
+}

@@ -413,6 +413,7 @@ void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg, SessionPtr sess)
     errorcode err("",
             yrpc::detail::shared::ERRTYPE_HANDSHAKE,
             yrpc::detail::shared::ERR_HANDSHAKE_UNDONE_FAILED);
+    sess->SetPeerUuid(peer_uuid);
     std::pair<decltype(m_session_map)::iterator,bool> it_session;
     std::pair<HandShakeData, bool>  it_undone_sess;
     {
@@ -458,11 +459,16 @@ void __YRPC_SessionManager::OnSessionTimeOut(const yrpc::detail::shared::errorco
     // todo
 }
 
-void __YRPC_SessionManager::OnSessionClose(const yrpc::detail::shared::errorcode& e, SessionPtr addr)
+void __YRPC_SessionManager::OnSessionClose(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
 {
-    // todo
+    DelSession(sess->GetPeerUuid());
+    DEBUG("[YRPC][__YRPC_SessionManager::OnSessionClose][%d] RpcSession closed! delete info from SessionMgr!", y_scheduler_id);
 }
 
+bbt::uuid::UuidBase::Ptr __YRPC_SessionManager::GetUuid(const Address& key)
+{
+    lock_guard<Mutex> lock(m_mutex_session_map);
 
+}
 
 #undef BalanceNext

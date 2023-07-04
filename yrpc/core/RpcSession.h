@@ -94,6 +94,9 @@ public:
     
     /* 发送一个CallObj。线程安全 */
     int SendACallObj(detail::CallObj::Ptr obj);
+
+    void SetPeerUuid(bbt::uuid::UuidBase::Ptr uuid);
+    bbt::uuid::UuidBase::Ptr GetPeerUuid();
 private:
     /* 添加一个obj到objmap中，成功返回1，失败返回-1。线程安全 */
     int CallObj_AddObj(detail::CallObj::Ptr obj);
@@ -172,7 +175,7 @@ private:
 
     static bbt::pool_util::IDPool<int,true>
                                     g_sessionid_mgr;    /* session id 管理 */
-    bbt::uuid::UuidBase::Ptr        peer_node_uuid;     /* 对端节点uuid */
+    bbt::uuid::UuidBase::Ptr        m_peer_node_uuid;     /* 对端节点uuid */
     // bbt::uuid::UuidBase::Ptr        m_session_id;    // 目前看来不需要唯一标识 sid
 };
 }

@@ -72,6 +72,7 @@ private:
     // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
     bool DelSession(UuidPtr peer_uuid);
     void Dispatch(Buffer&&string, SessionPtr sess);
+    bbt::uuid::UuidBase::Ptr GetUuid(const Address& key);
     SessionID AddressToID(const Address&key);
 
     ////////////////////////////////////////////////////////////////////////
