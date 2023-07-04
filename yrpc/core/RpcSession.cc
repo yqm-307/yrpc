@@ -95,6 +95,9 @@ void RpcSession::InitFunc()
         this->TimeOut(socket);
     });
 
+    m_channel->SetCloseCallback([this](const errorcode& err, Channel::SPtr chan){
+        this->OnClose(err, chan);
+    });
 }
 
 void RpcSession::UpdataAllCallbackAndRunInEvloop()
@@ -177,7 +180,7 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
 
 }
 
-void RpcSession::CloseFunc(const errorcode& e)
+void RpcSession::OnClose(const errorcode& e, Channel::SPtr chan)
 {
     // 关闭Session对外提供的API
     m_can_used.store(false);
@@ -190,7 +193,7 @@ void RpcSession::CloseFunc(const errorcode& e)
     {
         /* todo 完善错误码 */
     }
-    INFO("[YRPC][RpcSession::CloseFunc][%d] info: Session Stop  peer = {%s}", y_scheduler_id, m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
+    INFO("[YRPC][RpcSession::OnClose][%d] info: Session Stop  peer = {%s}", y_scheduler_id, m_channel->GetConnInfo()->GetPeerAddress().GetIPPort().c_str());
 }
 
 void RpcSession::UpdateTimeout()

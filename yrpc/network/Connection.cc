@@ -151,10 +151,6 @@ void Connection::RecvFunc()
         }
         y_scheduler->AddTask([=](void* ){ RecvFunc(); });
     }
-    else
-    {
-        ERROR("[YRPC][Connection::RecvFunc] connection status anomaly!");
-    }
 }
 
 bool Connection::CheckScheduler()

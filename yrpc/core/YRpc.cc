@@ -11,13 +11,11 @@ int Rpc::RemoteOnce(const detail::Address& addr,const std::string& funcname,deta
         {
             if (session->IsClosed())
             {
-                ERROR("[YRPC][Rpc::RemoteOnce] session is closed!");
                 ret = -1;
                 break;
             }
             if (session->SendACallObj(obj) < 0)
             {
-                ERROR("[YRPC][Rpc::RemoteOnce] send request fatal!");
                 ret = -2;
                 break;
             }

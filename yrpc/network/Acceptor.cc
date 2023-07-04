@@ -54,7 +54,7 @@ void Acceptor::ListenInEvloop()
     struct sockaddr_in localaddr, peeraddr;
     memset(&localaddr, '\0', sizeof(localaddr));
     memset(&peeraddr, '\0', sizeof(peeraddr));
-    socklen_t len;
+    socklen_t len = sizeof(localaddr);
     int newfd = yrpc::socket::YRAccept(*m_listenfd, reinterpret_cast<sockaddr*>(&localaddr), &len);  //主动让出cpu，直到错误或者成功返回
     //新连接到达
     if(newfd < 0)

@@ -127,7 +127,7 @@ private:
     // thread safe
     void RecvFunc(const errorcode&,Buffer&);
     void SendFunc(const errorcode&,size_t);
-    void CloseFunc(const errorcode&);
+    void OnClose(const errorcode&, Channel::SPtr);
     void TimeOut(Socket* socket);
 public:
     ////////////////////////////////////////////////////////////////////////
