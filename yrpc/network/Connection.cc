@@ -24,8 +24,8 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
 
 Connection::~Connection()
 {
-    Close();
-    yrpc::socket::DestorySocket(m_socket);
+    if( m_conn_status != disconnect )
+        Close();
 }
 
 
@@ -114,17 +114,18 @@ bool Connection::is_connected()
 
 void Connection::Close()
 {
-    DEBUG("[YRPC][Connection::Close][%d] disconnect", y_scheduler_id);
+    m_conn_status = disconnect;
+    // DEBUG("[YRPC][Connection::Close][%d] disconnect", y_scheduler_id);
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
     e.setinfo("disconnect");
     this->m_socket->scheduler->CancelSocketTimer(this->m_socket);
     ::close(m_socket->sockfd_);
-    m_conn_status = disconnect;
     if(m_closecb != nullptr)
-        m_closecb(e,shared_from_this());
+        m_closecb(e, shared_from_this());
     else
         WARN("[YRPC][Connection::Close][%d] close func is nullptr", y_scheduler_id);
+    yrpc::socket::DestorySocket(m_socket);
 }
 
 void Connection::RecvFunc()

@@ -59,34 +59,17 @@ Channel::Channel(yrpc::detail::net::Connection::SPtr new_conn)
 Channel::~Channel()
 {
     errorcode e("channel is destory",yrpc::detail::shared::ERRTYPE_NOTHING,0);
-    if (!m_is_closed)
+    if (!m_conn->IsClosed())
     {
         m_conn->Close();
         if (m_closecallback == nullptr)
             CloseInitFunc(e);
-        m_closecallback(e, m_conn);
+        m_closecallback(e, shared_from_this()); // 回调给 RpcSession
     }
 
     DEBUG("[YRPC][Channel::~Channel][%d] info: destory channel peer:{ip:port} = {%s}",
             y_scheduler_id,
             m_conn->StrIPPort().c_str());
-}
-
-
-void Channel::SetAcceptor(Acceptor::SPtr acceptor)
-{
-    m_acceptor = acceptor;
-}
-
-void Channel::SetConnector(Connector::SPtr connector)
-{
-    m_connector = connector;
-}
-
-void Channel::Init(Acceptor::SPtr acceptor, Connector::SPtr connector)
-{
-    m_acceptor = acceptor;
-    m_connector = connector;
 }
 
 
@@ -146,8 +129,9 @@ void Channel::InitFunc()
         this->m_timeoutcallback(socket);
     });
 
-    m_conn->setOnCloseCallback([this](const errorcode& e,const ConnPtr p){
-        this->m_closecallback(e, p);
+    m_conn->setOnCloseCallback([this](const errorcode& e, Connection::SPtr chan){
+        // this->OnClose
+        this->m_closecallback(e, shared_from_this());
     });
 
     m_conn->StartRecvFunc();

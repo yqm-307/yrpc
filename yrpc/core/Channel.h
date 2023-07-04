@@ -13,7 +13,7 @@ namespace yrpc::rpc::detail
  * 再 channel 中调用 Send 其实会将发送数据协程注册到channel所在的线程中
  * 从而避免过多的加锁
 */
-class Channel: public bbt::templateutil::BaseType<Channel>
+class Channel: public std::enable_shared_from_this<Channel>, public bbt::templateutil::BaseType<Channel>
 {
     typedef yrpc::util::buffer::Buffer                      Buffer;
     typedef yrpc::detail::shared::errorcode                 errorcode;
@@ -22,10 +22,11 @@ class Channel: public bbt::templateutil::BaseType<Channel>
     typedef yrpc::coroutine::poller::RoutineSocket          Socket;
     typedef std::function<void(const errorcode&,Buffer&,const ConnPtr)>   RecvCallback;
     typedef std::function<void(const errorcode&,size_t,const ConnPtr)>    SendCallback;
-    typedef std::function<void(const errorcode&,const ConnPtr)>           CloseCallback;
-    typedef std::function<void(const errorcode&,const ConnPtr)>           ErrorCallback;
+    typedef std::function<void(const errorcode&, Channel::SPtr)>          CloseCallback;
+    typedef std::function<void(const errorcode&, Channel::SPtr)>          ErrorCallback;
     typedef std::function<void(Socket*)>                                  TimeOutCallback;
     typedef std::shared_ptr<Channel>                        ChannelPtr;
+    typedef yrpc::detail::net::Connection                   Connection;
     typedef yrpc::detail::net::Acceptor                     Acceptor;
     typedef yrpc::detail::net::Connector                    Connector;
     typedef yrpc::util::lock::Mutex                         Mutex;
@@ -45,10 +46,6 @@ public:
     Channel();
     Channel(yrpc::detail::net::Connection::SPtr new_conn);
     virtual ~Channel();
-
-    void SetAcceptor(Acceptor::SPtr acceptor);
-    void SetConnector(Connector::SPtr connector);
-    void Init(Acceptor::SPtr acceptor, Connector::SPtr connector);
     ////////////////////////
     ////// 连接接口 ////////
     ////////////////////////

@@ -28,7 +28,7 @@ using std::placeholders::_5;
 typedef std::function<void(const errorcode&, const yrpc::detail::net::YAddress&, ConnectionPtr)>    OnConnectHandle;
 typedef std::function<void(const errorcode&, ConnectionPtr)>    OnAcceptHandle;
 typedef std::function<void(const errorcode&, yrpc::util::buffer::Buffer&)>       OnRecvHandle;
-typedef std::function<void(const errorcode&, const ConnectionPtr&)>          ConnCloseHandle;
+typedef std::function<void(const errorcode&, ConnectionPtr)>                ConnCloseHandle;
 typedef std::function<void(const errorcode&)>                               OnCloseHandle;
 
 

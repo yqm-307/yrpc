@@ -91,10 +91,6 @@ void RpcSession::InitFunc()
         this->SendFunc(e,len);
     });
 
-    m_channel->SetCloseCallback([this](const errorcode& e,const ConnPtr){
-        this->CloseFunc(e);
-    });
-
     m_channel->SetTimeOutCallback([this](Socket* socket){
         this->TimeOut(socket);
     });
