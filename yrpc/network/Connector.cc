@@ -23,7 +23,8 @@ void Connector::Connect(const YAddress& servaddr_)
     int n = yrpc::socket::YRConnect(*tmp_socket ,servaddr_.getsockaddr(), servaddr_.getsocklen());
     int connerror=0;
     socklen_t len = sizeof(connerror);
-    getsockopt(tmp_socket->sockfd_,SOL_SOCKET,SO_ERROR,&connerror,&len);
+    connerror = yrpc::util::tcp::GetSockErrCode(tmp_socket->sockfd_);
+    // getsockopt(tmp_socket->sockfd_,SOL_SOCKET,SO_ERROR,&connerror,&len);
 
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);

@@ -148,7 +148,8 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, Channel::SPtr chan)
         auto sess_ptr = this->Append_UnDoneMap(new_sess_ptr);
         if( sess_ptr == nullptr )
         {
-            ERROR("[YRPC][__YRPC_SessionManager::OnAccept][%d] append undone map failed! addr: {%s}", y_scheduler_id, chan->GetPeerAddress().GetIPPort());
+            ERROR("[YRPC][__YRPC_SessionManager::OnAccept][%d] append undone map failed! addr: {%s}", y_scheduler_id, chan->GetPeerAddress().GetIPPort().c_str());
+            new_sess_ptr->Close();
             return;
         }
         /* 2、设置超时定时器 */
@@ -156,6 +157,7 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, Channel::SPtr chan)
         new_sess_ptr->StartHandShakeTimer([this](const yrpc::detail::shared::errorcode& e, SessionPtr sess){
             OnHandShakeTimeOut(e, sess);
         }, 3000);
+        INFO("[YRPC][__YRPC_SessionManager::OnAccept][%d] accept success! peer:{%s}", y_scheduler_id, chan->GetPeerAddress().GetIPPort().c_str());
     }
     else
     {
@@ -217,7 +219,7 @@ void __YRPC_SessionManager::AsyncConnect(Address peer_addr,OnSession onsession)
     else
         // 是否在半连接队列中
         if( !m_undone_conn_queue->HasWaitting(peer_addr) )
-            is_need_connect;
+            is_need_connect = true;
 
     if( is_need_connect )
     {
@@ -237,7 +239,8 @@ void __YRPC_SessionManager::StartListen(const Address& peer)
      */
     if(m_main_acceptor != nullptr)
         return;
-    m_main_acceptor = Acceptor::Create(peer.GetPort(),3000,5000);
+    assert(m_main_loop != nullptr);
+    m_main_acceptor = Acceptor::Create(m_main_loop, peer.GetPort(),3000,5000);
     
     m_main_acceptor->setLoadBalancer(functor([this]()->auto {return this->LoadBalancer(); }));
     m_channel_mgr.SetAcceptor(m_main_acceptor);
@@ -319,7 +322,7 @@ SessionPtr __YRPC_SessionManager::TryGetSession(const Address& peer)
     auto uuid = GetUuid(peer);
     if( nullptr == uuid )
     {
-        DEBUG("[YRPC][__YRPC_SessionManager::TryGetSession] uuid not found!");
+        // DEBUG("[YRPC][__YRPC_SessionManager::TryGetSession] uuid not found!");
         return nullptr;
     }
     return GetSessionFromSessionMap(uuid);
@@ -388,6 +391,7 @@ void __YRPC_SessionManager::StartHandShake(const yrpc::detail::shared::errorcode
         sess->StartHandShakeTimer([this](const errorcode& e, SessionPtr sess){
             OnHandShakeTimeOut(e, sess);
         },3000);
+        DEBUG("[YRPC][__YRPC_SessionManager::StartHandShake][%d] handshake start!", y_scheduler_id);
     }
     else
     {
@@ -397,7 +401,14 @@ void __YRPC_SessionManager::StartHandShake(const yrpc::detail::shared::errorcode
 
 void __YRPC_SessionManager::OnHandShakeFinal(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
 {
-    INFO("[YRPC][__YRPC_SessionManager::OnHandShakeFinal][%d] handshake success!", y_scheduler_id);
+    if( e.err() == yrpc::detail::shared::ERR_HANDSHAKE_SUCCESS )
+    {
+        INFO("[YRPC][__YRPC_SessionManager::OnHandShakeFinal][%d] handshake success!", y_scheduler_id);
+    }
+    else
+    {
+        ERROR("[YRPC][__YRPC_SessionManager::OnHandShakeFinal][%d] handshake failed!", y_scheduler_id);
+    }
 }
 
 void __YRPC_SessionManager::OnHandShakeTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr sess)

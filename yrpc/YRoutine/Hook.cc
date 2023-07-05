@@ -127,7 +127,7 @@ int YRAccept(Socket &listenfd, struct sockaddr *addr, socklen_t *addrlen)
 
 int YRCreateListen(int* fd,int port)
 {
-    int listenfd = ::socket(AF_INET,SOCK_STREAM,0);
+    int listenfd = ::socket(AF_INET, SOCK_STREAM, 0);
     if(listenfd < 0)
         ERROR("YRCreateListen() socket, create listenfd error!");
     
@@ -137,7 +137,7 @@ int YRCreateListen(int* fd,int port)
     servaddr.sin_addr.s_addr = INADDR_ANY;
 
     int flag = 1;
-    int ret = ::setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&flag,sizeof(flag));
+    int ret = ::setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
     if(ret < 0){
         ERROR("YRCreateListen() setsockopt, set socket option error!");
         ret = -1;

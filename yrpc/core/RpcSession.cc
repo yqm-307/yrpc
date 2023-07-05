@@ -156,7 +156,8 @@ bool RpcSession::IsClosed()
 
 void RpcSession::Close()
 {
-    m_channel->Close();
+    if( !m_channel->IsClosed() )
+        m_channel->Close();
 }
 
 

@@ -6,7 +6,7 @@ project(libyrpc)
 enable_language(C CXX)
 
 # 自定义变量 环境选项
-set(Wall_Flag "-Wall -Wno-sign-compare -Wno-format -Wno-reorder")
+set(Wall_Flag "-Wall -Wno-sign-compare -Wno-format -Wno-reorder -Wno-unknown-pragmas")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g ${Wall_Flag}")
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g -Wall")

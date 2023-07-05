@@ -20,7 +20,7 @@ public:
      * @param socket_timeout_ms socket超时时间 
      * @param connect_timeout_ms 连接超时时间 
      */
-    Acceptor(int port,int socket_timeout_ms = SOCKET_TIME_OUT_MS,int connect_timeout_ms = SOCKET_CONN_TIME_MS);
+    Acceptor(Epoller* loop, int port,int socket_timeout_ms = SOCKET_TIME_OUT_MS,int connect_timeout_ms = SOCKET_CONN_TIME_MS);
     ~Acceptor();
 
 
@@ -44,13 +44,13 @@ public:
      * @param args  函数参数(保留，可能用到)
      */
     void setOnAccept(const OnAcceptHandle& onconn, void* args = nullptr)
-    { m_onconn = onconn; args_ = args;}
+    { m_onaccept = onconn; args_ = args;}
 
     template<typename LBer,if_same_as(LBer,LoadBalancer)>
     void setLoadBalancer(const LBer& lber)
     { m_lber = lber; }
 
-    static SPtr Create(int port, int socket_timeout_ms = 0, int connect_timeout_ms = 0);
+    static SPtr Create(Epoller* loop, int port, int socket_timeout_ms = 0, int connect_timeout_ms = 0);
 protected:
     /* main loop 运行的函数 */
     void ListenInEvloop();
@@ -59,12 +59,13 @@ protected:
     void CreateListenSocket();
     void ReleaseListenSocket();
 private:
+    Epoller*        m_loop;
     LoadBalancer    m_lber;   
     Socket*         m_listenfd;
     int             m_port;
     int             m_fd;
     std::atomic_bool    m_closed;
-    OnAcceptCallback    m_onconn;
+    OnAcceptCallback    m_onaccept;
     void*               args_;
 
     int                 m_connect_timeout_ms;

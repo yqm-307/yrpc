@@ -121,6 +121,7 @@ void Connection::Close()
     e.setinfo("disconnect");
     this->m_socket->scheduler->CancelSocketTimer(this->m_socket);
     ::close(m_socket->sockfd_);
+    INFO("[YRPC][Connection::Close][%d] close connect!", y_scheduler_id);
     if(m_closecb != nullptr)
         m_closecb(e, shared_from_this());
     else
