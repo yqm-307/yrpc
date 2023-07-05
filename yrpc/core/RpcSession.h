@@ -20,7 +20,7 @@ namespace yrpc::rpc::detail
  * 4、从属epoll就是 m 个连接在一个epoll里面，就是协程了。
  * 5、buffer 就设置在Session里面吧
  */
-class RpcSession : public std::enable_shared_from_this<RpcSession>
+class RpcSession : public std::enable_shared_from_this<RpcSession>, bbt::templateutil::BaseType<RpcSession>
 {
     friend SessionManager;
     typedef yrpc::util::buffer::Buffer                     Buffer;

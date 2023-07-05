@@ -54,7 +54,7 @@ private:
     void SubLoop(int idx);
     /* 主线程 */
     void MainLoop();
-    /* RpcSession 析构时调用 */
+    /* RpcSession 关闭时调用 */
     void OnSessionClose(const yrpc::detail::shared::errorcode& e, SessionPtr addr);
     /* RpcSession 超时时调用 */
     void OnSessionTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr addr);
@@ -63,24 +63,28 @@ private:
     ////////////////////////////////////////////////////////////////////////
     /* 初始化一个rpc session */
     SessionPtr InitRpcSession(Channel::SPtr chan);
-
-    ////////////////////////////////////////////////////////////////////////
-    //////// 已连接队列
-    ////////////////////////////////////////////////////////////////////////
-    // thread safe: 添加一个新的Session 到 SessionMap 中
-    SessionPtr AddSession(bbt::uuid::UuidBase::Ptr uuid, SessionPtr newconn);
-    // 此操作线程安全: 删除并释放 SessionMap 中一个Session 的资源。如果不存在，则返回false，否则返回true
-    bool DelSession(UuidPtr peer_uuid);
+    /* 主循环初始化时调用 */
+    void OnMainLoopInit();
+    /* 分配buffer，不该放这里 */
     void Dispatch(Buffer&&string, SessionPtr sess);
+
+#pragma region // session map 操作集合, 不加锁
+
+    // 向 m_session_map 中添加一个session, 失败返回 nullptr
+    SessionPtr Append_SessionMap(bbt::uuid::UuidBase::Ptr uuid, SessionPtr newconn);
+    // 从 m_session_map 中删除一个session, 失败返回 nullptr
+    SessionPtr Delete_SessionMap(bbt::uuid::UuidBase::Ptr uuid);
+    // 从 know_host 中获取一个 uuid, 失败返回 nullptr
     bbt::uuid::UuidBase::Ptr GetUuid(const Address& key);
     SessionID AddressToID(const Address&key);
+    /* 添加一个新的Session 到半连接队列中 */
+    SessionPtr Append_UnDoneMap(RpcSession::SPtr newconn);
+    /* 从半连接队列中删除一个连接，失败返回 nullptr */
+    bool Delete_UnDoneMap(const Address& peer_addr);
+    SessionPtr GetSessionFromSessionMap(bbt::uuid::UuidBase::Ptr uuid);
+#pragma endregion
 
-    ////////////////////////////////////////////////////////////////////////
-    //////// 半连接队列
-    ////////////////////////////////////////////////////////////////////////
-    /* thread unsafe: 添加一个新的Session 到 undone queue 中 */
-    SessionPtr AddUnDoneSession(Channel::SPtr newconn);
-    
+
     ////////////////////////////////////////////////////////////////////////
     //////// 握手
     ////////////////////////////////////////////////////////////////////////

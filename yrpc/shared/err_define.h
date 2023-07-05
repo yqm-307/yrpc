@@ -39,6 +39,7 @@ enum ERR_HANDSHAKE : int32_t
     ERR_HANDSHAKE_TIMEOUT       = 1001, // 握手超时
     ERR_HANDSHAKE_SESS_NOTEXIST = 1002, // Session 找不到
     ERR_HANDSHAKE_UNDONE_FAILED = 1003, // 半连接队列错误
+    ERR_HANDSHAKE_SESS_EXIST    = 1004, // Session 已经存在 
 };
 
 enum ERR_YCO : int32_t

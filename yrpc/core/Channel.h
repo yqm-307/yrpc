@@ -54,10 +54,8 @@ public:
      *  调用该接口后，不能接收和发送数据
      */
     void Close();
-    
     /* check connection is closed */
     bool IsClosed();
-    
     /* check peer is alive */
     bool IsAlive();
 
@@ -66,17 +64,12 @@ public:
     ////////////////////////
     /* send data to peer (thread safe) */
     size_t Send(const Buffer& data);
-
     /* send len byte to peer (thread safe)*/
     size_t Send(const char* data,size_t len);
-    
-
     const ConnPtr GetConnInfo()
     { return m_conn; }
-
-
-
-
+    const Address& GetPeerAddress()
+    { return m_conn->GetPeerAddress(); }
 public:
 
 

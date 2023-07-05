@@ -28,10 +28,10 @@ int main(int argc, char* argv[])
 
     PointServer p(peer_ip, peer_port, listen_port);
     p.StartService();
-    y_scheduler->AddTask([](void* arg){
-        auto p2p = static_cast<PointServer*>(arg);
-        p2p->Start();
-    }, &p);
+    // y_scheduler->AddTask([](void* arg){
+    //     auto p2p = static_cast<PointServer*>(arg);
+    //     p2p->Start();
+    // }, &p);
     y_scheduler->RunForever();
     y_scheduler->Loop();
 }

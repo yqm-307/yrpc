@@ -49,53 +49,61 @@ void __YRPC_SessionManager::RegisterService()
 }
 
 
-SessionPtr __YRPC_SessionManager::AddSession(bbt::uuid::UuidBase::Ptr uuid, SessionPtr sess)
+SessionPtr __YRPC_SessionManager::Append_SessionMap(bbt::uuid::UuidBase::Ptr uuid, SessionPtr sess)
 {
-    /**
-     * 新连接，如果已经存在，立即关闭
-     */
+    if( sess == nullptr )
+        return nullptr;
     auto [it, succ] = m_session_map.insert(std::make_pair(uuid, sess));
     if( !succ )
-    {// 已经存在
-        sess->Close();
-        WARN("[YRPC][__YRPC_SessionManager::AddSession][%d] Connection duplication is a small probability event, maybe error!", y_scheduler_id);
+    {
         return nullptr;
     }
-
     return sess;
 }
 
-SessionPtr __YRPC_SessionManager::AddUnDoneSession(Channel::SPtr new_chan)
+SessionPtr __YRPC_SessionManager::Delete_SessionMap(bbt::uuid::UuidBase::Ptr uuid)
 {
-    auto session_ptr = InitRpcSession(new_chan);
+    auto it = m_session_map.find(uuid);
+    if( it != m_session_map.end() )
+    {
+        it = m_session_map.erase(it);
+        return ( (it == m_session_map.end()) ? nullptr : it->second );
+    }
+    else
+        return nullptr;
+}
+
+SessionPtr __YRPC_SessionManager::Append_UnDoneMap(RpcSession::SPtr new_sess)
+{
+    // auto session_ptr = InitRpcSession(new_chan);
     struct yrpc::rpc::detail::HandShakeData hand_shake_data;
-    hand_shake_data.m_sess = session_ptr;
+    hand_shake_data.m_sess = new_sess;
     hand_shake_data.m_succ = [this](const yrpc::detail::shared::errorcode& e, SessionPtr sess){
         OnHandShakeFinal(e, sess);
     };
     // 加入到半连接队列
-    int status = m_undone_conn_queue->FindAndPush(new_chan->GetConnInfo()->GetPeerAddress(), hand_shake_data);
+    int status = m_undone_conn_queue->FindAndPush(new_sess->GetPeerAddress(), hand_shake_data);
     if( status > 0 )
     {
-        return session_ptr;
+        return new_sess;
     }
     return nullptr;
 }
 
-
-bool __YRPC_SessionManager::DelSession(UuidPtr peer_uuid)
-{    
-    lock_guard<Mutex> lock(m_mutex_session_map);
-    auto its = m_session_map.find(peer_uuid);
-    if ( its != m_session_map.end() )
-    {
-        m_session_map.erase(its);
-        return true;
-    }
-    else
-        return false;   // 不存在此节点
+bool __YRPC_SessionManager::Delete_UnDoneMap(const Address& peer_addr)
+{
+    return  m_undone_conn_queue->DelTcpConn(peer_addr);
 }
 
+SessionPtr __YRPC_SessionManager::GetSessionFromSessionMap(bbt::uuid::UuidBase::Ptr uuid)
+{
+    auto it = m_session_map.find(uuid);
+    if( it == m_session_map.end() )
+    {
+        return nullptr;
+    }
+    return it->second;
+}
 
 void __YRPC_SessionManager::RunInMainLoop()
 {
@@ -136,8 +144,13 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, Channel::SPtr chan)
     if( e.err() == yrpc::detail::shared::ERR_NETWORK_ACCEPT_OK )
     {
         /* 1、创建Session，保存在undone queue中 */
-        auto new_sess_ptr = this->AddUnDoneSession(chan);
-
+        auto new_sess_ptr = InitRpcSession(chan);
+        auto sess_ptr = this->Append_UnDoneMap(new_sess_ptr);
+        if( sess_ptr == nullptr )
+        {
+            ERROR("[YRPC][__YRPC_SessionManager::OnAccept][%d] append undone map failed! addr: {%s}", y_scheduler_id, chan->GetPeerAddress().GetIPPort());
+            return;
+        }
         /* 2、设置超时定时器 */
         /* todo: 将握手超时配置化 */
         new_sess_ptr->StartHandShakeTimer([this](const yrpc::detail::shared::errorcode& e, SessionPtr sess){
@@ -163,7 +176,7 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan)
                 WARN("[YRPC][__YRPC_SessionManager::OnConnect][%d] tcp connect not exist!", y_scheduler_id);
             }
             // 1、创建新session，保存到半连接队列
-            new_sess_ptr = AddUnDoneSession(chan);
+            new_sess_ptr = Append_UnDoneMap(chan);
         }
         if( new_sess_ptr == nullptr )
         {
@@ -188,36 +201,27 @@ void __YRPC_SessionManager::AsyncConnect(Address peer_addr,OnSession onsession)
 
     lock_guard<Mutex> lock(m_mutex_session_map);
     auto it_uuid = m_knownode_map.find(peer_addr);
+    // 是否已知节点
     if( it_uuid != m_knownode_map.end() )
-    {// 此节点是已知节点
+    {
         auto it_done_sess = m_session_map.find(it_uuid->second);
+        // 是否已有连接
         if( it_done_sess == m_session_map.end() )
-        {// 已完成连接中不存在Session
-            auto it_conned_sess = m_undone_conn_queue->Find(peer_addr);
-            if( it_conned_sess == nullptr )
-            {// 连接不存在，新建连接
+            // 是否在半连接队列中
+            if( ! m_undone_conn_queue->HasWaitting(peer_addr) )
                 is_need_connect = true;
-            }
-        }
         else
-        {// 已存在session，回调通知
             onsession(it_done_sess->second);
-        }
     }
     else
-    {// 连接一个未知节点
-        auto it_undone_sess = m_undone_conn_queue->Find(peer_addr);
-        if( it_undone_sess == nullptr )
-        {// 半连接队列中不存在，需发起连接
-            is_need_connect = true;
-        }
-    }
+        // 是否在半连接队列中
+        if( !m_undone_conn_queue->HasWaitting(peer_addr) )
+            is_need_connect;
+
     if( is_need_connect )
     {
-        // Socket* socket = yrpc::socket::CreateSocket();
-        m_undone_conn_queue->AddTcpConn(peer_addr);
         m_channel_mgr.AsyncConnect(peer_addr);
-        // m_connector->AsyncConnect(peer_addr);
+        m_undone_conn_queue->AddTcpConn(peer_addr);
     }
 }
 
@@ -278,37 +282,46 @@ void __YRPC_SessionManager::SubLoop(int idx)
     m_sub_loop[idx]->RunForever();
     m_loop_latch.down();
     m_loop_latch.wait();
+    DEBUG("[YRPC][__YRPC_SessionManager::SubLoop][%d] sub loop begin!", y_scheduler_id);
     m_sub_loop[idx]->Loop();
+    DEBUG("[YRPC][__YRPC_SessionManager::SubLoop][%d] sub loop begin!", y_scheduler_id);
+
 }
 void __YRPC_SessionManager::MainLoop()
 {
     assert(y_scheduler != nullptr);
     m_main_loop = y_scheduler;
-    m_connector = Connector::Create(m_main_loop);
-    m_connector->setLoadBalancer(functor([this]()->auto{ return LoadBalancer(); }));
-    m_channel_mgr.SetConnector(m_connector);
-    m_channel_mgr.SetOnConnect([this](const errorcode& err, Channel::SPtr new_chan){
-        OnConnect(err, new_chan);
-    });
+    OnMainLoopInit();
     m_main_loop->RunForever();
     m_loop_latch.down();
     m_loop_latch.wait();
+    DEBUG("[YRPC][__YRPC_SessionManager::MainLoop][%d] main loop begin!", y_scheduler_id);
     m_main_loop->Loop();
+    DEBUG("[YRPC][__YRPC_SessionManager::MainLoop][%d] main loop end!", y_scheduler_id);
 }
+
+void __YRPC_SessionManager::OnMainLoopInit()
+{
+
+    m_connector = Connector::Create(m_main_loop);
+    m_connector->setLoadBalancer(functor([this]()->auto{ return LoadBalancer(); }));
+    m_channel_mgr.SetOnConnect([this](const errorcode& err, Channel::SPtr new_chan){
+        OnConnect(err, new_chan);
+    });
+    m_channel_mgr.SetConnector(m_connector);
+}
+
 
 SessionPtr __YRPC_SessionManager::TryGetSession(const Address& peer)
 {
     lock_guard<Mutex> lock(m_mutex_session_map);
-    auto it_uuid = m_knownode_map.find(peer);
-    if( it_uuid == m_knownode_map.end() )
+    auto uuid = GetUuid(peer);
+    if( nullptr == uuid )
     {
+        DEBUG("[YRPC][__YRPC_SessionManager::TryGetSession] uuid not found!");
         return nullptr;
     }
-    auto it = m_session_map.find(it_uuid->second);
-    if (it == m_session_map.end())
-        return nullptr;
-    else
-        return it->second;
+    return GetSessionFromSessionMap(uuid);
 }
 
 bool __YRPC_SessionManager::IsConnecting(const Address& peer)
@@ -335,7 +348,11 @@ MessagePtr __YRPC_SessionManager::Handler_HandShake(const MessagePtr msg,Session
         // 保存到 knownode map  -- todo 优化对端数据
         auto [_, succ] = m_knownode_map.insert(std::make_pair(peer_addr, peer_uuid));
         // 保存到 session map
-        AddSession(peer_uuid, sess);
+        if( nullptr == Append_SessionMap(peer_uuid, sess) )
+        {
+            ERROR("[YRPC][__YRPC_SessionManager::Handler_HandShake][%d] session map repeat key! ip: {%s}", y_scheduler_id, sess->GetPeerAddress().GetIPPort());
+            sess->Close();
+        }
     }
     // 握手成功，设置rsp
     auto rsp = std::make_shared<S2C_HANDSHAKE_RSP>();
@@ -414,7 +431,7 @@ void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg, SessionPtr sess)
             yrpc::detail::shared::ERRTYPE_HANDSHAKE,
             yrpc::detail::shared::ERR_HANDSHAKE_UNDONE_FAILED);
     sess->SetPeerUuid(peer_uuid);
-    std::pair<decltype(m_session_map)::iterator,bool> it_session;
+    SessionPtr result_ptr;
     std::pair<HandShakeData, bool>  it_undone_sess;
     {
         lock_guard<Mutex> lock(m_mutex_session_map);
@@ -426,11 +443,13 @@ void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg, SessionPtr sess)
             return;
         }
         // 插入到 session map 中
-        it_session = m_session_map.insert(std::make_pair(peer_uuid, it_undone_sess.first.m_sess));
+        result_ptr = Append_SessionMap(peer_uuid, it_undone_sess.first.m_sess);
     }
     auto&& sess_data = it_undone_sess.first;
-    if( !it_session.second )
-    {// 已经存在，关闭此连接
+    // 添加失败
+    if( result_ptr == nullptr )
+    {
+        err.setcode(yrpc::detail::shared::ERR_HANDSHAKE_SESS_EXIST);
         sess_data.m_succ(err, sess_data.m_sess);
         sess_data.m_sess->Close();
         INFO("[YRPC][__YRPC_SessionManager::HandShakeRsp][%d] handshake error!", y_scheduler_id);
@@ -461,14 +480,25 @@ void __YRPC_SessionManager::OnSessionTimeOut(const yrpc::detail::shared::errorco
 
 void __YRPC_SessionManager::OnSessionClose(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
 {
-    DelSession(sess->GetPeerUuid());
+    {
+        lock_guard<Mutex> lock(m_mutex_session_map);
+        auto peer_sess = Delete_SessionMap(sess->GetPeerUuid());
+        if( nullptr == peer_sess )
+        {
+            ERROR("[YRPC][__YRPC_SessionManager::OnSessionClose][%d] ", y_scheduler_id);
+        }
+    }
+    // DelSession(sess->GetPeerUuid());
     DEBUG("[YRPC][__YRPC_SessionManager::OnSessionClose][%d] RpcSession closed! delete info from SessionMgr!", y_scheduler_id);
 }
 
 bbt::uuid::UuidBase::Ptr __YRPC_SessionManager::GetUuid(const Address& key)
 {
-    lock_guard<Mutex> lock(m_mutex_session_map);
-
+    // lock_guard<Mutex> lock(m_mutex_session_map);
+    auto it = m_knownode_map.find(key);
+    if( it == m_knownode_map.end() )
+        return nullptr;
+    return it->second;
 }
 
 #undef BalanceNext
