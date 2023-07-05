@@ -176,7 +176,8 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan)
                 WARN("[YRPC][__YRPC_SessionManager::OnConnect][%d] tcp connect not exist!", y_scheduler_id);
             }
             // 1、创建新session，保存到半连接队列
-            new_sess_ptr = Append_UnDoneMap(chan);
+            auto sess = InitRpcSession(chan);
+            new_sess_ptr = Append_UnDoneMap(sess);
         }
         if( new_sess_ptr == nullptr )
         {
@@ -424,7 +425,7 @@ void __YRPC_SessionManager::OnHandShakeTimeOut(const yrpc::detail::shared::error
 void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg, SessionPtr sess)
 {
     /* 处理握手响应 */
-    auto rsp = std::make_shared<S2C_HANDSHAKE_RSP>();
+    auto rsp = std::static_pointer_cast<S2C_HANDSHAKE_RSP>(msg);
     auto peer_uuid = bbt::uuid::UuidMgr::CreateUUid(rsp->uuid());
     auto peer_addr = Address(sess->GetPeerAddress().GetIP(), sess->GetPeerAddress().GetPort());
     errorcode err("",
