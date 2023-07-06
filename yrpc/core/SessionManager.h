@@ -47,7 +47,7 @@ private:
     /* 成功接收到连接 */
     void OnAccept(const errorcode &e, Channel::SPtr conn);
     /* 连接对端成功 */
-    void OnConnect(const errorcode &e, Channel::SPtr conn);
+    void OnConnect(const errorcode &e, Channel::SPtr conn, const Address& addr);
     /* 负载均衡策略 */
     Epoller* LoadBalancer();
     /* 子线程 */
@@ -79,8 +79,10 @@ private:
     SessionID AddressToID(const Address&key);
     /* 添加一个新的Session 到半连接队列中 */
     SessionPtr Append_UnDoneMap(RpcSession::SPtr newconn);
-    /* 从半连接队列中删除一个连接，失败返回 nullptr */
-    bool Delete_UnDoneMap(const Address& peer_addr);
+    /* 从半连接队列中删除一个Session连接，失败返回 nullptr */
+    std::pair<HandShakeData, bool> Delete_UnDoneMap(const Address& peer_addr);
+    /* 从半连接队列中删除一个 TcpConn，失败返回 false */
+    bool Delete_TcpUnDoneMap(const Address& peer_addr);
     SessionPtr GetSessionFromSessionMap(bbt::uuid::UuidBase::Ptr uuid);
 #pragma endregion
 

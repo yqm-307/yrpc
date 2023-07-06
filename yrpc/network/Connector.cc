@@ -12,7 +12,7 @@ Connector::Connector(yrpc::coroutine::poller::Epoller* loop)
 Connector::~Connector()
 {}
 
-void Connector::Connect(const YAddress& servaddr_)
+void Connector::Connect(const YAddress& peer_addr)
 {
     /* 对于socket fd ，其实这里交给了connection管理，会在connection析构close，如果有可能的话想要做的更加现代 */
     int sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
@@ -20,7 +20,7 @@ void Connector::Connect(const YAddress& servaddr_)
     auto poll = m_lber();
     Socket::RawPtr tmp_socket = yrpc::socket::CreateSocket(sockfd, poll, poll->GetPollFd());
 
-    int n = yrpc::socket::YRConnect(*tmp_socket ,servaddr_.getsockaddr(), servaddr_.getsocklen());
+    int n = yrpc::socket::YRConnect(*tmp_socket ,peer_addr.getsockaddr(), peer_addr.getsocklen());
     int connerror=0;
     socklen_t len = sizeof(connerror);
     connerror = yrpc::util::tcp::GetSockErrCode(tmp_socket->sockfd_);
@@ -35,7 +35,7 @@ void Connector::Connect(const YAddress& servaddr_)
             ::close(sockfd);
             e.setcode(yrpc::detail::shared::ERR_NETWORK_ECONNREFUSED);
             e.setinfo("connect refused %d",connerror);
-            m_onconn(e, nullptr);
+            m_onconn(e, nullptr, peer_addr);
             return;
         }
         if(n<0)
@@ -43,17 +43,17 @@ void Connector::Connect(const YAddress& servaddr_)
             ::close(sockfd);
             e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OTHRE_ERR);
             e.setinfo("connect failed! errno is %d", errno);
-            m_onconn(e, nullptr);
+            m_onconn(e, nullptr, peer_addr);
             return;
         }
         else
         {//成功建立新连接
             assert(m_lber != nullptr);
             auto conn_in_loop = m_lber(); 
-            ConnectionPtr conn = Connection::Create(conn_in_loop, tmp_socket, servaddr_);
+            ConnectionPtr conn = Connection::Create(conn_in_loop, tmp_socket, peer_addr);
             e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OK);
             e.setinfo("connet success peer %s",conn->StrIPPort().c_str());
-            m_onconn(e, conn);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
+            m_onconn(e, conn, peer_addr);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
         }
     }
     else

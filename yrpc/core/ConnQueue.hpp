@@ -46,12 +46,13 @@ class ConnQueue : bbt::noncopyable
     typedef std::unordered_set<Address>         TcpConnMap;
 public:
     typedef std::unique_ptr<ConnQueue>  Ptr;
-    /* 弹出一个元素 , 失败返回 nullptr*/
-    std::pair<HandShakeData,bool> 
-        PopUpById(const Address& addr);
-    int FindAndPush(const Address& addr, const HandShakeData& func);
+    /* 删除一个未连接成功的Session，失败返回false */
+    std::pair<HandShakeData,bool> DelUnDoneSession(const Address& addr);
+    int AddUnDoneSession(const Address& addr, const HandShakeData& func);
     const HandShakeData* Find(const Address& id);
 
+    // bool DelUnDoneSession(const Address& addr);
+    // bool AddUnDoneSession(const);
     /* 是否有等待中的session或tcp连接 */
     bool HasWaitting(const Address& addr);
     /* 添加一个tcp连接 */

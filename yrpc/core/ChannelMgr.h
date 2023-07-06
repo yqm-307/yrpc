@@ -7,7 +7,7 @@ class ChannelMgr
 {
     typedef yrpc::detail::shared::errorcode         errorcode;
     typedef yrpc::detail::net::Connection           Connection;
-    typedef std::function<void(const errorcode&, Channel::SPtr)> OnConnectCallback;
+    typedef std::function<void(const errorcode&, Channel::SPtr, const yrpc::detail::net::YAddress&)> OnConnectCallback;
     typedef std::function<void(const errorcode&, Channel::SPtr)> OnAcceptCallback;
     typedef std::function<void(const errorcode&, Channel::SPtr)> OnCloseCallback; 
 public:
@@ -28,7 +28,7 @@ public:
     /* 需要先设置acceptor */
     void StartListen();
 private:
-    void OnConnect(const errorcode& err, Connection::SPtr conn);
+    void OnConnect(const errorcode& err, Connection::SPtr conn, const yrpc::detail::net::YAddress& addr);
     void OnAccept(const errorcode& err, Connection::SPtr conn);
 
     void DefaultOnConnect(const errorcode& err, Connection::SPtr conn);

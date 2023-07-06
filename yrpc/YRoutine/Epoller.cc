@@ -28,9 +28,9 @@ Epoller::Epoller(size_t stacksize,int maxqueue,bool protect)
     assert(success);
     m_id = id;
     if(epollfd_ < 0)
-        FATAL("[YRPC][Epoller::Epoller] error ret : %d",epollfd_);
+        FATAL("[YRPC][Epoller::Epoller][%d] error ret : %d", m_id, epollfd_);
     else
-        DEBUG("[YRPC][Epoller::Epoller] epollfd : %d",epollfd_);
+        DEBUG("[YRPC][Epoller::Epoller][%d] epollfd : %d", m_id, epollfd_);
 }
 
 Epoller::~Epoller()

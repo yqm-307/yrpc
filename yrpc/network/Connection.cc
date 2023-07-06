@@ -17,7 +17,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
     // m_socket->socket_timeout_ms_ = 3000;
     // m_schedule->AddTask([this](void*ptr){RunInEvloop();},nullptr);      //  注册recv handler
     m_schedule->AddSocketTimer(m_socket);                               //  注册超时事件
-    DEBUG("[YRPC][Connection::Connection][%d] info: connect success ! peer addr : %s", y_scheduler_id, cli.GetIPPort().c_str());
+    DEBUG("[YRPC][Connection::Connection][%d] connection init! peer addr : %s", y_scheduler_id, cli.GetIPPort().c_str());
 }
 
 

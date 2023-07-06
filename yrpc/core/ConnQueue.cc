@@ -5,7 +5,7 @@
 using namespace yrpc::rpc::detail;
 
 
-std::pair<HandShakeData,bool> ConnQueue::PopUpById(const Address& addr)
+std::pair<HandShakeData,bool> ConnQueue::DelUnDoneSession(const Address& addr)
 {
     auto it = m_undone_rpc_session_map.find(addr);
     if(it == m_undone_rpc_session_map.end())
@@ -17,7 +17,7 @@ std::pair<HandShakeData,bool> ConnQueue::PopUpById(const Address& addr)
     }
 }
 
-int ConnQueue::FindAndPush(const Address& addr, const HandShakeData& func)
+int ConnQueue::AddUnDoneSession(const Address& addr, const HandShakeData& func)
 {
     int ret = -1;
     auto it = m_undone_rpc_session_map.find(addr);

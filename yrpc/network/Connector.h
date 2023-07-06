@@ -27,7 +27,7 @@ class Connector : public std::enable_shared_from_this<Connector>, public bbt::te
 {
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef std::function<Epoller*()>           LoadBalancer;
-    typedef std::function<void(const yrpc::detail::shared::errorcode&, Connection::SPtr)> OnConnectCallback;    // 连接建立完成回调
+    typedef std::function<void(const yrpc::detail::shared::errorcode&, Connection::SPtr, const yrpc::detail::net::YAddress&)> OnConnectCallback;    // 连接建立完成回调
 public:
     /**
      * @brief Construct a new Connector object
@@ -45,12 +45,10 @@ public:
         });
     }
     
-    template<typename LBer,if_same_as(LBer,LoadBalancer)>
-    void setLoadBalancer(const LBer& lber)
+    void setLoadBalancer(const LoadBalancer& lber)
     { m_lber = lber; }
 
-    template<typename T,if_same_as(T, OnConnectCallback)>
-    void SetOnConnectCallback(const T& cb)
+    void SetOnConnectCallback(const OnConnectCallback& cb)
     { m_onconn = cb; }
 
     static Socket* CreateSocket();

@@ -82,7 +82,7 @@ SessionPtr __YRPC_SessionManager::Append_UnDoneMap(RpcSession::SPtr new_sess)
         OnHandShakeFinal(e, sess);
     };
     // 加入到半连接队列
-    int status = m_undone_conn_queue->FindAndPush(new_sess->GetPeerAddress(), hand_shake_data);
+    int status = m_undone_conn_queue->AddUnDoneSession(new_sess->GetPeerAddress(), hand_shake_data);
     if( status > 0 )
     {
         return new_sess;
@@ -90,10 +90,16 @@ SessionPtr __YRPC_SessionManager::Append_UnDoneMap(RpcSession::SPtr new_sess)
     return nullptr;
 }
 
-bool __YRPC_SessionManager::Delete_UnDoneMap(const Address& peer_addr)
+std::pair<HandShakeData, bool> __YRPC_SessionManager::Delete_UnDoneMap(const Address& peer_addr)
 {
-    return  m_undone_conn_queue->DelTcpConn(peer_addr);
+    return  m_undone_conn_queue->DelUnDoneSession(peer_addr);
 }
+
+bool __YRPC_SessionManager::Delete_TcpUnDoneMap(const Address& peer_addr)
+{
+    return m_undone_conn_queue->DelTcpConn(peer_addr);
+}
+
 
 SessionPtr __YRPC_SessionManager::GetSessionFromSessionMap(bbt::uuid::UuidBase::Ptr uuid)
 {
@@ -157,7 +163,7 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, Channel::SPtr chan)
         new_sess_ptr->StartHandShakeTimer([this](const yrpc::detail::shared::errorcode& e, SessionPtr sess){
             OnHandShakeTimeOut(e, sess);
         }, 3000);
-        INFO("[YRPC][__YRPC_SessionManager::OnAccept][%d] accept success! peer:{%s}", y_scheduler_id, chan->GetPeerAddress().GetIPPort().c_str());
+        INFO("[YRPC][__YRPC_SessionManager::OnAccept][%d] sessionmgr accept success! peer:{%s}", y_scheduler_id, chan->GetPeerAddress().GetIPPort().c_str());
     }
     else
     {
@@ -165,7 +171,7 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, Channel::SPtr chan)
     }
 }
 
-void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan)
+void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan, const Address& peer_addr)
 {
     if (e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
     {
@@ -190,10 +196,23 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan)
         new_sess_ptr->m_current_loop->AddTask([=](void*){
             StartHandShake(e, new_sess_ptr);
         });
+        DEBUG("[YRPC][__YRPC_SessionManager::OnConnect][%d] sessionmgr connect success! peer:{%s}", y_scheduler_id, peer_addr.GetIPPort().c_str());
     }
     else 
     {
-        ERROR("[YRPC][__YRPC_SessionManager::OnConnect][%d] connect error! msg: %s", y_scheduler_id, e.what().c_str());
+        ERROR("[YRPC][__YRPC_SessionManager::OnConnect][%d] connect error! msg: %s. peer:{%s}", 
+            y_scheduler_id, 
+            e.what().c_str(),
+            peer_addr.GetIPPort().c_str());
+        {// 失败需要从半连接tcp连接中删除.因为在调用AsyncConnect的时候已经添加了
+            lock_guard<Mutex> lock(m_mutex_session_map);
+            // Delete_UnDoneMap(peer_addr);
+            bool success = Delete_TcpUnDoneMap(peer_addr);
+            if( !success )
+            {
+                ERROR("[YRPC][__YRPC_SessionManager::OnConnect][%d] delete from tcp undone map failed!", y_scheduler_id);
+            }
+        }
     }
 }
 
@@ -284,9 +303,9 @@ void __YRPC_SessionManager::SubLoop(int idx)
     assert(y_scheduler != nullptr);
     m_sub_loop[idx] = y_scheduler;
     m_sub_loop[idx]->RunForever();
+    DEBUG("[YRPC][__YRPC_SessionManager::SubLoop][%d] sub loop begin!", y_scheduler_id);
     m_loop_latch.down();
     m_loop_latch.wait();
-    DEBUG("[YRPC][__YRPC_SessionManager::SubLoop][%d] sub loop begin!", y_scheduler_id);
     m_sub_loop[idx]->Loop();
     DEBUG("[YRPC][__YRPC_SessionManager::SubLoop][%d] sub loop begin!", y_scheduler_id);
 
@@ -297,9 +316,9 @@ void __YRPC_SessionManager::MainLoop()
     m_main_loop = y_scheduler;
     OnMainLoopInit();
     m_main_loop->RunForever();
+    DEBUG("[YRPC][__YRPC_SessionManager::MainLoop][%d] main loop begin!", y_scheduler_id);
     m_loop_latch.down();
     m_loop_latch.wait();
-    DEBUG("[YRPC][__YRPC_SessionManager::MainLoop][%d] main loop begin!", y_scheduler_id);
     m_main_loop->Loop();
     DEBUG("[YRPC][__YRPC_SessionManager::MainLoop][%d] main loop end!", y_scheduler_id);
 }
@@ -309,8 +328,8 @@ void __YRPC_SessionManager::OnMainLoopInit()
 
     m_connector = Connector::Create(m_main_loop);
     m_connector->setLoadBalancer(functor([this]()->auto{ return LoadBalancer(); }));
-    m_channel_mgr.SetOnConnect([this](const errorcode& err, Channel::SPtr new_chan){
-        OnConnect(err, new_chan);
+    m_channel_mgr.SetOnConnect([this](const errorcode& err, Channel::SPtr new_chan, const Address& addr){
+        OnConnect(err, new_chan, addr);
     });
     m_channel_mgr.SetConnector(m_connector);
 }
@@ -415,7 +434,7 @@ void __YRPC_SessionManager::OnHandShakeTimeOut(const yrpc::detail::shared::error
 {
     if( e.err() == yrpc::detail::shared::ERR_HANDSHAKE_TIMEOUT )
     {
-        auto [handshakedata, exist] = m_undone_conn_queue->PopUpById(sess->GetPeerAddress());
+        auto [handshakedata, exist] = m_undone_conn_queue->DelUnDoneSession(sess->GetPeerAddress());
         errorcode err;
         err.settype(yrpc::detail::shared::ERRTYPE_HANDSHAKE);
         err.setcode(yrpc::detail::shared::ERR_HANDSHAKE_TIMEOUT);
@@ -448,7 +467,7 @@ void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg, SessionPtr sess)
     {
         lock_guard<Mutex> lock(m_mutex_session_map);
         // 从半连接队列总取出session
-        it_undone_sess = m_undone_conn_queue->PopUpById(sess->GetPeerAddress());
+        it_undone_sess = m_undone_conn_queue->DelUnDoneSession(sess->GetPeerAddress());
         if( !it_undone_sess.second )
         {
             ERROR("[YRPC][__YRPC_SessionManager::HandShakeRsp][%d] {%s} not found in undone session map!", y_scheduler_id, peer_addr.GetIPPort().c_str());

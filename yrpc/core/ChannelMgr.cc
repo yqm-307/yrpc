@@ -21,9 +21,10 @@ void ChannelMgr::SetAcceptor(yrpc::detail::net::Acceptor::SPtr acceptor)
 void ChannelMgr::SetConnector(yrpc::detail::net::Connector::SPtr connector)
 {
     m_connector = connector;
-    m_connector->SetOnConnectCallback(functor([this](const yrpc::detail::shared::errorcode& err, Connection::SPtr new_conn){
-        OnConnect(err, new_conn);
-    }));
+    m_connector->SetOnConnectCallback(
+    [this](const yrpc::detail::shared::errorcode& err, Connection::SPtr new_conn, const yrpc::detail::net::YAddress& addr){
+        OnConnect(err, new_conn, addr);
+    });
 }
 
 void ChannelMgr::AsyncConnect(const yrpc::detail::net::YAddress& peer_addr)
@@ -40,7 +41,7 @@ void ChannelMgr::InitAChannel(Channel::SPtr chan)
     // chan->SetCloseCallback();
 }
 
-void ChannelMgr::OnConnect(const errorcode& err, Connection::SPtr conn)
+void ChannelMgr::OnConnect(const errorcode& err, Connection::SPtr conn, const yrpc::detail::net::YAddress& addr)
 {
     Channel::SPtr chan_ptr = nullptr;
     if( err.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK )
@@ -51,7 +52,7 @@ void ChannelMgr::OnConnect(const errorcode& err, Connection::SPtr conn)
     }
     if( m_onconnect )
     {
-        m_onconnect(err, chan_ptr);
+        m_onconnect(err, chan_ptr, addr);
     }
     else
         DefaultOnConnect(err, conn);
