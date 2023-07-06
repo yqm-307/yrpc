@@ -31,7 +31,7 @@ private:
     void OnConnect(const errorcode& err, Connection::SPtr conn, const yrpc::detail::net::YAddress& addr);
     void OnAccept(const errorcode& err, Connection::SPtr conn);
 
-    void DefaultOnConnect(const errorcode& err, Connection::SPtr conn);
+    void DefaultOnConnect(const errorcode& err, Channel::SPtr conn);
     void DefaultOnAccept(const errorcode& err, Connection::SPtr conn);
     void DefaultOnClose(const errorcode& err, Connection::SPtr conn);
 

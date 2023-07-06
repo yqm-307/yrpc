@@ -59,14 +59,8 @@ Channel::Channel(yrpc::detail::net::Connection::SPtr new_conn)
 Channel::~Channel()
 {
     errorcode e("channel is destory",yrpc::detail::shared::ERRTYPE_NOTHING,0);
-    if (!m_conn->IsClosed())
-    {
-        m_conn->Close();
-        if (m_closecallback == nullptr)
-            CloseInitFunc(e);
-        m_closecallback(e, shared_from_this()); // 回调给 RpcSession
-    }
-
+    if(!IsClosed())
+        this->Close();
     DEBUG("[YRPC][Channel::~Channel][%d] info: destory channel peer:{ip:port} = {%s}",
             y_scheduler_id,
             m_conn->StrIPPort().c_str());
@@ -77,9 +71,19 @@ void Channel::Close()
 {
     errorcode e("call func : Channel::Close,info: disconnection",yrpc::detail::shared::ERRTYPE_NOTHING,0);
     m_conn->Close();
-    // m_closecallback(e,m_conn); // 重复调用了?
+    OnClose(e, shared_from_this());
     m_is_closed = true;
 }       
+
+void Channel::OnClose(const errorcode& err, Channel::SPtr chan)
+{
+    INFO("[YRPC][Channel::OnClose][%d] channel close!", y_scheduler_id);
+    if( m_closecallback )
+        m_closecallback(err, chan);
+    else
+        CloseInitFunc(err);
+}
+
 
 bool Channel::IsClosed()
 {

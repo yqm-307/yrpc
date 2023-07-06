@@ -81,7 +81,8 @@ void Acceptor::ListenInEvloop()
         if (succ >= 0) {
             YAddress cli(inet_ntoa(peeraddr.sin_addr), htons(peeraddr.sin_port));
             Connection::SPtr newconn = Connection::Create(evloop, clisock, std::move(cli));
-            this->m_onaccept(e,newconn); // onconnection 不可以是长时间阻塞的调用
+            DEBUG("[YRPC][Acceptor::ListenInEvloop][%d] accept success! peer{%s}", y_scheduler_id, newconn->GetPeerAddress().GetIPPort().c_str());
+            this->m_onaccept(e, newconn); // onconnection 不可以是长时间阻塞的调用
         }
         else 
         {

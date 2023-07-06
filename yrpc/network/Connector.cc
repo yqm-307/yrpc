@@ -21,44 +21,44 @@ void Connector::Connect(const YAddress& peer_addr)
     Socket::RawPtr tmp_socket = yrpc::socket::CreateSocket(sockfd, poll, poll->GetPollFd());
 
     int n = yrpc::socket::YRConnect(*tmp_socket ,peer_addr.getsockaddr(), peer_addr.getsocklen());
-    int connerror=0;
+    int connerror = errno;
     socklen_t len = sizeof(connerror);
     connerror = yrpc::util::tcp::GetSockErrCode(tmp_socket->sockfd_);
-    // getsockopt(tmp_socket->sockfd_,SOL_SOCKET,SO_ERROR,&connerror,&len);
 
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
     if(m_onconn != nullptr) 
     {
+        assert(m_lber != nullptr);
+        auto conn_in_loop = m_lber(); 
+        ConnectionPtr conn = Connection::Create(conn_in_loop, tmp_socket, peer_addr);
         if(connerror == ECONNREFUSED)
         {// 连接被拒绝
-            ::close(sockfd);
             e.setcode(yrpc::detail::shared::ERR_NETWORK_ECONNREFUSED);
             e.setinfo("connect refused %d",connerror);
-            m_onconn(e, nullptr, peer_addr);
+            ERROR("[YRPC][Connector::Connect][%d] connect err! errno: %d",y_scheduler_id, connerror);
+            m_onconn(e, conn, peer_addr);
             return;
         }
         if(n<0)
         {// 其他错误（对端不存在等）
-            ::close(sockfd);
             e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OTHRE_ERR);
             e.setinfo("connect failed! errno is %d", errno);
-            m_onconn(e, nullptr, peer_addr);
+            ERROR("[YRPC][Connector::Connect][%d] connect err! errno: %d", y_scheduler_id, connerror);
+            m_onconn(e, conn, peer_addr);
             return;
         }
         else
         {//成功建立新连接
-            assert(m_lber != nullptr);
-            auto conn_in_loop = m_lber(); 
-            ConnectionPtr conn = Connection::Create(conn_in_loop, tmp_socket, peer_addr);
             e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OK);
             e.setinfo("connet success peer %s",conn->StrIPPort().c_str());
+            DEBUG("[YRPC][Connector::Connect][%d] connect succ", y_scheduler_id);
             m_onconn(e, conn, peer_addr);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
         }
     }
     else
     {
-        INFO("[YRPC][Connector::onConnect] onconnect_ is nullptr!");
+        ERROR("[YRPC][Connector::onConnect] onconnect_ is nullptr!");
     }
 
 }

@@ -43,11 +43,10 @@ void ChannelMgr::InitAChannel(Channel::SPtr chan)
 
 void ChannelMgr::OnConnect(const errorcode& err, Connection::SPtr conn, const yrpc::detail::net::YAddress& addr)
 {
-    Channel::SPtr chan_ptr = nullptr;
+    Channel::SPtr chan_ptr = Channel::Create(conn);
+    // InitAChannel(chan_ptr);
     if( err.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK )
     {
-        chan_ptr = Channel::Create(conn);
-        InitAChannel(chan_ptr);
         DEBUG("[YRPC][ChannelMgr::OnConnect][%d] on connect!", y_scheduler_id);
     }
     if( m_onconnect )
@@ -55,7 +54,7 @@ void ChannelMgr::OnConnect(const errorcode& err, Connection::SPtr conn, const yr
         m_onconnect(err, chan_ptr, addr);
     }
     else
-        DefaultOnConnect(err, conn);
+        DefaultOnConnect(err, chan_ptr);
 }
 
 void ChannelMgr::OnAccept(const errorcode& err, Connection::SPtr conn)
@@ -65,7 +64,7 @@ void ChannelMgr::OnAccept(const errorcode& err, Connection::SPtr conn)
     {
         chan_ptr = Channel::Create(conn);
         InitAChannel(chan_ptr);
-        DEBUG("[YRPC][ChannelMgr::OnAccept][%d] on accept!", y_scheduler_id);
+        DEBUG("[YRPC][ChannelMgr::OnAccept][%d] on accept! peer:{%s}", y_scheduler_id, conn->GetPeerAddress().GetIPPort().c_str());
     }
     if( m_onaccept )
     {
@@ -75,7 +74,7 @@ void ChannelMgr::OnAccept(const errorcode& err, Connection::SPtr conn)
         DefaultOnAccept(err, conn);
 }
 
-void ChannelMgr::DefaultOnConnect(const errorcode& err, Connection::SPtr conn)
+void ChannelMgr::DefaultOnConnect(const errorcode& err, Channel::SPtr chan)
 {
     if( err.err() != yrpc::detail::shared::ERR_NETWORK_CONN_OK )
     {
@@ -83,8 +82,8 @@ void ChannelMgr::DefaultOnConnect(const errorcode& err, Connection::SPtr conn)
     }
     else
     {
-        INFO("[YRPC][ChannelMgr::DefaultOnConnect][%d] on connect. peer ip: {%s}", y_scheduler_id, conn->GetPeerAddress().GetIPPort());
-        conn->Close();
+        INFO("[YRPC][ChannelMgr::DefaultOnConnect][%d] on connect. peer ip: {%s}", y_scheduler_id, chan->GetPeerAddress().GetIPPort());
+        chan->Close();
     }
 }
 

@@ -173,10 +173,10 @@ void __YRPC_SessionManager::OnAccept(const errorcode &e, Channel::SPtr chan)
 
 void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan, const Address& peer_addr)
 {
+    auto addr = chan->GetConnInfo()->GetPeerAddress();
+    SessionPtr new_sess_ptr = InitRpcSession(chan);
     if (e.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK)
     {
-        auto addr = chan->GetConnInfo()->GetPeerAddress();
-        SessionPtr new_sess_ptr{nullptr};
         {
             lock_guard<Mutex> lock(m_mutex_session_map);
             if( ! m_undone_conn_queue->DelTcpConn(addr) )
@@ -184,12 +184,11 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan, co
                 WARN("[YRPC][__YRPC_SessionManager::OnConnect][%d] tcp connect not exist!", y_scheduler_id);
             }
             // 1、创建新session，保存到半连接队列
-            auto sess = InitRpcSession(chan);
-            new_sess_ptr = Append_UnDoneMap(sess);
+            new_sess_ptr = Append_UnDoneMap(new_sess_ptr);
         }
         if( new_sess_ptr == nullptr )
         {
-            chan->Close();
+            new_sess_ptr->Close();
             ERROR("[YRPC][__YRPC_SessionManager::OnConnect][%d] session create error!", y_scheduler_id);
             return;
         }
@@ -213,6 +212,7 @@ void __YRPC_SessionManager::OnConnect(const errorcode &e, Channel::SPtr chan, co
                 ERROR("[YRPC][__YRPC_SessionManager::OnConnect][%d] delete from tcp undone map failed!", y_scheduler_id);
             }
         }
+        new_sess_ptr->Close();
     }
 }
 
@@ -242,6 +242,7 @@ void __YRPC_SessionManager::AsyncConnect(Address peer_addr,OnSession onsession)
 
     if( is_need_connect )
     {
+        DEBUG("[YRPC][__YRPC_SessionManager::AsyncConnect][%d] connect once! peer:{%s}", y_scheduler_id, peer_addr.GetIPPort().c_str());
         m_channel_mgr.AsyncConnect(peer_addr);
         m_undone_conn_queue->AddTcpConn(peer_addr);
     }
@@ -511,6 +512,7 @@ void __YRPC_SessionManager::OnSessionTimeOut(const yrpc::detail::shared::errorco
 
 void __YRPC_SessionManager::OnSessionClose(const yrpc::detail::shared::errorcode& e, SessionPtr sess)
 {
+    if(sess)
     {
         lock_guard<Mutex> lock(m_mutex_session_map);
         auto peer_sess = Delete_SessionMap(sess->GetPeerUuid());
@@ -518,6 +520,10 @@ void __YRPC_SessionManager::OnSessionClose(const yrpc::detail::shared::errorcode
         {
             ERROR("[YRPC][__YRPC_SessionManager::OnSessionClose][%d] ", y_scheduler_id);
         }
+    }
+    else
+    {
+        ERROR("[YRPC][__YRPC_SessionManager::OnSessionClose][%d] session is bad!", y_scheduler_id);
     }
     // DelSession(sess->GetPeerUuid());
     DEBUG("[YRPC][__YRPC_SessionManager::OnSessionClose][%d] RpcSession closed! delete info from SessionMgr!", y_scheduler_id);

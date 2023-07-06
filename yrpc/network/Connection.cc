@@ -114,6 +114,11 @@ bool Connection::is_connected()
 
 void Connection::Close()
 {
+    if( m_conn_status == disconnect )
+    {
+        WARN("[YRPC][Connection::Close] repeat close!");
+        return;
+    }
     m_conn_status = disconnect;
     // DEBUG("[YRPC][Connection::Close][%d] disconnect", y_scheduler_id);
     yrpc::detail::shared::errorcode e;

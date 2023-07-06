@@ -99,7 +99,8 @@ private:
 private:
     void InitFunc();
     void EpollerSend(const char* data,size_t len);
-    void OnConnect(const errorcode& e, ConnPtr conn);
+    // void OnConnect(const errorcode& e, ConnPtr conn);
+    void OnClose(const errorcode&, Channel::SPtr);
 private:
     yrpc::detail::net::Acceptor::SPtr     m_acceptor;
     yrpc::detail::net::Connector::SPtr    m_connector;
