@@ -10,6 +10,7 @@
  */
 #pragma once
 #include "TimeQueue.h"
+#include "yrpc/YRoutine/Epoller.h"
 #include <assert.h>
 #include <thread>
 #include <memory>
@@ -72,8 +73,17 @@ void YTimer<TaskObject>::GetAllTimeoutTask(std::vector<Ptr>& sockets)
     if(min_heap_.empty())
         return;
     while(!min_heap_.empty() && clock::expired<ms>(min_heap_.top()->GetValue()))
-        if( !(p = PopTimeTask())->Is_Canceled())  //不是被取消的
+    {
+        auto p = PopTimeTask();
+        if( !(p->Is_Canceled()) )  //不是被取消的
+        {
             sockets.push_back(p);
+        }
+        else
+        {
+            ERROR("[YRPC][YTimer<TaskObject>::GetAllTimeoutTask] task is be cancel!");
+        }
+    }
 }
 
 template<class TaskObject>

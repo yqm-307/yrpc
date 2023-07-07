@@ -34,7 +34,6 @@ public:
 	}
 	~Mutex(){
 		pthread_mutex_destroy(&_mutex);
-		// free(&_mutex);	
 	}
 	void lock()
 	{

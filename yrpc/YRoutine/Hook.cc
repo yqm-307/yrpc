@@ -29,19 +29,19 @@ int YRPoll(Socket* socket,int events,int* revents,int timeout_ms)
         return -1;
     
 
-    socket->routine_index_ = socket->scheduler->GetCurrentRoutine();
+    socket->routine_index_ = socket->m_scheduler->GetCurrentRoutine();
     socket->event_.events = events; //新事件的events
 
     if(timeout_ms < 0)
-        socket->scheduler->AddTimer(socket,YRAfter(INT32_MAX));
+        socket->m_scheduler->AddTimer(socket,YRAfter(INT32_MAX));
     else
-        socket->scheduler->AddTimer(socket,YRAfter(timeout_ms));
+        socket->m_scheduler->AddTimer(socket,YRAfter(timeout_ms));
 
     //协程中解决
     epoll_ctl(socket->epollfd_,EPOLL_CTL_ADD,socket->sockfd_,&socket->event_);
-    socket->scheduler->YieldTask(); //处理协程任务
+    socket->m_scheduler->YieldTask(); //处理协程任务
     epoll_ctl(socket->epollfd_,EPOLL_CTL_DEL,socket->sockfd_,&socket->event_);
-    socket->scheduler->CancelTimer(socket);
+    socket->m_scheduler->CancelTimer(socket);
 
     *revents = socket->eventtype_;  //保存 自定义 事件错误码
 
@@ -52,20 +52,20 @@ int YRPoll(Socket* socket,int events,int* revents,int timeout_ms)
             return 1;
         else
         {
-            errno = EINVAL;
+            // errno = EINVAL;
             return -1;
         }
     }else if((*revents) == yrpc::coroutine::poller::EpollREvent_Timeout)
     {
-        errno = ETIMEDOUT;  //超时
+        // errno = ETIMEDOUT;  //超时
         return  0;
     }else if(*revents == yrpc::coroutine::poller::EpollREvent_Error)
     {
-        errno = ECONNREFUSED;   //连接拒绝
+        // errno = ECONNREFUSED;   //连接拒绝
         return -1;
     }else   //close
     {
-        errno = 0;
+        // errno = 0;
         return -1;
     }
     
@@ -87,9 +87,10 @@ int YRConnect(Socket &socket, const struct sockaddr *addr, socklen_t addrlen)
         {
             int revents = 0;
             //交给epoll、协程去处理
-            int nfds = YRPoll(&socket,EPOLLOUT,&revents,socket.connect_timeout_ms_);
-            if(nfds > 0)
-                return ::connect(socket.sockfd_, addr, addrlen);
+            int nstatus = YRPoll(&socket,EPOLLOUT,&revents,socket.connect_timeout_ms_);
+            DEBUG("[YRPC][YRConnect] status: %d", nstatus);
+            if(nstatus >= 0)
+                return nstatus;
             else
                 return -1;
         }
@@ -270,9 +271,9 @@ void YRSetSocketTimeout(Socket &socket, const int socket_timeout_ms)
 
 void YRWait(Socket &socket, const int timeout_ms)
 {
-    socket.routine_index_ = socket.scheduler->GetCurrentRoutine();
-    socket.scheduler->AddTimer(&socket,YRAfter(timeout_ms));
-    socket.scheduler->YieldTask();
+    socket.routine_index_ = socket.m_scheduler->GetCurrentRoutine();
+    socket.m_scheduler->AddTimer(&socket,YRAfter(timeout_ms));
+    socket.m_scheduler->YieldTask();
 }
 
 
@@ -377,7 +378,7 @@ int YRSleep(yrpc::coroutine::poller::Epoller *poll, int sleep_ms)
             ret = -2;
             break;
         }
-        socket->routine_index_ = socket->scheduler->GetCurrentRoutine();
+        socket->routine_index_ = socket->m_scheduler->GetCurrentRoutine();
 
         if (sleep_ms < 0)
         {
@@ -387,10 +388,10 @@ int YRSleep(yrpc::coroutine::poller::Epoller *poll, int sleep_ms)
         else
         {
             auto k = YRAfter(sleep_ms);
-            socket->scheduler->AddTimer(socket, k);
+            socket->m_scheduler->AddTimer(socket, k);
         }
         // 等待超时，resume
-        socket->scheduler->YieldTask(); // 处理协程任务
+        socket->m_scheduler->YieldTask(); // 处理协程任务
 
         if (socket->eventtype_ == yrpc::coroutine::poller::EpollREvent_Timeout)
         {
@@ -418,7 +419,7 @@ Socket::RawPtr CreateSocket(const int sockfd, yrpc::coroutine::poller::Epoller* 
     }
     y_socket->socket_timeout_ms_  = socket_timeout_ms;
     y_socket->connect_timeout_ms_ = connect_out_ms;
-    y_socket->scheduler = poll;
+    y_socket->m_scheduler = poll;
     y_socket->epollfd_ = poll_fd;
     y_socket->sockfd_ = sockfd;
     y_socket->event_.data.ptr = y_socket;
@@ -430,6 +431,15 @@ Socket::RawPtr CreateSocket(const int sockfd, yrpc::coroutine::poller::Epoller* 
 
 void DestorySocket(Socket::RawPtr socket)
 {
+    ::close(socket->sockfd_);
+    socket->socket_timeout_ms_  = -1;
+    socket->connect_timeout_ms_ = -1;
+    socket->m_scheduler = nullptr;
+    socket->epollfd_ = -1;
+    socket->sockfd_ = -1;
+    socket->event_.data.ptr = nullptr;
+    socket->eventtype_ = -1;
+    socket->last_recv_time = 0;
     free(socket);
 }
 

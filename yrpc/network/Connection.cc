@@ -13,7 +13,7 @@ Connection::Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockf
 {
     m_conn_status = connected;
     m_socket->socket_timeout_ = [this](Socket* socket){TimeOut(socket);};
-    m_socket->scheduler = scheduler;
+    m_socket->m_scheduler = scheduler;
     // m_socket->socket_timeout_ms_ = 3000;
     // m_schedule->AddTask([this](void*ptr){RunInEvloop();},nullptr);      //  注册recv handler
     m_schedule->AddSocketTimer(m_socket);                               //  注册超时事件
@@ -124,9 +124,9 @@ void Connection::Close()
     yrpc::detail::shared::errorcode e;
     e.settype(yrpc::detail::shared::ERRTYPE_NETWORK);
     e.setinfo("disconnect");
-    this->m_socket->scheduler->CancelSocketTimer(this->m_socket);
-    ::close(m_socket->sockfd_);
-    INFO("[YRPC][Connection::Close][%d] close connect!", y_scheduler_id);
+    this->m_socket->m_scheduler->CancelSocketTimer(this->m_socket);
+    // ::close(m_socket->sockfd_);
+    INFO("[YRPC][Connection::Close][%d] close connect! fd= %d", y_scheduler_id, m_socket->sockfd_);
     if(m_closecb != nullptr)
         m_closecb(e, shared_from_this());
     else
@@ -221,7 +221,7 @@ ConnectionPtr Connection::Create(yrpc::coroutine::poller::Epoller* scheduler,Soc
 
 yrpc::coroutine::poller::Epoller* Connection::GetScheudler()
 {
-    return m_socket->scheduler;
+    return m_schedule;
 }
 
 

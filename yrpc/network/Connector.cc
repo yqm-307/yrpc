@@ -18,6 +18,7 @@ void Connector::Connect(const YAddress& peer_addr)
     int sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
     /* 取到对于线程的调度器，将connection的后续active都放在某个固定线程执行，经典reactor做法 */
     auto poll = m_lber();
+    assert(poll != nullptr);
     Socket::RawPtr tmp_socket = yrpc::socket::CreateSocket(sockfd, poll, poll->GetPollFd());
 
     int n = yrpc::socket::YRConnect(*tmp_socket ,peer_addr.getsockaddr(), peer_addr.getsocklen());

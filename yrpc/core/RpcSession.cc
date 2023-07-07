@@ -121,7 +121,7 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
 #endif
             protos = GetProtocolsFromInput();
         }
-        DEBUG("[YRPC][RpcSession::RecvFunc] recv %ld byte. total recv %ld bytes!", buff.DataSize(), m_byterecord.Getrecv_bytes());
+        DEBUG("[YRPC][RpcSession::RecvFunc][%d] recv %ld byte. total recv %ld bytes!", y_scheduler_id, buff.DataSize(), m_byterecord.Getrecv_bytes());
         HandleProtocol(protos);
     }
     else
@@ -213,8 +213,8 @@ void RpcSession::TimeOut(Socket* socket)
     }
     else
     {
-        assert(socket->scheduler != nullptr);
-        socket->scheduler->AddSocketTimer(socket);
+        assert(socket->m_scheduler != nullptr);
+        socket->m_scheduler->AddSocketTimer(socket);
     }
 }
 

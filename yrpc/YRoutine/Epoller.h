@@ -35,6 +35,7 @@
 #include "../Util/noncopyable.h"
 #include "../Util/TcpUtil.h"
 #include "../Util/Locker.h"
+#include "yrpc/shared/all.h"
 #include "bbt/poolutil/IDPool.hpp"
 #include <bbt/templateutil/BaseType.hpp>
 
@@ -61,7 +62,9 @@ private:
     typedef std::function<void(RoutineSocket*)> ConnTimeOut;
     typedef std::function<void(RoutineSocket*)> SocketTimeOut;
 public:
-    Epoller* scheduler; // 所属eventloop
+    RoutineSocket();
+    ~RoutineSocket(){}
+    Epoller* m_scheduler; // 所属eventloop
 
     int             eventtype_;         //Epoll Event Type 不是事件类型，而是错误码
     struct epoll_event event_;          // epoll event 对象
@@ -82,6 +85,7 @@ public:
      * task生命期和Socket相同，因为socket在Timer中触发超时事件，就要被断开了，此时task同时析构合情合理
      */
     yrpc::util::clock::YTimer<RoutineSocket*>::TaskSlot::Ptr timetask_;
+    yrpc::detail::shared::errorcode err;
     void** args;     /*作为拓展使用*/
 };
 

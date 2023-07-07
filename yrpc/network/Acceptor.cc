@@ -74,6 +74,7 @@ void Acceptor::ListenInEvloop()
             e.setcode(yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_ACCEPT_FAIL);
 
         auto evloop = m_lber();
+        assert(evloop != nullptr);
         Socket* clisock = yrpc::socket::CreateSocket(newfd, evloop, evloop->GetPollFd(), m_socket_timeout_ms, m_connect_timeout_ms);  //普通连接
         // 获取对端ip地址和端口
         len = sizeof(peeraddr);
@@ -98,6 +99,7 @@ void Acceptor::ListenInEvloop()
 void Acceptor::CreateListenSocket()
 {
     // auto evloop = ( m_lber == nullptr ) ? y_scheduler : m_lber();  // 走不走负载均衡，不走就默认在当前线程进行IO
+    assert(m_loop != nullptr);
     m_listenfd = yrpc::socket::CreateSocket(m_fd, m_loop, m_loop->GetPollFd(), -1, -1); //需要free
     if(m_listenfd == nullptr) 
         ERROR("Acceptor::CreateListenSocket() error , Epoller::CreateSocket error!");

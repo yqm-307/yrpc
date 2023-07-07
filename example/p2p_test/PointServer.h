@@ -87,7 +87,7 @@ public:
         }, 5000);
         y_scheduler->AddTimer([this](){
             SendOnce();
-        }, 5000);
+        }, 1000);
     }
 private:
     MsgPtr Remote_Add(MsgPtr ReqPtr)
@@ -126,7 +126,7 @@ private:
         }
         y_scheduler->AddTimer([this](){
             SendOnce();
-        }, 5000);
+        }, 1000);
     }
 private:
     yrpc::detail::net::YAddress peer_addr;   // 对端地址

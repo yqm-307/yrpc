@@ -10,9 +10,14 @@
  */
 #include "Epoller.h"
 #include "yrpc/Util/Locker.h"
-
 using namespace yrpc::coroutine::poller;
 bbt::pool_util::IDPool<int,true> Epoller::m_id_pool{65535};
+
+
+RoutineSocket::RoutineSocket()
+    :err("", yrpc::detail::shared::ERRTYPE_NOTHING, 0)
+{
+}
 
 
 Epoller::Epoller(size_t stacksize,int maxqueue,bool protect)
@@ -142,17 +147,19 @@ void Epoller::DoTimeoutTask()
     {
         std::vector<TTaskPtr> queue;
         {// 减小临界区
-        lock_guard<Mutex> lock(mutex_socket_timer_);
+            lock_guard<Mutex> lock(mutex_socket_timer_);
             socket_timer_.GetAllTimeoutTask(queue);
         }
         for (auto && task : queue)   // 处理超时任务
         {
-            task->Data()->eventtype_ = EpollREvent_Timeout;
-            DEBUG("[YRPC][Epoller::DoTimeoutTask] socket timeout! \nms: %d\tsockfd: %d\tepollfd: %d",
-                task->Data()->socket_timeout_ms_,
-                task->Data()->sockfd_,
-                task->Data()->epollfd_);
-            task->Data()->socket_timeout_(task->Data());    // callback
+            auto& socket = task->Data();
+            socket->eventtype_ = EpollREvent_Timeout;
+            DEBUG("[YRPC][Epoller::DoTimeoutTask][%d] socket timeout! \nms: %d\tsockfd: %d\tepollfd: %d",
+                y_scheduler_id,
+                socket->socket_timeout_ms_,
+                socket->sockfd_,
+                socket->epollfd_);
+            socket->socket_timeout_(socket);    // callback
         }
     }
     {
@@ -267,7 +274,7 @@ RoutineSocket* Epoller::CreateSocket(const int sockfd,const int socket_timeout_m
     socket->socket_timeout_ms_ = socket_timeout_ms;
     socket->sockfd_ = sockfd;
     socket->connect_timeout_ms_ = connect_out_ms;
-    socket->scheduler = this;
+    socket->m_scheduler = this;
     socket->epollfd_ = this->epollfd_;
     socket->event_.data.ptr = socket;
     socket->eventtype_ = 0;
