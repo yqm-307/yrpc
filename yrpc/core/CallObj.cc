@@ -37,8 +37,14 @@ void CallObj::SetResult(const Resolver &res)
     else
     { // 异步回调
         auto rsp = CreateARsp();
-        res.ToProtoMsg(rsp);
-        m_callback(rsp);
+        if(res.ToProtoMsg(rsp))
+        {
+            m_callback(rsp);
+        }
+        else
+        {
+            ERROR("[YRPC][CallObj::SetResult][%d] parse failed! protoid:%d", y_scheduler_id, m_typeid_rsp);
+        }
     }
 }
 

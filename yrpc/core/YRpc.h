@@ -82,6 +82,7 @@ void Rpc::register_service(std::string name,const yrpc::detail::ServiceFunc& fun
             yrpc::detail::Codec::Serialize(packet,bytes);
         }
     });
+    yrpc::rpc::CallObjFactory::GetInstance()->Register<ParamPackType, ReturnPackType>();
     assert(ret >= 0);   //服务注册失败，大概率注册时导致的服务名冲突
 }
 
@@ -97,6 +98,7 @@ void Rpc::register_service(std::string name,int id,const yrpc::detail::ServiceFu
             yrpc::detail::Codec::Serialize<ReturnPackType>(std::any_cast<google::protobuf::Message*>(arg1),std::any_cast<std::string&>(arg2));
         }
     });
+    yrpc::rpc::CallObjFactory::GetInstance()->Register<ParamPackType, ReturnPackType>();
     assert(ret >= 0);   //服务注册失败，大概率注册时导致的服务名冲突
 }
 }// namespace yrpc

@@ -46,6 +46,7 @@ void __YRPC_SessionManager::RegisterService()
     yrpc::rpc::Rpc::register_service<C2S_HANDSHAKE_REQ, S2C_HANDSHAKE_RSP>("YRPC_HandShake", [=](const MessagePtr msg, SessionPtr sess_ptr){
         return Handler_HandShake(msg, sess_ptr);
     });
+    // CallObjFactory::Create<C2S_HANDSHAKE_REQ, S2C_HANDSHAKE_RSP>();
 }
 
 
@@ -383,6 +384,7 @@ MessagePtr __YRPC_SessionManager::Handler_HandShake(const MessagePtr msg,Session
     rsp->set_uuid(m_local_node_id->GetRawString());
     rsp->set_acceptor_ip(m_local_addr.GetIP());
     rsp->set_acceptor_port(m_local_addr.GetPort());
+    DEBUG("[YRPC][__YRPC_SessionManager::Handler_HandShake] bits: %s",  rsp->DebugString().c_str());
     // 关闭定时器
     sess->StopHandShakeTimer();
     // 握手成功回调
@@ -457,6 +459,7 @@ void __YRPC_SessionManager::HandShakeRsp(MessagePtr msg, SessionPtr sess)
 {
     /* 处理握手响应 */
     auto rsp = std::static_pointer_cast<S2C_HANDSHAKE_RSP>(msg);
+    DEBUG("[YRPC][__YRPC_SessionManager::HandShakeRsp][%d] rsp: %s", y_scheduler_id, rsp->DebugString().c_str());
     auto peer_uuid = bbt::uuid::UuidMgr::CreateUUid(rsp->uuid());
     auto peer_addr = Address(sess->GetPeerAddress().GetIP(), sess->GetPeerAddress().GetPort());
     errorcode err("",

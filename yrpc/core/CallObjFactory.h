@@ -32,17 +32,17 @@ public:
     detail::CallObj::Ptr Create(ReqType&& msgptr,std::string&& servicename, detail::CallObj::CallResultFunc func);
     template<typename ReqType,typename RspType> 
     detail::CallObj::Ptr Create(ReqType&& msgptr,std::string&& name,YRPC_PROTOCOL type,detail::CallObj::CallResultFunc func);
-    // void test()
-    // {
-    //     m_idtocodec_map.insert(std::make_pair(1,[](MessagePtr ptr,const std::string& bytes){
 
-    //         ptr->ParseFromString(bytes);
-    //         ProtocolFactroy::GetInstance()->Insert(YRPC_PROTO_REGISTER(1,T));
-    //     }));
-    // }
+    template<typename ReqType,typename RspType>
+    std::pair<int, int> GetMessageTypeId();
 
+    template<typename ReqType,typename RspType>
+    void Register();
 private:
-    DeCodeMap       m_idtocodec_map;
+    int GetIds();
+private:
+    // DeCodeMap       m_idtocodec_map;
+    std::atomic_int m_global_id{0};
 };
 
 template<typename ReqType,typename RspType>
@@ -57,17 +57,7 @@ detail::CallObj::Ptr CallObjFactory::Create(ReqType&& msg,std::string&& name,YRP
      * 但是利用函数模板的实例化，就可以让每种类型的函数都有一个独立的id，这样就不用再外侧去显式的注册
      * 类型信息。相当于函数第一次调用绑定了初始化，后续调用就不需要初始化了
      */
-    static int local_id = 0;  
-    static std::atomic_int  global_id = 1;
-    if (local_id == 0)
-    {
-        local_id = global_id; 
-        global_id.fetch_add(2);
-        ProtocolFactroy::GetInstance()->Insert({
-            YRPC_PROTO_REGISTER( local_id , ReqType ),
-            YRPC_PROTO_REGISTER( (local_id+1) , RspType ),
-        });
-    }
+    auto [reqid, rspid] = GetMessageTypeId<ReqType, RspType>();
     auto mmptr = std::make_shared<ReqType>(std::move(msg));//ProtocolFactroy::GetInstance()->Create(local_id);
     Generater req(mmptr,yrpc::util::hash::BKDRHash(name),type);
     std::string tmp;
@@ -79,13 +69,35 @@ detail::CallObj::Ptr CallObjFactory::Create(ReqType&& msg,std::string&& name,YRP
         return nullptr;
     }
     
-    return detail::CallObj::Create(local_id,local_id+1,std::move(buf),type,func);
+    return detail::CallObj::Create(reqid, rspid, std::move(buf), type, func);
 }
 
 template<typename ReqType,typename RspType>
 detail::CallObj::Ptr CallObjFactory::Create(ReqType&& msg,std::string&& name,detail::CallObj::CallResultFunc func)
 {
     return Create<ReqType,RspType>(std::move(msg),std::move(name),YRPC_PROTOCOL::type_C2S_RPC_CALL_REQ,func);
+}
+
+template<typename ReqType,typename RspType>
+std::pair<int, int> CallObjFactory::GetMessageTypeId()
+{
+    static int message_id = 0; 
+    if( message_id == 0 )
+    {
+        auto id_req = GetIds();
+        message_id = id_req;
+        ProtocolFactroy::GetInstance()->Insert({
+            YRPC_PROTO_REGISTER( message_id         , ReqType ),
+            YRPC_PROTO_REGISTER( (message_id + 1)   , RspType ),
+        });
+    }
+    return std::pair<int,int>(message_id, message_id + 1);
+}
+
+template<typename ReqType,typename RspType>
+void CallObjFactory::Register()
+{
+    GetMessageTypeId<ReqType, RspType>();
 }
 
 }
