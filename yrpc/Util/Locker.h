@@ -30,7 +30,9 @@ class Mutex : bbt::noncopyable
 public:
 	Mutex():_mutex(PTHREAD_MUTEX_INITIALIZER)
 	{
-		pthread_mutex_init(&_mutex,NULL);
+		pthread_mutexattr_init(&_mutex_attr);
+		pthread_mutexattr_settype(&_mutex_attr, PTHREAD_MUTEX_RECURSIVE);
+		pthread_mutex_init(&_mutex, &_mutex_attr);
 	}
 	~Mutex(){
 		pthread_mutex_destroy(&_mutex);
@@ -54,6 +56,7 @@ public:
 	pthread_mutex_t& getlock(){return _mutex;}
 
 private:
+	pthread_mutexattr_t _mutex_attr;
 	pthread_mutex_t _mutex;
 };
 

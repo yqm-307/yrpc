@@ -17,8 +17,11 @@ class __YRPC_SessionManager : bbt::noncopyable
 public:
     typedef std::function<void(SessionPtr)>     OnSession;  
 private:
-    typedef bbt::uuid::UuidBase::Ptr UuidPtr;
-    typedef std::unordered_map<UuidPtr,SessionPtr>   SessionMap;
+    typedef bbt::uuid::UuidBase         Uuid;
+    // typedef Uuid::Ptr UuidPtr;
+    typedef std::function<uint32_t(const Uuid&)>    UuidHash;
+    typedef std::function<bool(const Uuid&, const Uuid&)>   UuidEqual;
+    typedef std::unordered_map<Uuid, SessionPtr, UuidHash, UuidEqual>    SessionMap;
     template<class T>
     using lock_guard = yrpc::util::lock::lock_guard<T>;
 public:
@@ -71,11 +74,11 @@ private:
 #pragma region // session map 操作集合, 不加锁
 
     // 向 m_session_map 中添加一个session, 失败返回 nullptr
-    SessionPtr Append_SessionMap(bbt::uuid::UuidBase::Ptr uuid, SessionPtr newconn);
+    SessionPtr Append_SessionMap(Uuid uuid, SessionPtr newconn);
     // 从 m_session_map 中删除一个session, 失败返回 nullptr
-    SessionPtr Delete_SessionMap(bbt::uuid::UuidBase::Ptr uuid);
+    SessionPtr Delete_SessionMap(Uuid uuid);
     // 从 know_host 中获取一个 uuid, 失败返回 nullptr
-    bbt::uuid::UuidBase::Ptr GetUuid(const Address& key);
+    Uuid GetUuid(const Address& key);
     SessionID AddressToID(const Address&key);
     /* 添加一个新的Session 到半连接队列中 */
     SessionPtr Append_UnDoneMap(RpcSession::SPtr newconn);
@@ -83,7 +86,7 @@ private:
     std::pair<HandShakeData, bool> Delete_UnDoneMap(const Address& peer_addr);
     /* 从半连接队列中删除一个 TcpConn，失败返回 false */
     bool Delete_TcpUnDoneMap(const Address& peer_addr);
-    SessionPtr GetSessionFromSessionMap(bbt::uuid::UuidBase::Ptr uuid);
+    SessionPtr GetSessionFromSessionMap(Uuid uuid);
 #pragma endregion
 
 
@@ -116,14 +119,14 @@ private:
     /////////////////////////////////
     SessionMap          m_session_map;      // 全连接 map <uuid, session>
     ConnQueue::Ptr      m_undone_conn_queue;// 半连接 queue 
-    std::unordered_map<Address,bbt::uuid::UuidBase::Ptr>   
+    std::unordered_map<Address,Uuid>   
                         m_knownode_map;
     Mutex               m_mutex_session_map;
     /////////////////////////////////
 
-    bbt::uuid::UuidBase::Ptr                m_local_node_id;
+    Uuid                m_local_node_id;
 
-    std::vector<bbt::uuid::UuidBase::Ptr>   m_node_id_list;
+    std::vector<Uuid>   m_node_id_list;
 
     ChannelMgr          m_channel_mgr;
 };
