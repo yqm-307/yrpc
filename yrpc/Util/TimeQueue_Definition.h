@@ -79,10 +79,7 @@ void YTimer<TaskObject>::GetAllTimeoutTask(std::vector<Ptr>& sockets)
         {
             sockets.push_back(p);
         }
-        else
-        {
-            ERROR("[YRPC][YTimer<TaskObject>::GetAllTimeoutTask] task is be cancel!");
-        }
+        // DEBUG("[YRPC][YTimer<TaskObject>::GetAllTimeoutTask] task is be cancel!");
     }
 }
 

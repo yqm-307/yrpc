@@ -121,7 +121,7 @@ void RpcSession::RecvFunc(const errorcode& e,Buffer& buff)
 #endif
             protos = GetProtocolsFromInput();
         }
-        DEBUG("[YRPC][RpcSession::RecvFunc][%d] recv %ld byte. total recv %ld bytes!", y_scheduler_id, buff.DataSize(), m_byterecord.Getrecv_bytes());
+        TRACE("[YRPC][RpcSession::RecvFunc][%d] recv %ld byte. total recv %ld bytes!", y_scheduler_id, buff.DataSize(), m_byterecord.Getrecv_bytes());
         HandleProtocol(protos);
     }
     else
@@ -169,7 +169,7 @@ void RpcSession::SendFunc(const errorcode& e,size_t len)
         UpdateTimeout();
 #ifdef YRPC_DEBUG
         m_byterecord.Addsend_bytes(len);
-        DEBUG("[YRPC][RpcSession::SendFunc][%d] send %ld bytes. total send %ld bytes!", y_scheduler_id, len, m_byterecord.Getsend_bytes());
+        TRACE("[YRPC][RpcSession::SendFunc][%d] send %ld bytes. total send %ld bytes!", y_scheduler_id, len, m_byterecord.Getsend_bytes());
 #endif
     }
     else

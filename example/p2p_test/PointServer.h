@@ -121,7 +121,6 @@ private:
             else if (err > 0)
             {
                 m_total_req++;
-                break;
             }
         }
         y_scheduler->AddTimer([this](){

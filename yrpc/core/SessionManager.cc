@@ -530,9 +530,10 @@ void __YRPC_SessionManager::OnSessionClose(const yrpc::detail::shared::errorcode
     {
         lock_guard<Mutex> lock(m_mutex_session_map);
         auto peer_sess = Delete_SessionMap(sess->GetPeerUuid());
+        // 连接失败创建的空连接，可以走到这里
         if( nullptr == peer_sess )
         {
-            ERROR("[YRPC][__YRPC_SessionManager::OnSessionClose][%d] ", y_scheduler_id);
+            DEBUG("[YRPC][__YRPC_SessionManager::OnSessionClose][%d] not in sessionmap!", y_scheduler_id);
         }
     }
     else

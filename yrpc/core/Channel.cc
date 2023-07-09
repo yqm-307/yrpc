@@ -70,9 +70,9 @@ Channel::~Channel()
 void Channel::Close()
 {
     errorcode e("call func : Channel::Close,info: disconnection",yrpc::detail::shared::ERRTYPE_NOTHING,0);
-    m_conn->Close();
-    OnClose(e, shared_from_this());
     m_is_closed = true;
+    m_conn->Close();
+    // OnClose(e, shared_from_this());
 }       
 
 void Channel::OnClose(const errorcode& err, Channel::SPtr chan)
@@ -135,7 +135,8 @@ void Channel::InitFunc()
 
     m_conn->setOnCloseCallback([this](const errorcode& e, Connection::SPtr chan){
         // this->OnClose
-        this->m_closecallback(e, shared_from_this());
+        this->OnClose(e, shared_from_this());
+        // this->m_closecallback(e, shared_from_this());
     });
 
     m_conn->StartRecvFunc();
