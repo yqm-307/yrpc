@@ -22,7 +22,7 @@ public:
     int Wait();
     int Notify();
 private:
-    yrpc::coroutine::poller::Epoller *scheduler_{nullptr};
+    yrpc::coroutine::poller::Epoller *m_scheduler{nullptr};
     Socket *socket_{nullptr};
     int pipe_fds_[2];
     void *data_{nullptr};

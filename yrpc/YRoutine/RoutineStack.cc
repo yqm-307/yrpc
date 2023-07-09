@@ -68,22 +68,22 @@ int sys_stack_free(void* start,size_t len)
 
 
 RoutineStack::RoutineStack(const size_t init_stack_size_,const bool memory_protect_)
-    :is_pagelock_(memory_protect_),
-    useable_stack_(nullptr),
-    stack_(nullptr),
-    stacksize_(init_stack_size_)
+    :m_pagelock_flag(memory_protect_),
+    m_useable_stack(nullptr),
+    m_stack(nullptr),
+    m_stacksize(init_stack_size_)
 {
     size_t pagesize = getpagesize();  
     // 内存对齐
-    if(stacksize_%pagesize == 0)
-        stacksize_ = init_stack_size_ ; 
+    if(m_stacksize%pagesize == 0)
+        m_stacksize = init_stack_size_ ; 
     else
-        stacksize_ = (init_stack_size_/pagesize + 1)*pagesize;
+        m_stacksize = (init_stack_size_/pagesize + 1)*pagesize;
 
     // 需要保护栈内存
-    if(is_pagelock_)
+    if(m_pagelock_flag)
     {
-        char* stack_ = sys_stack_alloc(NULL,stacksize_+2*pagesize,
+        char* stack_ = sys_stack_alloc(NULL,m_stacksize+2*pagesize,
             PROT_READ|PROT_WRITE,MAP_PRIVATE);
         assert(stack_ != nullptr);    
 
@@ -93,17 +93,17 @@ RoutineStack::RoutineStack(const size_t init_stack_size_,const bool memory_prote
         if(mprotect(stack_,pagesize,PROT_NONE) < 0){
             SYS_LOG("%s , errno : %d",__FUNCTION__)
         }
-        if(mprotect((stack_+stacksize_+pagesize),pagesize,PROT_NONE) < 0){
+        if(mprotect((stack_+m_stacksize+pagesize),pagesize,PROT_NONE) < 0){
             SYS_LOG("%s , errno : %d",__FUNCTION__)
         }
-        useable_stack_ = stack_+pagesize;   //可访问内存栈   
+        m_useable_stack = stack_+pagesize;   //可访问内存栈   
     }
     else
     {
-        char* stack_ = sys_stack_alloc(NULL,stacksize_,
+        char* stack_ = sys_stack_alloc(NULL,m_stacksize,
             PROT_READ|PROT_WRITE,MAP_PRIVATE);
         assert(stack_ != nullptr);
-        useable_stack_ = stack_;
+        m_useable_stack = stack_;
     }
 }
 
@@ -112,18 +112,18 @@ RoutineStack::~RoutineStack()
 {
     int pagesize = getpagesize();
     //解锁内存段
-    if(is_pagelock_)
+    if(m_pagelock_flag)
     {
-        if(mprotect(stack_,pagesize,PROT_READ|PROT_WRITE) < 0){
+        if(mprotect(m_stack,pagesize,PROT_READ|PROT_WRITE) < 0){
             SYS_LOG("%s , errno : %d",__FUNCTION__)
         }
-        if(mprotect((char*)stack_+stacksize_+pagesize,pagesize,PROT_READ|PROT_WRITE) < 0){
+        if(mprotect((char*)m_stack+m_stacksize+pagesize,pagesize,PROT_READ|PROT_WRITE) < 0){
             SYS_LOG("%s , errno : %d",__FUNCTION__)
         }
-        assert(sys_stack_free(stack_,stacksize_+2*pagesize) == 0);
+        assert(sys_stack_free(m_stack,m_stacksize+2*pagesize) == 0);
     }
     else
-        assert(sys_stack_free(stack_,stacksize_+2*pagesize) == 0);
+        assert(sys_stack_free(m_stack,m_stacksize+2*pagesize) == 0);
 
 }
 
@@ -132,12 +132,12 @@ RoutineStack::~RoutineStack()
 
 void* RoutineStack::StackTop()
 {
-    return useable_stack_;
+    return m_useable_stack;
 }
 
 size_t RoutineStack::Size()
 {
-    return stacksize_;
+    return m_stacksize;
 }
 
 

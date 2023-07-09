@@ -61,10 +61,10 @@ public:
     size_t Size();
 
 private:
-    void* useable_stack_;   //可用栈
-    void* stack_;
-    size_t stacksize_;
-    bool is_pagelock_;
+    void*   m_useable_stack;   //可用栈
+    void*   m_stack;
+    size_t  m_stacksize;
+    bool    m_pagelock_flag;
 };
 
 

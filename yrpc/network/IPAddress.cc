@@ -27,47 +27,47 @@ void InitAddress(sockaddr_in& addr ,int port,std::string ip="",int opt = INADDR_
 
 //客户端用
 IPAddress::IPAddress(std::string ip,int port)
-        :_ip(ip),
-        _port(port)
+        :m_ip(ip),
+        m_port(port)
 {
-    InitAddress(_addr,port,ip);
+    InitAddress(m_addr,port,ip);
 }
 
 
 //服务器用	ip地址配置主要是INADDR_ANY
 IPAddress::IPAddress(int port, int opt)
-		:_ip(""),
-		_port(port)
+		:m_ip(""),
+		m_port(port)
 {
-    InitAddress(_addr,port,_ip,opt);
+    InitAddress(m_addr,port,m_ip,opt);
 }
 
 //返回string格式的 点分10进制ip地址
 std::string IPAddress::GetIP() const
 {
-    return _ip;
+    return m_ip;
 }
 
 //返回一个int格式的port
 int IPAddress::GetPort() const
 {
-    return _port;
+    return m_port;
 }
 
 //设置 ip、port	
 void IPAddress::set(std::string ip,int port)
 {
-    _port = port;
-	_ip = ip;
+    m_port = port;
+	m_ip = ip;
 
-	InitAddress(_addr,port,ip);
+	InitAddress(m_addr,port,ip);
 }
 
 void IPAddress::set(sockaddr_in addr)
 {
-    _addr = addr;
-	_ip = inet_ntoa(addr.sin_addr);
-	_port = ntohs(addr.sin_port);
+    m_addr = addr;
+	m_ip = inet_ntoa(addr.sin_addr);
+	m_port = ntohs(addr.sin_port);
 }
 
 
@@ -75,22 +75,22 @@ void IPAddress::set(sockaddr_in addr)
 std::string IPAddress::GetIPPort() const 
 {
 
-    return _ip+":"+std::to_string(_port);
+    return m_ip+":"+std::to_string(m_port);
 }
 
 IPAddress::IPAddress(IPAddress &&addr)
-	:_addr(addr._addr),
-	_ip(std::move(addr._ip)),
-	_port(std::move(addr._port))
+	:m_addr(addr.m_addr),
+	m_ip(std::move(addr.m_ip)),
+	m_port(std::move(addr.m_port))
 {
 	// addr._addr;	// 懒得初始化了，感觉没必要，承诺用不到就行了
-	addr._port = -1;
+	addr.m_port = -1;
 }
 
 IPAddress::IPAddress(const IPAddress&addr)
-	:_addr(addr._addr),
-	_ip(addr._ip),
-	_port(addr._port)
+	:m_addr(addr.m_addr),
+	m_ip(addr.m_ip),
+	m_port(addr.m_port)
 {
 }
 
@@ -112,18 +112,18 @@ YAddress::YAddress(const YAddress&addr)
 
 YAddress& YAddress::operator=(const YAddress& oth)
 {
-	this->_addr = oth._addr;
-	this->_ip = oth._ip;
-	this->_port = oth._port;
+	this->m_addr = oth.m_addr;
+	this->m_ip = oth.m_ip;
+	this->m_port = oth.m_port;
 	this->is_null = this->is_null;
 	return *this;
 }
 
 YAddress& YAddress::operator=(YAddress&& oth)
 {
-	this->_addr = oth._addr;
-	this->_ip = std::move(oth._ip);
-	this->_port = oth._port;
+	this->m_addr = oth.m_addr;
+	this->m_ip = std::move(oth.m_ip);
+	this->m_port = oth.m_port;
 	this->is_null = this->is_null;
 	oth.is_null = true;	// 置空表示，移交所有权
 	return *this;

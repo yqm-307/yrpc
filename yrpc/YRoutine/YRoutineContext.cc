@@ -18,11 +18,11 @@ thread_local bool FirstJump = true;
 
 
 YRoutineContext::YRoutineContext(size_t init_stack_size,YRoutineFunc main_func,void* args,YRoutineDoneCallback done_func,bool memory_protect)
-    :stack_(init_stack_size,memory_protect),
-    main_(main_func),args_(args),
-    donefunc_(done_func)
+    :m_stack(init_stack_size,memory_protect),
+    m_func_main(main_func),m_args(args),
+    m_donefunc(done_func)
 {
-    Make(main_,args_);
+    Make(m_func_main,m_args);
 }
 YRoutineContext::~YRoutineContext(){}
 
@@ -36,11 +36,11 @@ YRoutineContext_Base* YRoutineContext::CreateHandle(size_t stacksize,YRoutineFun
 
 void YRoutineContext::Make(YRoutineFunc func,void* args)
 {
-    args_ = args;
-    main_ = func;
+    m_args = args;
+    m_func_main = func;
 
-    void* stack_p = (void*)((char*)stack_.StackTop()+stack_.Size());    //栈底
-    context_ = boost::context::detail::make_fcontext(stack_p,stack_.Size(),&YRoutineFuncWrapper);
+    void* stack_p = (void*)((char*)m_stack.StackTop()+m_stack.Size());    //栈底
+    m_context = boost::context::detail::make_fcontext(stack_p,m_stack.Size(),&YRoutineFuncWrapper);
 
 
 }
@@ -50,7 +50,7 @@ void YRoutineContext::Make(YRoutineFunc func,void* args)
 bool YRoutineContext::Yield()
 {
     boost::context::detail::transfer_t trf;
-    trf = boost::context::detail::jump_fcontext(GetMainContext(),&context_);
+    trf = boost::context::detail::jump_fcontext(GetMainContext(),&m_context);
 
 
     GetMainContext() = trf.fctx;
@@ -63,7 +63,7 @@ bool YRoutineContext::Resume()
 { 
     boost::context::detail::transfer_t trf; // 切换前后上下文
 
-    trf = boost::context::detail::jump_fcontext(context_,reinterpret_cast<void*>(this));    // main 
+    trf = boost::context::detail::jump_fcontext(m_context,reinterpret_cast<void*>(this));    // main 
 
     
     //帮助来源协程，保存它的上下文
@@ -87,9 +87,9 @@ void YRoutineContext::YRoutineFuncWrapper(boost::context::detail::transfer_t t)
     //一定是从调度协程来的,所以保存调度协程(主协程)上下文
     ts->GetMainContext() = t.fctx;
 
-    ts->main_(ts->args_);
+    ts->m_func_main(ts->m_args);
 
-    if(ts->donefunc_!=nullptr)
-        ts->donefunc_();
+    if(ts->m_donefunc!=nullptr)
+        ts->m_donefunc();
     ts->Yield();    //非对称协程,控制权回到调用协程
 }

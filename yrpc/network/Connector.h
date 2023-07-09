@@ -62,9 +62,7 @@ protected:
     void Connect(const YAddress& servaddr);
 private:
     yrpc::coroutine::poller::Epoller* scheduler_;
-
     OnConnectCallback   m_onconn;
-    
     LoadBalancer    m_lber;
 };
 

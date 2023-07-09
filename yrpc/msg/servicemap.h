@@ -106,9 +106,9 @@ private:
     /* 维护 id、name、handler 之间的映射关系 */
 
 
-    NTIMap NameToId_;       //服务名 到 服务的映射
-    ITSMap IdToService_;    //id 到 服务的映射
-    ITNMap IdToName_;       //id 到 服务名
+    NTIMap m_name2id;       //服务名 到 服务的映射
+    ITSMap m_id2service;    //id 到 服务的映射
+    ITNMap m_id2name;       //id 到 服务名
 };
 
 

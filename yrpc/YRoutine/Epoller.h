@@ -300,25 +300,25 @@ private:
     typedef std::queue<PendingTask> PendingTaskQueue;             //新任务队列
     typedef std::queue<YRoutine_t> SuspendQueue;    //挂起协程队列
 
-    SuspendQueue                suspend_queue_;     //协程挂起队列
-    PendingTaskQueue            pending_tasks_;     //待处理任务
+    SuspendQueue                m_suspend_queue;     //协程挂起队列
+    PendingTaskQueue            m_pending_tasks;     //待处理任务
     Mutex                       m_lock;             // thread safe addtask
-    size_t                      max_size_;          //待处理任务队列长度
-    detail::Scheduler           runtime_;           //协程调度
+    size_t                      m_max_size;          //待处理任务队列长度
+    detail::Scheduler           m_runtime;           //协程调度
 
 
     // 
-    TimerQueue<RoutineSocket*>      timer_;             // 协程定时事件
-    TimerQueue<TimerTaskFunc>       normal_timer_;      // 超时回调任务
-    Mutex                           mutex_timer_;       
+    TimerQueue<RoutineSocket*>      m_routine_timer;             // 协程定时事件
+    TimerQueue<TimerTaskFunc>       m_comm_timer;      // 超时回调任务
+    Mutex                           m_mutex_timer;       
 
     /// 单独加锁,比较频繁
-    TimerQueue<RoutineSocket*>      socket_timer_;      // socket定时
-    Mutex                           mutex_socket_timer_;   
+    TimerQueue<RoutineSocket*>      m_socket_timer;      // socket定时
+    Mutex                           m_mutex_socket_timer;   
 
-    int         epollfd_;               
-    bool        close_;   
-    bool        forever_;     
+    int         m_epollfd;               
+    bool        m_closed;   
+    bool        m_forever_flag;     
     static bbt::pool_util::IDPool<int,true>    m_id_pool;
     int m_id;
 };

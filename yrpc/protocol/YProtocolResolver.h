@@ -97,7 +97,6 @@ protected:
 protected:
     // 32位长
     ProtocolHead        m_protocol_head;   //协议头
-    // YRPC_PROTOCOL       m_prototype;
     Buffer              m_bytes;
 };   
 

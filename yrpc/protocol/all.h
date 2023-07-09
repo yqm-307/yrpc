@@ -19,5 +19,4 @@
 
 
 // #include "Protocol.h"       //  v1.0版本设计，欲弃用 (已删除)
-#include "ProtocolUtil.h"   //  v1.0版本设计，欲弃用
-#include "ErrCode.h"        //  v1.0版本设计，欲弃用
+// #include "ProtocolUtil.h"   //  v1.0版本设计，欲弃用

@@ -95,15 +95,4 @@ void ToBytes(T data ,char* src)
 }
 
 
-
-
-
-// //将src中len长度的字节，追加到dest里面
-// void AppendToString(std::string& dest,const char* src,size_t len)
-// {
-//     dest.append(src,len);
-// }
-
-
-
 }

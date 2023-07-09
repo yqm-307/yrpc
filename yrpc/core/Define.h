@@ -12,8 +12,8 @@
 #include <functional>
 #include <memory>
 #include <google/protobuf/any.h>
-#include "../protocol/ErrCode.h"
 #include "../network/all.h"
+#include "yrpc/shared/ErrCode.h"
 #define CLIENTPORT
 
 /* session 空闲存活时间，如果在session活跃时，session不会被释放。
@@ -26,7 +26,7 @@ namespace yrpc::rpc::detail
 {
 
 typedef std::shared_ptr<google::protobuf::Message> MessagePtr;
-typedef std::function<void(MessagePtr,const yrpc::err::errcode&)> RpcCallback;
+typedef std::function<void(MessagePtr,const yrpc::detail::shared::errorcode&)> RpcCallback;
 typedef std::function<void()>   CommCallback;
 
 // rpc 调用返回状态

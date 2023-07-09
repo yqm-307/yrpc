@@ -15,9 +15,9 @@
 using namespace yrpc::coroutine::detail;
 
 YCO_Scheduler::YCO_Scheduler(size_t stacksize,bool need_memlock)
-    :stack_size_(stacksize),
-    need_memlock_(need_memlock),r_num_(0),
-    last_routine_index_(-1),current_routine_index_(-1)
+    :m_max_stack_size(stacksize),
+    m_need_memlock_flag(need_memlock),m_routinue_num(0),
+    m_last_routine_index(-1),m_current_routine_index(-1)
 {
 }
 
@@ -31,24 +31,24 @@ YCO_Scheduler::~YCO_Scheduler()
 
 void YCO_Scheduler::YRoutineDone()
 {
-    if(current_routine_index_ < 0)
+    if(m_current_routine_index < 0)
         return;
     //修改node的指向，加入到空闲链表
-    r_list_[current_routine_index_].Next_Node = last_routine_index_;
-    r_list_[current_routine_index_].status_ = DONE;
-    last_routine_index_ = current_routine_index_;
-    current_routine_index_ = -1;
-    r_num_--;
+    m_routinue_list[m_current_routine_index].Next_Node = m_last_routine_index;
+    m_routinue_list[m_current_routine_index].status_ = DONE;
+    m_last_routine_index = m_current_routine_index;
+    m_current_routine_index = -1;
+    m_routinue_num--;
 }
 
 
 bool YCO_Scheduler::Yield()
 {
-    if(current_routine_index_ < 0)
+    if(m_current_routine_index < 0)
         return false;   //无效的Yield
-    auto Node = r_list_[current_routine_index_];
+    auto Node = m_routinue_list[m_current_routine_index];
     Node.status_ = SUSPEND;
-    current_routine_index_ = -1;
+    m_current_routine_index = -1;
     Node.context_->Yield();
     return true;
 }
@@ -57,14 +57,14 @@ bool YCO_Scheduler::Yield()
 
 bool YCO_Scheduler::Resume(int index)
 {
-    if(index >= r_list_.size())
+    if(index >= m_routinue_list.size())
         return false;
-    auto context = r_list_[index];
+    auto context = m_routinue_list[index];
 
-    if(r_list_[index].status_==SUSPEND)
+    if(m_routinue_list[index].status_==SUSPEND)
     {
         context.status_=RUNNING;
-        current_routine_index_ = index;
+        m_current_routine_index = index;
         context.context_->Resume();
         return true;
     }
@@ -77,25 +77,25 @@ bool YCO_Scheduler::Resume(int index)
 YRoutine_t YCO_Scheduler::CreateRoutine(context::YRoutineFunc&& func,void* args)
 {
     YRoutine_t i = -1;
-    if(last_routine_index_>=0)  //只需要改变空闲槽
+    if(m_last_routine_index>=0)  //只需要改变空闲槽
     {
-        i = last_routine_index_;
-        last_routine_index_ = r_list_[last_routine_index_].Next_Node;
-        r_list_[i].context_->Make(func,args);
+        i = m_last_routine_index;
+        m_last_routine_index = m_routinue_list[m_last_routine_index].Next_Node;
+        m_routinue_list[i].context_->Make(func,args);
     }
     else//需要创建新的
     {
-        i = r_list_.size();
+        i = m_routinue_list.size();
         RoutineNode Node;
-        Node.context_ = context::YRoutineContext::CreateHandle(stack_size_,func,args,
-            std::bind(&YCO_Scheduler::YRoutineDone,this),need_memlock_); 
+        Node.context_ = context::YRoutineContext::CreateHandle(m_max_stack_size,func,args,
+            std::bind(&YCO_Scheduler::YRoutineDone,this),m_need_memlock_flag); 
         assert(Node.context_);
-        r_list_.push_back(Node);
+        m_routinue_list.push_back(Node);
     }
 
-    r_list_[i].status_=SUSPEND; //挂起
-    r_list_[i].Next_Node=-1;
-    r_num_++;
+    m_routinue_list[i].status_=SUSPEND; //挂起
+    m_routinue_list[i].Next_Node=-1;
+    m_routinue_num++;
 
     return i;
 }

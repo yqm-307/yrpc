@@ -19,62 +19,62 @@ Buffer::Buffer(size_t size)
 {
     int syspagesize = getpagesize();
     if (size%syspagesize == 0)
-        bytes = std::move(std::vector<char>(size));
+        m_bytes = std::move(std::vector<char>(size));
     else
     {
         int npage = size/syspagesize;
-        bytes = std::move(std::vector<char>(syspagesize*(npage+1)));
+        m_bytes = std::move(std::vector<char>(syspagesize*(npage+1)));
     }
-    assert( bytes.size() >= DataSize() );
+    assert( m_bytes.size() >= DataSize() );
 }
 
 Buffer::Buffer(const Buffer& rval)
-    :bytes(rval.bytes),
+    :m_bytes(rval.m_bytes),
     reservedBytes(HeaderBytes),
     _readIndex(rval._readIndex),
     _writeIndex(rval._writeIndex)
 {
-    assert( bytes.size() >= DataSize() );
+    assert( m_bytes.size() >= DataSize() );
 }
 
 Buffer::Buffer(Buffer&& rval)
     :reservedBytes(HeaderBytes),
     _readIndex(rval._readIndex),
     _writeIndex(rval._writeIndex),
-    bytes(std::move(rval.bytes))
+    m_bytes(std::move(rval.m_bytes))
 {
-    assert( bytes.size() >= DataSize() );
+    assert( m_bytes.size() >= DataSize() );
 }
 Buffer::Buffer(const char* begin, size_t len)
-    :bytes(initSize),
+    :m_bytes(initSize),
     _readIndex(0),
     _writeIndex(len)
 {
     WriteString(begin,len);
-    assert( bytes.size() >= DataSize() );
+    assert( m_bytes.size() >= DataSize() );
 }
 Buffer::Buffer(const std::string& str)
-    :bytes(initSize),
+    :m_bytes(initSize),
     _readIndex(0),
     _writeIndex(0)
 {
     assert(WriteString(str.c_str(),str.size()));
-    assert( bytes.size() >= DataSize() );
+    assert( m_bytes.size() >= DataSize() );
 }
 
 
 Buffer& Buffer::operator=(Buffer&&bf)
 {
     this->Swap(bf);    
-    assert( bytes.size() >= DataSize() );
+    assert( m_bytes.size() >= DataSize() );
     return *this;
 }
 Buffer& Buffer::operator=(const Buffer&bf)
 {
-    this->bytes = bf.bytes;
+    this->m_bytes = bf.m_bytes;
     this->_readIndex = bf._readIndex;
     this->_writeIndex = bf._writeIndex;
-    assert( bytes.size() >= DataSize() );
+    assert( m_bytes.size() >= DataSize() );
     return *this;
 }
 
@@ -92,8 +92,8 @@ size_t Buffer::ReadableBytes() const
 //可写字节数
 size_t Buffer::WriteableBytes() const
 {
-    assert(bytes.size() >= _writeIndex);
-    return bytes.size() - _writeIndex;
+    assert(m_bytes.size() >= _writeIndex);
+    return m_bytes.size() - _writeIndex;
 }
 
 //前置空闲字节数
@@ -105,10 +105,10 @@ size_t Buffer::PrepareBytes() const
 //swap
 void Buffer::Swap(Buffer& s)
 {
-    bytes.swap(s.bytes);
+    m_bytes.swap(s.m_bytes);
     std::swap(_readIndex, s._readIndex);
     std::swap(_writeIndex, s._writeIndex);
-    assert( bytes.size() >= DataSize() );
+    assert( m_bytes.size() >= DataSize() );
 }
 
 void Buffer::InitAll()                 //初始化
@@ -116,7 +116,7 @@ void Buffer::InitAll()                 //初始化
     _writeIndex = headSize;
     _readIndex = headSize;
     // bytes.clear();
-    memset(Begin(),'\0',bytes.size());
+    memset(Begin(),'\0',m_bytes.size());
 }
 
 //读取len个字节到byte中
@@ -133,7 +133,7 @@ bool Buffer::Read(void* byte,size_t len)
 void Buffer::move(int obj, int start, int len)
 {
     assert(obj >= 0);
-    assert((start + len) <= bytes.size());
+    assert((start + len) <= m_bytes.size());
     memcpy(Begin() + obj, Begin() + start, len);
 }
 
@@ -158,7 +158,7 @@ bool Buffer::Write(const char* data, size_t len)
         int writen=WriteableBytes();
         if(writen < len)
         {
-            assert((writen+_writeIndex) <= bytes.size());
+            assert((writen+_writeIndex) <= m_bytes.size());
             memcpy(Begin() + _writeIndex, data,writen);
         }
         else
@@ -175,17 +175,17 @@ bool Buffer::Write(const char* data, size_t len)
             {
                 assert(i < len);
                 char s=*(data+i);
-                bytes.push_back(s);
+                m_bytes.push_back(s);
             }
         _writeIndex += len;
     }
     else    //可写空间足够
     {
-        if (! ((len+_writeIndex) <= bytes.size()))
+        if (! ((len+_writeIndex) <= m_bytes.size()))
         {
-            ERROR("当前write下标:%d  ,需要写入len:%d   ,bytes总长度:%d",_writeIndex,len,bytes.size());
+            ERROR("当前write下标:%d  ,需要写入len:%d   ,bytes总长度:%d",_writeIndex,len,m_bytes.size());
         }
-        assert((len+_writeIndex) <= bytes.size());
+        assert((len+_writeIndex) <= m_bytes.size());
         memcpy(Begin() + _writeIndex, data, len);
         _writeIndex += len;
     }
@@ -301,7 +301,7 @@ int64_t Buffer::Readfd(int fd, int& savedErrno)
     else if (static_cast<size_t>(n) <= writable)
         _writeIndex += n;
     else {
-        _writeIndex = bytes.size();
+        _writeIndex = m_bytes.size();
         WriteString(extrabuf, n - writable);
     }
     return n;
@@ -353,7 +353,7 @@ size_t Buffer::WriteNull(size_t len)
         int writen=WriteableBytes();
         if(writen < len)
         {
-            assert((writen+_writeIndex) <= bytes.size());
+            assert((writen+_writeIndex) <= m_bytes.size());
         }
         else
         {
@@ -367,17 +367,17 @@ size_t Buffer::WriteNull(size_t len)
             for (int i = writen; i < len; ++i)
             {
                 assert(i < len);
-                bytes.push_back('\0');
+                m_bytes.push_back('\0');
             }
         _writeIndex += len;
     }
     else    //可写空间足够
     {
-        if (! ((len+_writeIndex) <= bytes.size()))
+        if (! ((len+_writeIndex) <= m_bytes.size()))
         {
-            ERROR("当前write下标:%d  ,需要写入len:%d   ,bytes总长度:%d",_writeIndex,len,bytes.size());
+            ERROR("当前write下标:%d  ,需要写入len:%d   ,bytes总长度:%d",_writeIndex,len,m_bytes.size());
         }
-        assert((len+_writeIndex) <= bytes.size());
+        assert((len+_writeIndex) <= m_bytes.size());
         _writeIndex += len;
     }
     

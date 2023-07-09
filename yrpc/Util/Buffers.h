@@ -19,12 +19,12 @@ public:
     static const int initSize;
     Buffer(size_t initsize = initSize);
     ~Buffer(){
-        // DEBUG("this: 0x%x  bytes:0x%x\t",this,&*bytes.begin());
+        // DEBUG("this: 0x%x  m_bytes:0x%x\t",this,&*m_bytes.begin());
     }
 
     Buffer(const Buffer& rval);
     Buffer(Buffer&& rval);
-    Buffer(const char* bytes , size_t len);
+    Buffer(const char* m_bytes , size_t len);
     Buffer(const std::string& bytes);
     // Buffer(std::string&& bytes);
 
@@ -93,13 +93,13 @@ private:
     const char* GetOffset(size_t n) const;
     
     char* Begin()             
-    {return &*bytes.begin();}
+    {return &*m_bytes.begin();}
     const char* Begin() const                   
-    {return &*bytes.begin();}
+    {return &*m_bytes.begin();}
     void move(int start,int len,int obj);       //移动
     void moveForward();                         //向前移动
 private:
-    std::vector<char> bytes;            //比特流
+    std::vector<char> m_bytes;            //比特流
     size_t _readIndex{0};                  //已读
     size_t _writeIndex{0};                 //已写
     const int reservedBytes{0};            //预留位置

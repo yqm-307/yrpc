@@ -21,38 +21,38 @@ typedef std::function<bool(void*)> EqualFunc;
 /**
  * @brief 可以自动实现operator
  */
-template<class Item>
+template<class Object>
 class comparator
 {
 public:
-    virtual bool operator==(const comparator<Item>& r_value_) const =0;
-    virtual bool operator>(const comparator<Item>& r_value_) const = 0;
+    virtual bool operator==(const comparator<Object>& r_value_) const =0;
+    virtual bool operator>(const comparator<Object>& r_value_) const = 0;
     
 
     
-    virtual bool operator!=(const comparator<Item>& r_value_) const
+    virtual bool operator!=(const comparator<Object>& r_value_) const
     { return !(*this == r_value_); }
     
 
-    virtual bool operator<(const comparator<Item>& r_value_) const
+    virtual bool operator<(const comparator<Object>& r_value_) const
     { return (!this->operator>(r_value_)) && (this->operator!=(r_value_));}
 
-    virtual bool operator>=(const comparator<Item>& r_value_) const 
+    virtual bool operator>=(const comparator<Object>& r_value_) const 
     { return (this->operator>(r_value_) || (this->operator==(r_value_))); }
 
-    virtual bool operator<=(const comparator<Item>& r_value_) const
+    virtual bool operator<=(const comparator<Object>& r_value_) const
     { return (this->operator<(r_value_) || (this->operator==(r_value_))); }
 
-    virtual const Item& GetValue() const
+    virtual const Object& GetValue() const
     {
-        return it_;
+        return m_it;
     } 
-    virtual Item& SetValue(const Item& obj)
+    virtual Object& SetValue(const Object& obj)
     {
-        return it_=obj;
+        return m_it=obj;
     }
 protected:
-    Item it_;
+    Object m_it;
 };
 
 

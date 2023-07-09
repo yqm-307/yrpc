@@ -16,7 +16,7 @@ ServiceMap::ServiceMap()
 ServiceMap::~ServiceMap()
 {
     //全部析构掉
-    for(auto it : IdToService_)
+    for(auto it : m_id2service)
     {
         delete &it;
     }
@@ -24,46 +24,46 @@ ServiceMap::~ServiceMap()
 
 uint32_t ServiceMap::insert(std::string name,const ServiceFunc& service,const CodecFunc& code)
 {
-    if(NameToId_.find(name) != NameToId_.end())
+    if(m_name2id.find(name) != m_name2id.end())
     {//服务名冲突
         FATAL("[YRPC][ServiceMap::insert] service name repeated!");
         return 0;
     }
 
     auto ret = yrpc::util::hash::BKDRHash(name.c_str(),name.size());
-    assert(IdToName_.find(ret) == IdToName_.end());     //hash冲突,需要修改名字
+    assert(m_id2name.find(ret) == m_id2name.end());     //hash冲突,需要修改名字
     ServiceHandles* ptr = new ServiceHandles{service,code};
-    IdToService_.insert({ret,ptr});
-    NameToId_.insert({name,ret});
-    IdToName_.insert({ret,name});
+    m_id2service.insert({ret,ptr});
+    m_name2id.insert({name,ret});
+    m_id2name.insert({ret,name});
     return ret;
 }
 
 uint32_t ServiceMap::insert(std::string name, uint32_t id,const ServiceFunc& service ,const CodecFunc& code)
 {
-    if(NameToId_.find(name) != NameToId_.end())
+    if(m_name2id.find(name) != m_name2id.end())
     {
         FATAL("[YRPC][ServiceMap::insert] service name repeated!");
         return 0;
     }
 
     auto ret = id;
-    assert(IdToName_.find(ret) == IdToName_.end());
+    assert(m_id2name.find(ret) == m_id2name.end());
     ServiceHandles* ptr = new ServiceHandles{service,code};
-    IdToService_.insert({ret,ptr});
-    NameToId_.insert({name,ret});
-    IdToName_.insert({ret,name});
+    m_id2service.insert({ret,ptr});
+    m_name2id.insert({name,ret});
+    m_id2name.insert({ret,name});
     return ret;
 }
 
 
 int ServiceMap::earse(int id)
 {
-    if(IdToService_.size() <= 0)
+    if(m_id2service.size() <= 0)
         return -1;
     else
     {
-        if(IdToService_.erase(id))
+        if(m_id2service.erase(id))
             return 0;
         else
             return -1;
@@ -74,12 +74,12 @@ int ServiceMap::earse(int id)
 
 const ServiceHandles* ServiceMap::IdToService(uint32_t id) const 
 {
-    if(IdToService_.size() <= 0)
+    if(m_id2service.size() <= 0)
         return nullptr;
     else
     {
-        auto it = IdToService_.find(id);
-        if(it == IdToService_.end())
+        auto it = m_id2service.find(id);
+        if(it == m_id2service.end())
             return nullptr;
         else
             return it->second;
@@ -90,12 +90,12 @@ const ServiceHandles* ServiceMap::IdToService(uint32_t id) const
 
 const ServiceHandles* ServiceMap::NameToService(std::string name) const
 {
-    if(NameToId_.size() <=0)
+    if(m_name2id.size() <=0)
         return nullptr;
     else
     {
-        auto it = NameToId_.find(name);
-        if(it == NameToId_.end())
+        auto it = m_name2id.find(name);
+        if(it == m_name2id.end())
             return nullptr;
         else
             return IdToService(it->second);

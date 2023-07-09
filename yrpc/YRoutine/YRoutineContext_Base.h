@@ -44,13 +44,13 @@ public:
     virtual bool Resume()=0;
 
 private:
-    static YContextCreateFunc routine_create_func_;
+    static YContextCreateFunc m_routine_create_func;
 };
 
 template<class Func>
 void YRoutineContext_Base::SetYRoutineCreateFunc(Func&& func)
 {
-    routine_create_func_ = func;
+    m_routine_create_func = func;
 }
 
 }

@@ -98,7 +98,7 @@ protected:
     Socket*          m_socket; // m_ssl_socket
     yrpc::coroutine::poller::Epoller* m_schedule;
     
-    volatile CONN_STATUS             m_conn_status;
+    volatile CONN_STATUS    m_conn_status;
     YAddress                m_cliaddr;
 
     bool                    m_Reading;
@@ -108,7 +108,7 @@ protected:
     ConnCloseHandle         m_closecb;   // 
     OnTimeoutCallback       m_timeoutcb;  // 超时回调通知
 
-    int     m_init_buffer_size{4096};               // 初始化buffer大小      
+    int                     m_init_buffer_size{4096};               // 初始化buffer大小      
     // input buffer
     yrpc::util::buffer::Buffer  m_input_buffer;     // 接收缓存
     yrpc::util::buffer::Buffer  m_output_buffer;    // 接收缓存

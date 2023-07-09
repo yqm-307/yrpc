@@ -22,10 +22,10 @@ public:
 
     static CallObjFactory* GetInstance()
     {
-        static CallObjFactory* _instance = nullptr;
-        if(_instance == nullptr)
-            _instance = new CallObjFactory();
-        return _instance;
+        static CallObjFactory* instance = nullptr;
+        if(instance == nullptr)
+            instance = new CallObjFactory();
+        return instance;
     }
 
     template<typename ReqType,typename RspType> 
@@ -41,7 +41,6 @@ public:
 private:
     int GetIds();
 private:
-    // DeCodeMap       m_idtocodec_map;
     std::atomic_int m_global_id{0};
 };
 

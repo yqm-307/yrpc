@@ -137,10 +137,10 @@ void YTimer<TaskObject>::GetAllTask(std::vector<Ptr>& sockets)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename DataObject>
 Task<DataObject>::Task(clock::Timestamp<ms>& timepoint,DataObject data,int trigger,int max_times)
-    :is_canceled_(false),
-    trigger_interval_(trigger),
-    max_trigger_times_(max_times),
-    data_(data)
+    :m_is_canceled(false),
+    m_trigger_interval(trigger),
+    m_max_trigger_times(max_times),
+    m_data(data)
 {
     this->SetValue(timepoint);
 }
@@ -157,7 +157,7 @@ typename Task<DataObject>::Ptr Task<DataObject>::CreateTaskSlotWithSharedOfThis(
 template<typename DataObject>
 bool Task<DataObject>::operator>(const comparator<clock::Timestamp<ms>> &rvalue) const
 {
-    return it_ > rvalue.GetValue();
+    return m_it > rvalue.GetValue();
 }
 
 
@@ -165,54 +165,54 @@ bool Task<DataObject>::operator>(const comparator<clock::Timestamp<ms>> &rvalue)
 template<typename DataObject>
 bool Task<DataObject>::operator==(const comparator<clock::Timestamp<ms>> &rvalue) const
 {
-    return it_ == rvalue.GetValue();
+    return m_it == rvalue.GetValue();
 }
 
 
 
 template<typename DataObject>
-void Task<DataObject>::Cancel() { is_canceled_ = true; }
+void Task<DataObject>::Cancel() { m_is_canceled = true; }
 
 
 
 template<typename DataObject>
-bool Task<DataObject>::Is_Canceled() { return is_canceled_; }
+bool Task<DataObject>::Is_Canceled() { return m_is_canceled; }
 
 
 
 template<typename DataObject>
-DataObject& Task<DataObject>::Data() { return data_; }
+DataObject& Task<DataObject>::Data() { return m_data; }
 
 
 
 template<typename DataObject>
 void Task<DataObject>::SetAutoReset(int tick_ms)
 {
-    trigger_interval_ = tick_ms;
+    m_trigger_interval = tick_ms;
 }
 
 
 template<typename DataObject>
 int Task<DataObject>::GetReset()
 {
-    return trigger_interval_;
+    return m_trigger_interval;
 }
 
 
 template<typename DataObject>
 bool Task<DataObject>::Reset()
 {
-    if ( trigger_interval_ < 0)
+    if ( m_trigger_interval < 0)
         return false;
 
-    it_ = it_ + yrpc::util::clock::ms(trigger_interval_);
+    m_it = m_it + yrpc::util::clock::ms(m_trigger_interval);
 
-    if (max_trigger_times_<0)
+    if (m_max_trigger_times<0)
         return true;
-    else if( max_trigger_times_ == 0 )
+    else if( m_max_trigger_times == 0 )
         return false;
     else
-        max_trigger_times_--;
+        m_max_trigger_times--;
     
     return true;
 }
@@ -221,19 +221,19 @@ bool Task<DataObject>::Reset()
 template<typename DataObject>
 Task<DataObject>::Task(const Task& r)
 {
-    this->data_ = r->data_;
-    this->is_canceled_ = r->is_canceled_;
-    this->it_ = r->it_;
-    this->trigger_interval_ = r->trigger_interval_;
+    this->m_data = r->m_data;
+    this->m_is_canceled = r->m_is_canceled;
+    this->m_it = r->m_it;
+    this->m_trigger_interval = r->m_trigger_interval;
 }
 
 template<typename DataObject>
 Task<DataObject>::Task(const Task&& r)
 {
-    this->data_ = r->data_;
-    this->is_canceled_ = r->is_canceled_;
-    this->it_ = r->it_;
-    this->trigger_interval_ = r->trigger_interval_;
+    this->m_data = r->m_data;
+    this->m_is_canceled = r->m_is_canceled;
+    this->m_it = r->m_it;
+    this->m_trigger_interval = r->m_trigger_interval;
 }
 
 

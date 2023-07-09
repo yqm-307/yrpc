@@ -73,13 +73,13 @@ private:
 
 
 private:
-    boost::context::detail::fcontext_t context_;    //协程上下文
+    boost::context::detail::fcontext_t m_context;    //协程上下文
 
-    YRoutineFunc main_; 
-    void* args_; 
+    YRoutineFunc m_func_main;   // 协程入口函数
+    void* m_args; 
 
-    yrpc::coroutine::detail::RoutineStack stack_; //协程栈内存
-    YRoutineDoneCallback donefunc_;
+    yrpc::coroutine::detail::RoutineStack m_stack; //协程栈内存
+    YRoutineDoneCallback m_donefunc;            // 执行完回调
 };
 
 class YRoutineContextInit

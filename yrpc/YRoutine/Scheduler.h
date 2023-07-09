@@ -99,14 +99,14 @@ public:
      * @return true 没有未完成协程
      * @return false 有未完成协程
      */
-    bool Empty(){return !r_num_;}
+    bool Empty(){return !m_routinue_num;}
 
     /**
      * @brief 获取当前协程数量
      * 
      * @return YRoutine_t 协程数量
      */
-    size_t Size(){return r_num_;}
+    size_t Size(){return m_routinue_num;}
 
 
     /**
@@ -114,7 +114,7 @@ public:
      * 
      * @return int 
      */
-    YRoutine_t CurrentYRoutine(){return current_routine_index_;}
+    YRoutine_t CurrentYRoutine(){return m_current_routine_index;}
 
 private:
     /**
@@ -126,10 +126,10 @@ private:
 private:
     typedef std::vector<RoutineNode> YRoutineList;
 
-    size_t stack_size_;         // 协程栈默认大小
-    YRoutineList r_list_;       // 
-    int current_routine_index_; // 正在运行的协程
-    int last_routine_index_;    // 记录空闲协程
+    size_t m_max_stack_size;         // 协程栈默认大小
+    YRoutineList m_routinue_list;       // 
+    int m_current_routine_index; // 正在运行的协程
+    int m_last_routine_index;    // 记录空闲协程
     
     //r_list 并不是 链表，只是数组，每个元素只是一个槽位，
     //可以参考我写的定时器队列，也是运用的这个原理，所
@@ -138,8 +138,8 @@ private:
     //优点2: 有数组的效率和链表的灵活
     //缺点: 因为内部复杂的映射关系，所以没法clear来缩容。如果协程最大可能出现100万个，哪怕只有一次，数组都有这么大。
     //解决方案，主动降容，或者根据r_num_ ，在多次判断r_num_使用了不到r_list_ size 的25%，就缩容。
-    int r_num_;                 
-    bool need_memlock_;
+    int m_routinue_num;                 
+    bool m_need_memlock_flag;
 };
 
 

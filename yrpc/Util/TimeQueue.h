@@ -113,10 +113,10 @@ private:
     bool Reset();
 
 protected:
-    bool            is_canceled_;       
-    int             trigger_interval_;  // 触发间隔
-    int             max_trigger_times_; // 最大触发次数(最小为0)，超过此次数就不再触发了。注意，如果定时器被取消，这个属性失去意义
-    DataObject      data_;
+    bool            m_is_canceled;       
+    int             m_trigger_interval;  // 触发间隔
+    int             m_max_trigger_times; // 最大触发次数(最小为0)，超过此次数就不再触发了。注意，如果定时器被取消，这个属性失去意义
+    DataObject      m_data;
     //Timestamp timeout;    基类元素
 };
 

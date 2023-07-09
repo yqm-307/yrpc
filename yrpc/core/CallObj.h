@@ -94,20 +94,16 @@ private:
     uint32_t GetID();
 
 private:
-    // Message*        m_message;  // 数据部分   
-    // Generater           m_req;
     Buffer              m_req;
     Resolver            m_rsp;
-    // std::string         m_rsp;
-    // std::string     m_rsq_bytearray;
     uint32_t            m_service_id;   // 服务名
     YRPC_PROTOCOL       m_call_type{YRPC_PROTOCOL::type_YRPC_PROTOCOL_Done};
-    const CallResultFunc    m_callback; // 异步调用
-    Sem_t           m_cond_t; // 通知用户完成
-    Mutex           m_lock;
-    TYPE            m_status;
-    const int             m_typeid_req;
-    const int             m_typeid_rsp;
+    CallResultFunc      m_callback; // 异步调用
+    Sem_t               m_cond_t; // 通知用户完成
+    Mutex               m_lock;
+    TYPE                m_status;
+    const int           m_typeid_req;
+    const int           m_typeid_rsp;
 };
 
 

@@ -24,15 +24,14 @@ public:
     virtual std::string GetIP() const;
     virtual int GetPort() const;
     const struct sockaddr* getsockaddr() const 
-    {   return reinterpret_cast<const sockaddr*>(&_addr);}
+    {   return reinterpret_cast<const sockaddr*>(&m_addr);}
     const socklen_t getsocklen() const
-    {   return sizeof(_addr);}
+    {   return sizeof(m_addr);}
     std::string GetIPPort() const;
-    //char* StringToCstr(std::string ip);
 protected:
-    struct sockaddr_in _addr;
-    std::string _ip;
-    int _port;
+    struct sockaddr_in m_addr;
+    std::string m_ip;
+    int         m_port;
 };
 
 
@@ -61,7 +60,7 @@ public:
 
     bool operator==(const YAddress& oth) const
     {
-        return  ((this->_ip==oth._ip) && (this->_port == oth._port));
+        return  ((this->m_ip==oth.m_ip) && (this->m_port == oth.m_port));
     }
 
     bool operator!=(const YAddress& oth) const
@@ -84,12 +83,10 @@ namespace std
 template<> 
 struct hash<yrpc::detail::net::YAddress>
 {
-    typedef yrpc::detail::net::YAddress argument_type;
-    typedef std::size_t result_type;
-    result_type operator()(argument_type const& addr) const
+    std::size_t operator()(yrpc::detail::net::YAddress const& addr) const
     {
-        result_type const h1 ( std::hash<std::string>{}(addr.GetIP()) );
-        result_type const h2 ( std::hash<int>{}(addr.GetPort()) );
+        auto const h1 (std::hash<std::string>{}(addr.GetIP()) );
+        auto const h2 (std::hash<int>{}(addr.GetPort()) );
         return h1 ^ (h2 << 1); // 或使用 boost::hash_combine （见讨论）
     }
 };
