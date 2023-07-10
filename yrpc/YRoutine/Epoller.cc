@@ -259,37 +259,6 @@ YRoutine_t Epoller::GetCurrentRoutine()
     return m_runtime.CurrentYRoutine();
 }
 
-RoutineSocket* Epoller::CreateSocket(const int sockfd,const int socket_timeout_ms,const int connect_out_ms,bool nonblocking,const bool nodelay)
-{
-    RoutineSocket* socket = (RoutineSocket*)calloc(1,sizeof(RoutineSocket));
-
-    if (sockfd >= 0 )
-    {
-        if(nonblocking)
-            util::tcp::SetNonBlockFd(sockfd);
-        if (nodelay)
-            util::tcp::SetNoDelay(sockfd, nodelay);
-    }
-
-    socket->socket_timeout_ms_ = socket_timeout_ms;
-    socket->sockfd_ = sockfd;
-    socket->connect_timeout_ms_ = connect_out_ms;
-    socket->m_scheduler = this;
-    socket->epollfd_ = this->m_epollfd;
-    socket->event_.data.ptr = socket;
-    socket->eventtype_ = 0;
-    socket->last_recv_time = 0;
-    //socket->
-    return socket;
-}
-
-
-void Epoller::DestorySocket(RoutineSocket* freeptr)
-{
-    free(freeptr);
-}
-
-
 void Epoller::Yield()
 {
     m_suspend_queue.push(GetCurrentRoutine());   //保存当前协程id

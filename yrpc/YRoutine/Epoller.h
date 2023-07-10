@@ -79,8 +79,6 @@ public:
     int             socket_timeout_ms_{3000};
     ConnTimeOut     conn_timeout_;
     SocketTimeOut   socket_timeout_;
-    
-    time_t          last_recv_time;     // 最后一次接受数据时间
     /**
      * task生命期和Socket相同，因为socket在Timer中触发超时事件，就要被断开了，此时task同时析构合情合理
      */
@@ -120,30 +118,8 @@ public:
      */
     Epoller(size_t stacksize,int maxqueue,bool protect = true);
     ~Epoller();
-    
-
-    /**
-     * @brief 新连接的socket，创建
-     * 
-     * @param sockfd 
-     * @param timeout_ms 
-     * @param connect_out_ms 
-     * @param nodelay 
-     * @return Socket* 
-     */
-    RoutineSocket* CreateSocket(const int sockfd,const int timeout_ms=5000,const int connect_out_ms=3000,bool noblocking = true,const bool nodelay=true);
-
-    /**
-     * @brief 释放单个socket套接字占用内存，但是socket并不是epoller的create函数创建，应有创建者负责销毁
-     * 
-     * @param freeptr socket指针
-     */
-    void DestorySocket(RoutineSocket* freeptr);
-
-
     /**
      * @brief 添加任务
-     * 
      * @param func 任务函数
      * @param args 任务函数的参数
      */
@@ -158,39 +134,15 @@ public:
      * @return false 当前执行协程yield失败，或者没有协程（排除调度协程，也就是主协程）正在执行
      */
     bool YieldTask();
-    
-    
-    /**
-     * @brief 将当前运行协程添加到suspend队列中，并挂起当前协程，只是挂起让出cpu等待调度器调度到本协程，保证一定切换回来
-     */
+
+    /* 将当前运行协程添加到suspend队列中，并挂起当前协程，只是挂起让出cpu等待调度器调度到本协程，保证一定切换回来*/
     void Yield();
-
-
-    /**
-     * @brief 开始循环 如果没有设置forever标志位，则不阻塞，处理当前事件后直接返回；否则阻塞，一直循环
-     * 
-     * @return true 
-     * @return false 
-     */
+    /* 开始循环 */
     bool Loop();
-
-
-
-    /**
-     * @brief 使epoll循环运行，调用loop阻塞不会停止
-     */
+    /* 使Loop() 循环永久运行 */
     void RunForever();
-
-
-    /**
-     * @brief 任务队列是否满
-     * 
-     * @return true 已满
-     * @return false 未满
-     */
-    bool QueueFull();
-
-    
+    /* 任务队列是否满 */
+    bool QueueFull();    
     /**
      * @brief 添加一个定时任务
      * 
@@ -199,7 +151,7 @@ public:
      * @return int  0 成功; -1 失败 
      */
     int AddTimer(RoutineSocket* socket,yrpc::util::clock::Timestamp<yrpc::util::clock::ms> timeout);        //添加定时任务
-    int AddTimer(RoutineSocket* socket,int timeoutms);
+    // int AddTimer(RoutineSocket* socket,int timeoutms);
 
     /**
      * @brief 添加一个定时回调任务(thread unsafe)
@@ -211,90 +163,31 @@ public:
      * @return  int         如果返回: 0 成功; -1 失败
      */
     int AddTimer(TimerTaskFunc&& func,int timeout_ms,int reset_time = -1,int max_trigget_times = 1);
-
-
-
-
-
-    /**
-     * @brief 添加一个 socket 超时定时器
-     *  socket 超时比较特殊，如果每次IO都重新设置，那么触发将会非常的频繁。所以设置为定时检测是否有keep a live之类的
-     *  就是下面的 ResetSocketTimer 
-     * 
-     * @param socket 超时定时器
-     * @return int 0成功,-1失败
-     */
+    /* 添加一个socket定时器 */
     int AddSocketTimer(RoutineSocket* socket);
-
-
-    /**
-     * @brief 重置一个 Socket 超时定时器
-     * 
-     * @param socket 超时定时器
-     * @return int 0成功,-1失败
-     */
+    /* 重置一个 Socket 超时定时器 */
     int ResetSocketTimer(RoutineSocket* socket);
-
-    /**
-     * @brief 取消该定时任务
-     * 
-     * @param socket socket封装
-     */
-    void CancelTimer(RoutineSocket* socket);     //取消定时任务
-
-    /**
-     * @brief 取消socket超时定时器
-     * 
-     * @param socket 
-     */
+    /* 取消定时任务 */
+    void CancelTimer(RoutineSocket* socket);
+    /* 取消socket超时定时器 */
     void CancelSocketTimer(RoutineSocket* socket);
-    
-    /**
-     * @brief 获取当前正在运行的协程句柄
-     * @return YRoutine_t 主协程id
-     */
+    /* 获取当前正在运行的协程句柄 */
     YRoutine_t GetCurrentRoutine();
-
-    /**
-     * @brief 协程数量
-     * 
-     * @return size_t 
-     */
+    /* 获取当前协程数量 */
     size_t Size();
-
-    /* 获取 Epoller 的id */
+    /* 获取 epoller 的 id */
     int GetID();
-
+    /* 获取 epoll fd */
     int GetPollFd();
 private:
-
-    
-    /**
-     * @brief 当前其他任务，注册到线程调度器中
-     */
+    /* 当前其他任务，注册到线程调度器中 */
     void DoPendingList();
-    
-    
-    /**
-     * @brief 处理所有定时事件，并将socket 标志位设置为 flag，全部执行
-     * 
-     * @param flag 
-     */
+    /* 处理所有定时事件，并将socket 标志位设置为 flag，全部执行 */
     void ResumeAll(int flag);
-    
-    
-    /**
-     * @brief 处理超时事件
-     * @param next_timeout 
-     */
+    /* 处理超时事件 */
     void DoTimeoutTask();
-
-
-    /**
-     * @brief 唤醒挂起的协程
-     */
+    /* 唤醒挂起的协程 */
     void WakeUpSuspend();
-
 private:
     typedef std::pair<TaskFunc,void*> PendingTask;
     typedef std::queue<PendingTask> PendingTaskQueue;             //新任务队列

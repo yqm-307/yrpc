@@ -183,10 +183,6 @@ ssize_t YRRecv(Socket &socket, void *buf, size_t len, const int flags)
                 nbytes = -1;
         }
     }
-    else
-    {
-        socket.last_recv_time = yrpc::util::clock::now<yrpc::util::clock::ms>().time_since_epoch().count();
-    }
 
     return nbytes;
 }
@@ -207,10 +203,6 @@ ssize_t YRRead(Socket &socket, void *buf, size_t len)
             else
                 nbytes=-1;
         }
-    }
-    else
-    {
-        socket.last_recv_time = yrpc::util::clock::now<yrpc::util::clock::ms>().time_since_epoch().count();
     }
 
     return nbytes;
@@ -335,9 +327,7 @@ int Epoll_Cond_t::Init(yrpc::coroutine::poller::Epoller* scheduler,int timeout)
     if (0 != ret)
         return ret;
     fcntl(pipe_fds_[1], F_SETFL, O_NONBLOCK);
-    CreateSocket(pipe_fds_[0], scheduler, scheduler->GetPollFd(), timeout);
-    socket_ = scheduler->CreateSocket(pipe_fds_[0], timeout, -1, true,false);
-
+    socket_ = CreateSocket(pipe_fds_[0], scheduler, scheduler->GetPollFd(), timeout);
     return 0;
 }
 
@@ -424,7 +414,6 @@ Socket::RawPtr CreateSocket(const int sockfd, yrpc::coroutine::poller::Epoller* 
     y_socket->sockfd_ = sockfd;
     y_socket->event_.data.ptr = y_socket;
     y_socket->eventtype_ = 0;
-    y_socket->last_recv_time = 0;
 
     return y_socket;
 }
@@ -439,7 +428,6 @@ void DestorySocket(Socket::RawPtr socket)
     socket->sockfd_ = -1;
     socket->event_.data.ptr = nullptr;
     socket->eventtype_ = -1;
-    socket->last_recv_time = 0;
     free(socket);
 }
 
