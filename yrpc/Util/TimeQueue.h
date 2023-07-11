@@ -34,7 +34,7 @@ class YTimer;
 
 
 template<class DataObject>
-class Task:public comparator<clock::Timestamp<ms>>
+class Task:public comparator<bbt::timer::clock::Timestamp<bbt::timer::clock::ms>>
 {
 public:
     friend YTimer<DataObject>;
@@ -54,7 +54,7 @@ public:
      * @param max_times     触发次数
      * @return Ptr 
      */
-    static Ptr CreateTaskSlotWithSharedOfThis(clock::Timestamp<ms>&timepoint,DataObject data,int trigger=-1,int max_times=1);
+    static Ptr CreateTaskSlotWithSharedOfThis(bbt::timer::clock::Timestamp<bbt::timer::clock::ms>&timepoint,DataObject data,int trigger=-1,int max_times=1);
 
     
 
@@ -92,9 +92,9 @@ public:
 
 
 public:
-    bool operator==(const comparator<clock::Timestamp<ms>>& rvalue) const;
-    bool operator>(const comparator<clock::Timestamp<ms>>& rvalue) const;
-    Task(clock::Timestamp<ms>& timepoint,DataObject data,int trigger=-1,int max_times=0);
+    bool operator==(const comparator<bbt::timer::clock::Timestamp<bbt::timer::clock::ms>>& rvalue) const;
+    bool operator>(const comparator<bbt::timer::clock::Timestamp<bbt::timer::clock::ms>>& rvalue) const;
+    Task(bbt::timer::clock::Timestamp<bbt::timer::clock::ms>& timepoint,DataObject data,int trigger=-1,int max_times=0);
 private:
     
 
@@ -166,7 +166,7 @@ public:
      * @param socket_t socket对象
      * @return Ptr taskslot 的智能指针
      */
-    Ptr AddTask(clock::Timestamp<ms> expired,TaskObject socket_t);
+    Ptr AddTask(bbt::timer::clock::Timestamp<bbt::timer::clock::ms> expired,TaskObject socket_t);
 
     /**
      * @brief 添加定时器事件
@@ -191,7 +191,7 @@ public:
      * @brief 调用此函数休眠sleep_ms
      * @param sleep_ms 休眠时间 sleep 毫秒
      */
-    int ThreadSleepFor(clock::ms sleep_ms);
+    int ThreadSleepFor(bbt::timer::clock::ms sleep_ms);
 
 
 
@@ -202,7 +202,7 @@ public:
      * @param timepoint 指定时间点
      * @return int -1表示已经超时了，0表示成功
      */
-    int ThreadSleepUntil(clock::Timestamp<ms> timepoint);
+    int ThreadSleepUntil(bbt::timer::clock::Timestamp<bbt::timer::clock::ms> timepoint);
 
 
 

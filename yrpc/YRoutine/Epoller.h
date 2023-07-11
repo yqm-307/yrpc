@@ -150,7 +150,7 @@ public:
      * @param timeout 超时时间 ms
      * @return int  0 成功; -1 失败 
      */
-    int AddTimer(RoutineSocket* socket,yrpc::util::clock::Timestamp<yrpc::util::clock::ms> timeout);        //添加定时任务
+    int AddTimer(RoutineSocket* socket,bbt::timer::clock::Timestamp<bbt::timer::clock::ms> timeout);        //添加定时任务
     // int AddTimer(RoutineSocket* socket,int timeoutms);
 
     /**

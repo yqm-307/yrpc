@@ -31,7 +31,7 @@ public:
 static uint64_t GetIDuint64()
 {
 
-    auto p = yrpc::util::clock::now<yrpc::util::clock::ns>();
+    auto p = bbt::timer::clock::now<bbt::timer::clock::ns>();
     static uint64_t per = p.time_since_epoch().count();
     static int index=0;
     uint64_t id = p.time_since_epoch().count();
@@ -52,13 +52,13 @@ static uint64_t GetIDuint64()
  */
 static uint32_t GetIDuint32()
 {
-    static auto timepoint = clock::now<clock::us>();
-    static auto expired_timepoint = clock::nowAfter<clock::us>(clock::us(1*60*1000*1000));
+    static auto timepoint = bbt::timer::clock::now<bbt::timer::clock::us>();
+    static auto expired_timepoint = bbt::timer::clock::nowAfter<bbt::timer::clock::us>(bbt::timer::clock::us(1*60*1000*1000));
     static uint32_t perid{0};  //上一个id
     static int index=1;
-    if(clock::expired<clock::us>(expired_timepoint))
+    if(bbt::timer::clock::expired<bbt::timer::clock::us>(expired_timepoint))
     {// 超时了
-        expired_timepoint = clock::nowAfter<clock::us>(clock::us(1*60*1000*1000));
+        expired_timepoint = bbt::timer::clock::nowAfter<bbt::timer::clock::us>(bbt::timer::clock::us(1*60*1000*1000));
     }
 
     auto p = expired_timepoint-timepoint;
@@ -85,7 +85,7 @@ static uint32_t GetIDuint32()
  */
 static uint32_t GetIDuint32_unsafe()
 {   
-    auto p = yrpc::util::clock::now<yrpc::util::clock::ns>();
+    auto p = bbt::timer::clock::now<bbt::timer::clock::ns>();
     static uint32_t per = (p.time_since_epoch().count())/1000/1000%(7*24*60*60*1000);  // 24小时内的ms时间
     static int index = 0;
     uint32_t now_ms = (p.time_since_epoch().count())/1000%(1000*1000*1000);

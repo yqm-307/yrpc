@@ -19,7 +19,7 @@ namespace yrpc::util::clock
 {
 
 template<class TaskObject>
-int YTimer<TaskObject>::ThreadSleepFor(clock::ms sleep_ms)
+int YTimer<TaskObject>::ThreadSleepFor(bbt::timer::clock::ms sleep_ms)
 {
     if(sleep_ms.count()<0)
         return -1;
@@ -30,9 +30,9 @@ int YTimer<TaskObject>::ThreadSleepFor(clock::ms sleep_ms)
 }
 
 template<class TaskObject>
-int YTimer<TaskObject>::ThreadSleepUntil(Timestamp<ms> timepoint)
+int YTimer<TaskObject>::ThreadSleepUntil(bbt::timer::clock::Timestamp<bbt::timer::clock::ms> timepoint)
 {
-    if(clock::expired<ms>(std::move(timepoint)))
+    if(bbt::timer::clock::expired<bbt::timer::clock::ms>(std::move(timepoint)))
         return -1;
     else{
         std::this_thread::sleep_until(timepoint);
@@ -41,10 +41,8 @@ int YTimer<TaskObject>::ThreadSleepUntil(Timestamp<ms> timepoint)
 }
 
 template<class TaskObject>
-typename YTimer<TaskObject>::Ptr YTimer<TaskObject>::AddTask(Timestamp<ms> expired,TaskObject data)
+typename YTimer<TaskObject>::Ptr YTimer<TaskObject>::AddTask(bbt::timer::clock::Timestamp<bbt::timer::clock::ms> expired,TaskObject data)
 {
-    //if(clock::expired(expired)) //超时任务，创建失败
-    //    return NULL;
     Ptr slot =TaskSlot::CreateTaskSlotWithSharedOfThis(expired,data);
     min_heap_.push(slot);
     return slot;
@@ -72,7 +70,7 @@ void YTimer<TaskObject>::GetAllTimeoutTask(std::vector<Ptr>& sockets)
 
     if(min_heap_.empty())
         return;
-    while(!min_heap_.empty() && clock::expired<ms>(min_heap_.top()->GetValue()))
+    while(!min_heap_.empty() && bbt::timer::clock::expired<bbt::timer::clock::ms>(min_heap_.top()->GetValue()))
     {
         auto p = PopTimeTask();
         if( !(p->Is_Canceled()) )  //不是被取消的
@@ -106,7 +104,7 @@ typename YTimer<TaskObject>::Ptr YTimer<TaskObject>::GetATimeoutTask()
         return nullptr;
     auto top = min_heap_.top();
     
-    if(clock::expired<ms,Timestamp<ms>>(top->GetValue()))
+    if(bbt::timer::clock::expired<bbt::timer::clock::ms, bbt::timer::clock::Timestamp<bbt::timer::clock::ms>>(top->GetValue()))
     {
         if(top->is_canceled()){
             PopTimeTask();
@@ -136,7 +134,7 @@ void YTimer<TaskObject>::GetAllTask(std::vector<Ptr>& sockets)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename DataObject>
-Task<DataObject>::Task(clock::Timestamp<ms>& timepoint,DataObject data,int trigger,int max_times)
+Task<DataObject>::Task(bbt::timer::clock::Timestamp<bbt::timer::clock::ms>& timepoint,DataObject data,int trigger,int max_times)
     :m_is_canceled(false),
     m_trigger_interval(trigger),
     m_max_trigger_times(max_times),
@@ -148,14 +146,14 @@ Task<DataObject>::Task(clock::Timestamp<ms>& timepoint,DataObject data,int trigg
 
 
 template<typename DataObject>
-typename Task<DataObject>::Ptr Task<DataObject>::CreateTaskSlotWithSharedOfThis(clock::Timestamp<ms>&timepoint,DataObject data,int trigger,int max_times)
+typename Task<DataObject>::Ptr Task<DataObject>::CreateTaskSlotWithSharedOfThis(bbt::timer::clock::Timestamp<bbt::timer::clock::ms>&timepoint,DataObject data,int trigger,int max_times)
 {
     return std::make_shared<Task>(timepoint,data,trigger,max_times);
 }
 
 
 template<typename DataObject>
-bool Task<DataObject>::operator>(const comparator<clock::Timestamp<ms>> &rvalue) const
+bool Task<DataObject>::operator>(const comparator<bbt::timer::clock::Timestamp<bbt::timer::clock::ms>> &rvalue) const
 {
     return m_it > rvalue.GetValue();
 }
@@ -163,7 +161,7 @@ bool Task<DataObject>::operator>(const comparator<clock::Timestamp<ms>> &rvalue)
 
 
 template<typename DataObject>
-bool Task<DataObject>::operator==(const comparator<clock::Timestamp<ms>> &rvalue) const
+bool Task<DataObject>::operator==(const comparator<bbt::timer::clock::Timestamp<bbt::timer::clock::ms>> &rvalue) const
 {
     return m_it == rvalue.GetValue();
 }
@@ -205,7 +203,7 @@ bool Task<DataObject>::Reset()
     if ( m_trigger_interval < 0)
         return false;
 
-    m_it = m_it + yrpc::util::clock::ms(m_trigger_interval);
+    m_it = m_it + bbt::timer::clock::ms(m_trigger_interval);
 
     if (m_max_trigger_times<0)
         return true;

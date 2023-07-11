@@ -163,7 +163,7 @@ private:
     char*           m_remain{nullptr};       // 不完整的包
 
     std::atomic_bool    m_can_used; // session是否可用
-    yrpc::util::clock::Timestamp<yrpc::util::clock::ms> 
+    bbt::timer::clock::Timestamp<bbt::timer::clock::ms> 
                     m_last_active_time; // 最后活跃时间
     CallObjMap      m_call_map;         /* 本地向远端调用事件的集合 */
     Mutex           m_mutex_call_map;

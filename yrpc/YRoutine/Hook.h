@@ -28,7 +28,6 @@ private:
     void *data_{nullptr};
 };
 
-//int YHook_Poll(Socket** socket,int events,int* revents,yrpc::util::clock::Timestamp timeout_ms);
 
 int YRPoll(Socket* socket,int events,int* revents,int timeout_ms);
 

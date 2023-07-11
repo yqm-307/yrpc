@@ -20,7 +20,7 @@
 
 namespace yrpc::socket
 {
-#define YRAfter(DDtimeout_ms) (yrpc::util::clock::nowAfter<yrpc::util::clock::ms,yrpc::util::clock::Timestamp<yrpc::util::clock::ms>>(yrpc::util::clock::ms(DDtimeout_ms)))
+#define YRAfter(DDtimeout_ms) (bbt::timer::clock::nowAfter<bbt::timer::clock::ms,bbt::timer::clock::Timestamp<bbt::timer::clock::ms>>(bbt::timer::clock::ms(DDtimeout_ms)))
 
 
 int YRPoll(Socket* socket,int events,int* revents,int timeout_ms)

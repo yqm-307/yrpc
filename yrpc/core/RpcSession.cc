@@ -10,7 +10,7 @@ RpcSession::RpcSession(ChannelPtr channel)
     :m_channel(channel),
     m_remain((char*)calloc(sizeof(char),ProtocolMaxSize)),
     m_can_used(true),
-    m_last_active_time(yrpc::util::clock::now<yrpc::util::clock::ms>()),
+    m_last_active_time(bbt::timer::clock::now<bbt::timer::clock::ms>()),
     m_handshake_time_isstop(true),
     m_current_loop(channel->GetConnInfo()->GetScheudler())
 {
@@ -199,12 +199,12 @@ void RpcSession::OnClose(const errorcode& e, Channel::SPtr chan)
 
 void RpcSession::UpdateTimeout()
 {
-    m_last_active_time = yrpc::util::clock::now<yrpc::util::clock::ms>();
+    m_last_active_time = bbt::timer::clock::now<bbt::timer::clock::ms>();
 }
 
 void RpcSession::TimeOut(Socket* socket)
 {
-    auto timenow_ms = yrpc::util::clock::now<yrpc::util::clock::ms>();
+    auto timenow_ms = bbt::timer::clock::now<bbt::timer::clock::ms>();
     auto alrealy_timeout_ms = (timenow_ms - m_last_active_time).count();
     if (alrealy_timeout_ms >= YRPC_SESSION_TIMEOUT)
     {

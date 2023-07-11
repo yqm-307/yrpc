@@ -16,7 +16,7 @@ void nthread()
             while(1)
             {
                 INFO("this is a log! %d",i);
-                std::this_thread::sleep_for(yrpc::util::clock::ms(rand()));
+                std::this_thread::sleep_for(bbt::timer::clock::ms(rand()));
             }
         }));
     }

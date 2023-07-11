@@ -206,7 +206,7 @@ void Epoller::ResumeAll(int flag)
 }
 
 
-int Epoller::AddTimer(RoutineSocket* socket,yrpc::util::clock::Timestamp<yrpc::util::clock::ms> ts)
+int Epoller::AddTimer(RoutineSocket* socket,bbt::timer::clock::Timestamp<bbt::timer::clock::ms> ts)
 {
     lock_guard<Mutex> lock(m_mutex_timer);
     socket->timetask_ = m_routine_timer.AddTask(ts,socket);
@@ -219,7 +219,7 @@ int Epoller::AddTimer(RoutineSocket* socket,yrpc::util::clock::Timestamp<yrpc::u
 int Epoller::AddTimer(TimerTaskFunc&& func,int timeout_ms,int reset_time,int max_trigget_times)
 {
     lock_guard<Mutex> lock(m_mutex_timer);
-    auto first_trigger_timepoint = yrpc::util::clock::nowAfter<yrpc::util::clock::ms>(yrpc::util::clock::ms(timeout_ms));
+    auto first_trigger_timepoint = bbt::timer::clock::nowAfter<bbt::timer::clock::ms>(bbt::timer::clock::ms(timeout_ms));
     auto task = TimeTask<TimerTaskFunc>::CreateTaskSlotWithSharedOfThis(
                                 first_trigger_timepoint,
                                 func,
@@ -231,8 +231,8 @@ int Epoller::AddTimer(TimerTaskFunc&& func,int timeout_ms,int reset_time,int max
 
 int Epoller::AddSocketTimer(RoutineSocket* socket)
 {
-    auto timepoint = yrpc::util::clock::now<yrpc::util::clock::ms>()
-                    + yrpc::util::clock::ms(socket->socket_timeout_ms_);
+    auto timepoint = bbt::timer::clock::now<bbt::timer::clock::ms>()
+                    + bbt::timer::clock::ms(socket->socket_timeout_ms_);
 
     lock_guard<Mutex> lock(m_mutex_socket_timer);
     socket->timetask_ = m_socket_timer.AddTask(timepoint,socket);
