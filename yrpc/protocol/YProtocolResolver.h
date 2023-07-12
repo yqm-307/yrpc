@@ -16,7 +16,7 @@ class YProtocolResolver: public Base_Msg<google::protobuf::Message>
     typedef yrpc::detail::protocol::define::YRPC_PROTOCOL YRPC_PROTOCOL;
     typedef google::protobuf::Message           Message;
     typedef std::shared_ptr<Message>            MessagePtr;
-    typedef yrpc::util::buffer::Buffer          Buffer;
+    typedef bbt::buffer::Buffer                 Buffer;
 public:
     
     YProtocolResolver(const Buffer& bytes);

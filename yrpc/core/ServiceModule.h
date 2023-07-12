@@ -29,7 +29,7 @@ class Service_Base
     typedef yrpc::detail::protocol::define::YRPC_ErrCode RPC_ERRCODE;
     typedef yrpc::detail::protocol::define::YRPC_PROTOCOL   YRPC_PROTOCOL;
 
-    typedef yrpc::util::buffer::Buffer                      Buffer;
+    typedef bbt::buffer::Buffer                             Buffer;
     typedef std::shared_ptr<RpcSession>                     RpcSessionPtr;
     typedef std::shared_ptr<google::protobuf::Message>      MessagePtr;
     typedef yrpc::detail::ServiceMap                        ServiceMap;

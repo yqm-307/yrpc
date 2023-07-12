@@ -2,7 +2,7 @@
 
 using namespace yrpc::rpc::detail;
 
-CallObj::CallObj(int reqtypeid,int rsptypeid,Buffer&& bytes,YRPC_PROTOCOL type, CallResultFunc func)
+CallObj::CallObj(int reqtypeid, int rsptypeid, Buffer&& bytes, YRPC_PROTOCOL type, CallResultFunc func)
     : m_req(std::move(bytes)),
       m_call_type(type),
       m_callback(func),

@@ -15,7 +15,7 @@ namespace yrpc::rpc::detail
 */
 class Channel: public std::enable_shared_from_this<Channel>, public bbt::templateutil::BaseType<Channel>
 {
-    typedef yrpc::util::buffer::Buffer                      Buffer;
+    typedef bbt::buffer::Buffer                             Buffer;
     typedef yrpc::detail::shared::errorcode                 errorcode;
     typedef yrpc::detail::net::ConnectionPtr                ConnPtr;
     typedef yrpc::coroutine::poller::Epoller                Epoller;
@@ -95,7 +95,6 @@ private:
     void CloseInitFunc(const errorcode&);
     void SendInitFunc(const errorcode&,size_t);
     void ErrorInitFunc(const errorcode&);
-    // static void RecvInitFunc(const errorcode&,Buffer&,const ConnPtr);    // 应该要求上层封装提供
 private:
     void InitFunc();
     void EpollerSend(const char* data,size_t len);

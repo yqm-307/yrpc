@@ -17,7 +17,7 @@ class CallObjFactory
     typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化
     typedef std::function<void(MessagePtr,const std::string&)>    DeCodeFunc; // 解码
     typedef std::unordered_map<int,DeCodeFunc>      DeCodeMap;
-    typedef yrpc::util::buffer::Buffer                  Buffer;
+    typedef bbt::buffer::Buffer                     Buffer;
 public:
     typedef yrpc::detail::protocol::define::YRPC_PROTOCOL   YRPC_PROTOCOL;
 

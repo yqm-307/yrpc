@@ -91,7 +91,7 @@ void Service_Base::SendPacket(RpcSessionPtr sess,MessagePtr pck,const ProtocolHe
 {
     Generater tobytes(pck,head,type);
 
-    yrpc::util::buffer::Buffer tmp;
+    bbt::buffer::Buffer tmp;
     if ( !tobytes.ToByteArray(tmp) )
     {
         ERROR("code generate failed!");

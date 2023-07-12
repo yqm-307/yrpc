@@ -39,12 +39,6 @@ void Channel::SendInitFunc(const errorcode&e,size_t len)
         m_conn->StrIPPort().c_str()); 
 }
 
-// void Channel::RecvInitFunc(const errorcode& e,Buffer&,const ConnPtr m_conn);
-
-
-
-
-
 Channel::Channel()
     :m_conn(nullptr)
 {
@@ -174,7 +168,6 @@ void Channel::EpollerSend(const char *data, size_t len)
         //try to send
         if (m_buffer.DataSize() > 0)
         {
-            // m_buffer.WriteString(m_buffer.Peek(), m_buffer.DataSize());
             SetIsWriting(m_status);
             Buffer IObuff;
             IObuff.Swap(m_buffer); //

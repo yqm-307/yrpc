@@ -23,7 +23,7 @@ namespace yrpc::rpc::detail
 class RpcSession : public std::enable_shared_from_this<RpcSession>, bbt::templateutil::BaseType<RpcSession>
 {
     friend SessionManager;
-    typedef yrpc::util::buffer::Buffer                     Buffer;
+    typedef bbt::buffer::Buffer                 Buffer;
     
     struct session_detail_protocol
     {
@@ -143,7 +143,6 @@ public:
 
 private:
     void Dispatch(Buffer&& buf, SessionPtr sess);
-    // void CallResult(Buffer&& buf, SessionPtr sess);
 private:
     /// 当前所在的eventloop
     Epoller*        m_current_loop{nullptr};

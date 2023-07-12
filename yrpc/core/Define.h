@@ -52,7 +52,7 @@ typedef yrpc::coroutine::poller::RoutineSocket Socket;
 
 typedef yrpc::util::lock::CountDownLatch    CountDownLatch;
 typedef yrpc::util::lock::Mutex             Mutex;
-typedef yrpc::util::buffer::Buffer          Buffer;
+typedef bbt::buffer::Buffer                 Buffer;
 
 typedef std::shared_ptr<RpcSession>         SessionPtr;
 typedef std::function<void(SessionPtr)>     OnSession;

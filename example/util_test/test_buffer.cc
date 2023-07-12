@@ -1,6 +1,6 @@
 #include "yrpc/Util/Buffers.h"
 #include "yrpc/protocol/proto.h"
-typedef yrpc::util::buffer::Buffer Buffer;
+typedef bbt::buffer::Buffer Buffer;
 #define ToInt(n) yrpc::util::protoutil::BytesToType<int>(n)
 
 char *Malloc(char c, size_t len)

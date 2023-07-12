@@ -2,7 +2,6 @@
 #include <iostream>
 #include <google/protobuf/message.h>
 #include <condition_variable>
-#include "../Util/Buffers.h"
 #include "../Util/Locker.h"
 #include "../msg/all.h"
 #include "../protocol/all.h"
@@ -31,14 +30,13 @@ class CallObj
     friend class yrpc::rpc::detail::RpcSession;
     typedef google::protobuf::Message       Message;
     typedef std::shared_ptr<Message>        MessagePtr;
-    typedef yrpc::util::buffer::Buffer      ByteArray;
     typedef yrpc::util::lock::Sem_t         Sem_t;
     typedef yrpc::util::lock::Mutex         Mutex;
     typedef yrpc::detail::protocol::YProtocolGenerater  Generater;  // 存储 request 并提供序列化
     typedef yrpc::detail::protocol::YProtocolResolver   Resolver;   // 存储 response bytearray 提供反序列化
     typedef yrpc::detail::protocol::define::YRPC_PROTOCOL   YRPC_PROTOCOL;
     typedef yrpc::rpc::detail::RPC_CALL_TYPE    TYPE;
-    typedef yrpc::util::buffer::Buffer          Buffer;
+    typedef bbt::buffer::Buffer             Buffer;
 public:
     typedef std::shared_ptr<CallObj>        Ptr;
     typedef std::function<void(MessagePtr)> CallResultFunc;         // 

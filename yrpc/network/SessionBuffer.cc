@@ -40,7 +40,6 @@ bool SessionBuffer::Has_Pkg()
 {
     if ( buffer.DataSize() <= 0 )
         return false;
-    // int msglength = yrpc::util::protoutil::BytesToType<int>(buffer.peek());  // 纯纯的nt,uint16_t 错当成 int
     uint16_t msglength = yrpc::util::protoutil::BytesToType<uint16_t>(buffer.Peek());
     if (buffer.ReadableBytes() < msglength) //如果可读字节数小于 msg 长度，说明包不完整，则返回false
         return false;

@@ -23,7 +23,7 @@ namespace yrpc::detail::net
  */
 class SessionBuffer
 {
-    typedef yrpc::util::buffer::Buffer  Buffer;
+    typedef bbt::buffer::Buffer  Buffer;
 public:
     SessionBuffer(){}
     ~SessionBuffer(){}
@@ -81,7 +81,7 @@ public:
     }
 
 private:
-    yrpc::util::buffer::Buffer buffer;      // 
+    Buffer buffer;      // 
 };
 
 }
