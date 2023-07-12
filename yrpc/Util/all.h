@@ -10,7 +10,6 @@
  */
 #pragma once
 #include "logger.h"     // 日志
-#include "BKDRHash.h"   // 字符串hash
 #include "Buffers.h"    // bytearray/buffer
 #include "Clock.h"      // clock 时钟日期工具
 #include "Locker.h"     // 封装 pthread lock

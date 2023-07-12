@@ -1,9 +1,9 @@
-#include "servicemap.h"
 #include <assert.h>
 #include <algorithm>
 #include <iostream>
+#include <bbt/myhash/BKDR.hpp>
+#include "servicemap.h"
 #include "../Util/logger.h"
-#include "../Util/BKDRHash.h"
 
 namespace yrpc::detail
 {
@@ -30,7 +30,7 @@ uint32_t ServiceMap::insert(std::string name,const ServiceFunc& service,const Co
         return 0;
     }
 
-    auto ret = yrpc::util::hash::BKDRHash(name.c_str(),name.size());
+    auto ret = bbt::hash::BKDR::BKDRHash(name.c_str(), name.size());
     assert(m_id2name.find(ret) == m_id2name.end());     //hash冲突,需要修改名字
     ServiceHandles* ptr = new ServiceHandles{service,code};
     m_id2service.insert({ret,ptr});

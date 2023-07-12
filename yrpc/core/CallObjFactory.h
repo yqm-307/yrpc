@@ -1,7 +1,8 @@
 #pragma once
 #include <iostream>
-#include "CallObj.h"
 #include <functional>
+#include <bbt/myhash/BKDR.hpp>
+#include "CallObj.h"
 
 
 namespace yrpc::rpc
@@ -58,7 +59,7 @@ detail::CallObj::Ptr CallObjFactory::Create(ReqType&& msg,std::string&& name,YRP
      */
     auto [reqid, rspid] = GetMessageTypeId<ReqType, RspType>();
     auto mmptr = std::make_shared<ReqType>(std::move(msg));//ProtocolFactroy::GetInstance()->Create(local_id);
-    Generater req(mmptr,yrpc::util::hash::BKDRHash(name),type);
+    Generater req(mmptr, bbt::hash::BKDR::BKDRHash(name), type);
     std::string tmp;
     
     Buffer buf;

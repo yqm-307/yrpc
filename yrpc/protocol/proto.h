@@ -12,7 +12,6 @@
 #include <google/protobuf/message.h>
 #include <any>
 #include <memory>
-#include "../Util/BKDRHash.h"
 
 
 namespace yrpc::util::protoutil
