@@ -20,7 +20,7 @@ thread_local bool FirstJump = true;
 YRoutineContext::YRoutineContext(size_t init_stack_size,YRoutineFunc main_func,void* args,YRoutineDoneCallback done_func,bool memory_protect)
     :m_stack(init_stack_size,memory_protect),
     m_func_main(main_func),m_args(args),
-    m_donefunc(done_func)
+    m_final_cb(done_func)
 {
     Make(m_func_main,m_args);
 }
@@ -89,7 +89,7 @@ void YRoutineContext::YRoutineFuncWrapper(boost::context::detail::transfer_t t)
 
     ts->m_func_main(ts->m_args);
 
-    if(ts->m_donefunc!=nullptr)
-        ts->m_donefunc();
+    if(ts->m_final_cb!=nullptr)
+        ts->m_final_cb();
     ts->Yield();    //非对称协程,控制权回到调用协程
 }

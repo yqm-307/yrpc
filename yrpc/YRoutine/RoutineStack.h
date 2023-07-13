@@ -45,19 +45,9 @@ public:
     explicit
     RoutineStack(const size_t stack_max_size_,const bool memory_protect_ = true);
     ~RoutineStack();
-
-    /**
-     * @brief 返回栈顶指针
-     * 
-     * @return void* 栈顶指针
-     */
+    /* 获取栈顶指针 */
     void* StackTop();   
-
-    /**
-     * @brief 栈大小
-     * 
-     * @return size_t  
-     */
+    /* 返回栈大小 */
     size_t Size();
 
 private:
