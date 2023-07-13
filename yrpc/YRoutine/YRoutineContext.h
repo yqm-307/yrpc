@@ -78,12 +78,4 @@ private:
     yrpc::coroutine::detail::RoutineStack   m_stack; //协程栈内存
     YRoutineDoneCallback                    m_final_cb;            // 执行完回调
 };
-
-class YRoutineContextInit
-{
-    void operator()()
-    {
-        YRoutineContext::SetYRoutineCreateFunc(YRoutineContext::CreateHandle);
-    }
-};
 }
