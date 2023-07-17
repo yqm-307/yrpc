@@ -45,6 +45,5 @@ void Rpc::StartServerListen(const detail::Address& addr)
 int Rpc::YRpcInit()
 {
     detail::SessionManager::GetInstance()->RegisterService();
-    // register_service<C2S_HANDSHAKE_REQ, S2C_HANDSHAKE_RSP>("YRPC_HandShake", detail::SessionManager::);
-
+    return 1;
 }

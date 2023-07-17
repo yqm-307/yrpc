@@ -232,9 +232,11 @@ void __YRPC_SessionManager::AsyncConnect(Address peer_addr,OnSession onsession)
         auto it_done_sess = m_session_map.find(it_uuid->second);
         // 是否已有连接
         if( it_done_sess == m_session_map.end() )
+        {
             // 是否在半连接队列中
             if( ! m_undone_conn_queue->HasWaitting(peer_addr) )
                 is_need_connect = true;
+        }
         else
             onsession(it_done_sess->second);
     }
@@ -375,6 +377,9 @@ MessagePtr __YRPC_SessionManager::Handler_HandShake(const MessagePtr msg,Session
         lock_guard<Mutex> lock(m_mutex_session_map);
         // 保存到 knownode map  -- todo 优化对端数据
         auto [_, succ] = m_knownode_map.insert(std::make_pair(peer_addr, peer_uuid));
+        if( !succ ) {
+            WARN("[YRPC][__YRPC_SessionManager::Handler_HandShake][%d] known node host! ip:{%s}", y_scheduler_id, peer_addr.GetIPPort());
+        }
         // 保存到 session map
         if( nullptr == Append_SessionMap(peer_uuid, sess) )
         {

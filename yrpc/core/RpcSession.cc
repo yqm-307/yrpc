@@ -337,7 +337,7 @@ int RpcSession::CallObj_CallResult(Buffer&& buf)
             it->second->SetResult(rsl);    //设置结果
         }
     }
-    CallObj_DelObj(protoid);
+    return CallObj_DelObj(protoid);
 }
 
 void RpcSession::StartHandShakeTimer(const SessionHandShakeTimeOutCallback& handshake_timeout_func, int timeout_ms)
