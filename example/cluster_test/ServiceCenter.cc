@@ -1,4 +1,4 @@
-#include "ServiceCenter.h"
+#include "./ServiceCenter.h"
 
 
 MessagePtr ServiceCenter::GetServerList(MessagePtr pck)
@@ -35,4 +35,9 @@ MessagePtr ServiceCenter::RegistServer(MessagePtr pck)
         rsp->set_msg("success");
     }
     return rsp;
+}
+
+int main()
+{
+    
 }

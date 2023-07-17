@@ -47,12 +47,12 @@ _deps
 
 # 忽略文件
 *.log
-*.proto.h
-*.proto.cc
-
+*.pb.h
+*.pb.cc
 !third-lib/*/*
-
+pbuild.sh
 
 # 忽略目录
 build/
 bin/
+.vscode/

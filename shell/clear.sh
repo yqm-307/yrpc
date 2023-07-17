@@ -8,8 +8,8 @@ clearfile()
 {
     find . -name 'Makefile' -o -name '*.camke' -o -name 'CMakeCache.txt' -o -name 'cmake_install.cmake'  -print | xargs rm
     find . -name '*.log' -print | xargs rm
-    find . -name *.pb.cc -print | xargs rm
-    find . -name *.pb.h -print | xargs rm
+    # find . -name *.pb.cc -print | xargs rm
+    # find . -name *.pb.h -print | xargs rm
     find . -name 'Makefile' -print |xargs rm
     find . -name 'CMakeFiles' -type d -print | xargs rm -rf
 

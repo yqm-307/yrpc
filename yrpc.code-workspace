@@ -6,6 +6,7 @@
 	],
 	"settings": {
 		"files.associations": {
+			"*.bat": "bat",
 			"*.csv": "csv (equals)",
 			"array": "cpp",
 			"*.tcc": "cpp",
@@ -74,7 +75,78 @@
 			"stop_token": "cpp",
 			"iomanip": "cpp",
 			"*.inc": "cpp",
-			"codecvt": "cpp"
-		}
+			"codecvt": "cpp",
+			"bitset": "cpp",
+			"shared_mutex": "cpp",
+			"regex": "cpp"
+		},
+		"VSCodeCounter.languages": {
+			"cpp": {
+				"extensions": [
+				".cc",
+				".c",
+				".h",
+				".hpp",
+			]
+			}
+		},
+		"C_Cpp.default.cppStandard": "c++17",
+		"C_Cpp.default.cStandard": "c11",
+		"C_Cpp.default.includePath": [
+			"/home/yqm/Code/Git/github/yrpc"
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "p2p_node1",
+				"type": "cppdbg",
+				"request": "launch",
+				"program": "${workspaceFolder}/build/example/pointserver/p2pserver",
+				"args": ["127.0.0.1", "12101", "13101"],
+				"stopAtEntry": false,
+				"cwd": "${workspaceFolder}/build/example/pointserver",
+				"environment": [],
+				"externalConsole": false,
+				"MIMode": "gdb",
+				"setupCommands": [
+					{
+						"description": "为 gdb 启用整齐打印",
+						"text": "-enable-pretty-printing",
+						"ignoreFailures": true
+					},
+					{
+						"description": "将反汇编风格设置为 Intel",
+						"text": "-gdb-set disassembly-flavor intel",
+						"ignoreFailures": true
+					}
+				]
+			},
+			{
+				"name": "p2p_node2",
+				"type": "cppdbg",
+				"request": "launch",
+				"program": "${workspaceFolder}/build/example/pointserver/p2pserver",
+				"args": ["127.0.0.1", "13101", "12101"],
+				"stopAtEntry": false,
+				"cwd": "${workspaceFolder}/build/example/pointserver",
+				"environment": [],
+				"externalConsole": false,
+				"MIMode": "gdb",
+				"setupCommands": [
+					{
+						"description": "为 gdb 启用整齐打印",
+						"text": "-enable-pretty-printing",
+						"ignoreFailures": true
+					},
+					{
+						"description": "将反汇编风格设置为 Intel",
+						"text": "-gdb-set disassembly-flavor intel",
+						"ignoreFailures": true
+					}
+				]
+			},
+		]
 	}
 }
