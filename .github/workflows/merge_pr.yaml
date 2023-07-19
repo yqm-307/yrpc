@@ -2,20 +2,26 @@
 ## 当 pr merge 到 master 时触发
 ##
 
-name: merge-pull-requested
+name: ci
+
 on: 
-	merge_group:
-		types: checks_requested
-		branches-ignore:
+	# 检查push
+	push:
+		# 忽略master
+		branchs-ignore:
 			- 'master'
+		# 触发的文件
+		paths:
+			- 'yrpc/**'
+			- 'CMakeLists.txt'
 
 jobs:
 	build:
 		runs-on: ubuntu-latest
 		steps:
 		- uses: actions/checkout@v1
-		run: echo "当前所处路径:"
-		run: pwd
+			run: echo "当前所处路径:"
+			run: pwd
 	test:
 		runs-on: ubuntu-latest
 		needs: [build]
