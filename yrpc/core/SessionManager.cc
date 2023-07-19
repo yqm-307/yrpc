@@ -11,8 +11,6 @@ using namespace yrpc::rpc::detail;
 
 __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
     :m_main_loop(nullptr),
-    m_main_acceptor(nullptr),
-    m_connector(nullptr),
     m_sub_loop_size(Nthread - 1),
     m_sub_loop(m_sub_loop_size),
     m_loop_latch(Nthread),
@@ -39,7 +37,6 @@ __YRPC_SessionManager::__YRPC_SessionManager(int Nthread)
 
 __YRPC_SessionManager::~__YRPC_SessionManager()
 {
-    m_main_acceptor = nullptr;
     ERROR("[YRPC][~__YRPC_SessionManager][%d] session manager destory!", y_scheduler_id);
 }
 
@@ -112,12 +109,6 @@ SessionPtr __YRPC_SessionManager::GetSessionFromSessionMap(Uuid uuid)
         return nullptr;
     }
     return it->second;
-}
-
-void __YRPC_SessionManager::RunInMainLoop()
-{
-    assert(m_main_acceptor != nullptr);
-    m_channel_mgr.StartListen();
 }
 
 void __YRPC_SessionManager::RunInSubLoop(Epoller* lp)
@@ -248,7 +239,7 @@ void __YRPC_SessionManager::AsyncConnect(Address peer_addr,OnSession onsession)
     if( is_need_connect )
     {
         DEBUG("[YRPC][__YRPC_SessionManager::AsyncConnect][%d] connect once! peer:{%s}", y_scheduler_id, peer_addr.GetIPPort().c_str());
-        m_channel_mgr.AsyncConnect(peer_addr);
+        m_channel_mgr->AsyncConnect(peer_addr);
         m_undone_conn_queue->AddTcpConn(peer_addr);
     }
 }
@@ -262,20 +253,9 @@ void __YRPC_SessionManager::StartListen(const Address& peer)
      * 
      * Todo : 被连接也要保存到SessionMap 
      */
-    if(m_main_acceptor != nullptr)
-        return;
     assert(m_main_loop != nullptr);
-    m_main_acceptor = Acceptor::Create(m_main_loop, peer.GetPort(),3000,5000);
-    
-    m_main_acceptor->setLoadBalancer(functor([this]()->auto {return this->LoadBalancer(); }));
-    m_channel_mgr.SetAcceptor(m_main_acceptor);
-    m_channel_mgr.SetOnAccept([this](const yrpc::detail::shared::errorcode&e, Channel::SPtr chan)->void{
-        this->OnAccept(e,chan);
-    });
     m_local_addr = peer;
-    m_main_loop->AddTask([this](void*){
-        this->RunInMainLoop();
-    });
+    m_channel_mgr->StartListen(peer);
 }
 
 Epoller* __YRPC_SessionManager::LoadBalancer()
@@ -331,13 +311,16 @@ void __YRPC_SessionManager::MainLoop()
 
 void __YRPC_SessionManager::OnMainLoopInit()
 {
-
-    m_connector = Connector::Create(m_main_loop);
-    m_connector->setLoadBalancer(functor([this]()->auto{ return LoadBalancer(); }));
-    m_channel_mgr.SetOnConnect([this](const errorcode& err, Channel::SPtr new_chan, const Address& addr){
+    m_channel_mgr = ChannelMgr::Create(m_main_loop);
+    m_channel_mgr->SetLoadBalancer([this](){
+        return this->LoadBalancer();
+    });
+    m_channel_mgr->SetOnConnect([this](const errorcode& err, Channel::SPtr new_chan, const Address& addr){
         OnConnect(err, new_chan, addr);
     });
-    m_channel_mgr.SetConnector(m_connector);
+    m_channel_mgr->SetOnAccept([this](const yrpc::detail::shared::errorcode&e, Channel::SPtr chan)->void{
+        this->OnAccept(e,chan);
+    });
 }
 
 

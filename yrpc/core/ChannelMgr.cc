@@ -2,34 +2,44 @@
 
 using namespace yrpc::rpc::detail;
 
-ChannelMgr::ChannelMgr()
+ChannelMgr::ChannelMgr(Epoller* main_loop)
+    :m_main_loop(main_loop)
 {
+    // yrpc::detail::net::Connector::Create(main_loop);
 }
 
 ChannelMgr::~ChannelMgr()
 {
 }
 
-void ChannelMgr::SetAcceptor(yrpc::detail::net::Acceptor::SPtr acceptor)
+void ChannelMgr::AsyncConnect(const yrpc::detail::net::YAddress& peer_addr)
 {
-    m_acceptor = acceptor;
-    m_acceptor->setOnAccept([this](const errorcode& err, Connection::SPtr conn){
-        this->OnAccept(err, conn);
-    });
+    if( m_connector == nullptr )
+    {
+        InitConnector();
+    }
+    m_connector->AsyncConnect(peer_addr);
 }
 
-void ChannelMgr::SetConnector(yrpc::detail::net::Connector::SPtr connector)
+void ChannelMgr::InitConnector()
 {
-    m_connector = connector;
+    assert(m_loadblancer != nullptr);
+    m_connector = yrpc::detail::net::Connector::Create(m_main_loop);
+    m_connector->setLoadBalancer(m_loadblancer);
     m_connector->SetOnConnectCallback(
     [this](const yrpc::detail::shared::errorcode& err, Connection::SPtr new_conn, const yrpc::detail::net::YAddress& addr){
         OnConnect(err, new_conn, addr);
     });
 }
 
-void ChannelMgr::AsyncConnect(const yrpc::detail::net::YAddress& peer_addr)
+void ChannelMgr::InitAcceptor(const Address& listen_addr)
 {
-    m_connector->AsyncConnect(peer_addr);
+    assert(m_loadblancer != nullptr);
+    m_acceptor = yrpc::detail::net::Acceptor::Create(m_main_loop, listen_addr.GetPort(), 3000, 3000);
+    m_acceptor->setLoadBalancer(m_loadblancer);
+    m_acceptor->setOnAccept([this](const errorcode& err, Connection::SPtr conn){
+        this->OnAccept(err, conn);
+    });
 }
 
 void ChannelMgr::InitAChannel(Channel::SPtr chan)
@@ -37,14 +47,11 @@ void ChannelMgr::InitAChannel(Channel::SPtr chan)
     chan->SetCloseCallback([this](const errorcode& err, Channel::SPtr chan){
         this->m_onclose(err, chan);
     });
-
-    // chan->SetCloseCallback();
 }
 
 void ChannelMgr::OnConnect(const errorcode& err, Connection::SPtr conn, const yrpc::detail::net::YAddress& addr)
 {
     Channel::SPtr chan_ptr = Channel::Create(conn);
-    // InitAChannel(chan_ptr);
     if( err.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK )
     {
         DEBUG("[YRPC][ChannelMgr::OnConnect][%d] on connect!", y_scheduler_id);
@@ -105,9 +112,18 @@ void ChannelMgr::DefaultOnClose(const errorcode& err, Connection::SPtr conn)
     INFO("[YRPC][ChannelMgr::DefaultOnClose][%d] on close! peer ip: {%s}", y_scheduler_id, conn->GetPeerAddress().GetIPPort());
 }
 
-
-void ChannelMgr::StartListen()
+ChannelMgr::SPtr ChannelMgr::Create(Epoller* main_loop)
 {
-    assert(m_acceptor != nullptr);
+    return std::make_shared<ChannelMgr>(main_loop);
+}
+
+void ChannelMgr::StartListen(const Address& listen_addr)
+{
+    if(m_acceptor == nullptr)
+    {
+        InitAcceptor(listen_addr);
+    }
+    assert(m_loadblancer != nullptr);
+    m_acceptor->setLoadBalancer(m_loadblancer);
     m_acceptor->StartListen();
 }

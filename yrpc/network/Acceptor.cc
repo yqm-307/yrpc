@@ -43,7 +43,7 @@ int Acceptor::StartListen()
         return -1;
     if (m_onaccept == nullptr)
         return -2;
-    y_scheduler->AddTask([this](void*){ListenInEvloop();},nullptr); // 注册监听任务
+    m_loop->AddTask([this](void*){ListenInEvloop();},nullptr); // 注册监听任务
     INFO("[YRPC][Acceptor::StartListen][%d] acceptor begin!", y_scheduler_id);
     return 0;
 }
