@@ -1,0 +1,25 @@
+##
+## 当 pr merge 到 master 时触发
+##
+
+name: merge-pull-requested
+on: 
+	merge_group:
+		types: checks_requested
+		branches-ignore:
+			- 'master'
+
+jobs:
+	build:
+		runs-on: ubuntu-latest
+		steps:
+		- uses: actions/checkout@v1
+		run: echo "当前所处路径:"
+		run: pwd
+	test:
+		runs-on: ubuntu-latest
+		needs: [build]
+		steps:
+			run: echo "开始测试"
+			run: echo "暂无测试案例"
+			run: echo "测试结束"
