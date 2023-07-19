@@ -43,8 +43,6 @@ private:
     ////////////////////////////////////////////////////////////////////////
     //////// 普通回调操作
     ////////////////////////////////////////////////////////////////////////
-    // 运行在 main loop 中的，只做新连接的分发
-    void RunInMainLoop();
     // 运行在 sub loop 中的，只做io、协议解析
     void RunInSubLoop(Epoller*);
     /* 成功接收到连接 */
@@ -105,9 +103,7 @@ private:
     void OnHandShakeTimeOut(const yrpc::detail::shared::errorcode& e, SessionPtr sess);
 private:
     Epoller*            m_main_loop;        // 只负责 listen 的 epoll
-    Acceptor::SPtr      m_main_acceptor;
     Address             m_local_addr;       // 服务器本地地址（监听地址）
-    Connector::SPtr     m_connector;        
     const size_t        m_sub_loop_size;    // sub eventloop 数量
     std::vector<Epoller*>           m_sub_loop;// sub eventloop
     CountDownLatch      m_loop_latch;       // 
@@ -128,6 +124,6 @@ private:
 
     std::vector<Uuid>   m_node_id_list;
 
-    ChannelMgr          m_channel_mgr;
+    ChannelMgr::SPtr    m_channel_mgr;
 };
 }

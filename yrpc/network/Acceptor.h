@@ -8,10 +8,10 @@ namespace yrpc::detail::net
 class Acceptor: public bbt::templateutil::BaseType<Acceptor>
 {
     typedef yrpc::coroutine::poller::Epoller    Epoller;
-    typedef std::function<Epoller*()>           LoadBalancer;
     typedef yrpc::detail::shared::errorcode     errorcode;
     typedef std::function<void(const yrpc::detail::shared::errorcode&, Connection::SPtr)> OnAcceptCallback;
 public:
+    typedef std::function<Epoller*()>           LoadBalancer;
     /**
      * @brief Construct a new Acceptor object
      * 
@@ -46,8 +46,7 @@ public:
     void setOnAccept(const OnAcceptHandle& onconn, void* args = nullptr)
     { m_onaccept = onconn; args_ = args;}
 
-    template<typename LBer,if_same_as(LBer,LoadBalancer)>
-    void setLoadBalancer(const LBer& lber)
+    void setLoadBalancer(const LoadBalancer& lber)
     { m_lber = lber; }
 
     static SPtr Create(Epoller* loop, int port, int socket_timeout_ms = 0, int connect_timeout_ms = 0);
