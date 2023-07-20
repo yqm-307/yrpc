@@ -23,6 +23,7 @@ jobs:
   build:
     name: build-lib
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
       - name: step2 dosomething
@@ -36,6 +37,7 @@ jobs:
   test:
     name: 单元测试
     runs-on: ubuntu-latest
+    
     needs: [build]
     steps:
       - name: do test
