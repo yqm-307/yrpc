@@ -4,13 +4,7 @@
 
 name: ci
 
-on: 
-	push:
-		branchs-ignore:
-			- 'master'
-		paths:
-			- 'yrpc/**'
-			- 'CMakeLists.txt'
+on: [push]
 
 jobs:
 	build:
