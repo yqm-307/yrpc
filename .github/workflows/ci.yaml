@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: step2 dosomething
+      - name: 运行测试例程
         shell: bash
         run: |
           cd shell
