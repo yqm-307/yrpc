@@ -4,20 +4,29 @@
 
 name: ci
 
-on: [push]
+on: 
+    push:
+        branches-ignore:
+            - 'master'
+        paths:
+            - '**.cc'
+            - '**.c'
+            - '**.h'
+            - '**.hpp'
+            - 'CMakeLists.txt'
 
 jobs:
-	build:
-		runs-on: ubuntu-latest
-		steps:
-		- uses: actions/checkout@v1
-			run: echo "当前所处路径:"
-			run: pwd
-			run: ls -al
-	test:
-		runs-on: ubuntu-latest
-		needs: [build]
-		steps:
-			run: echo "开始测试"
-			run: echo "暂无测试案例"
-			run: echo "测试结束"
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+            run: echo "当前所处路径:"
+            run: pwd
+            run: ls -al
+    test:
+        runs-on: ubuntu-latest
+        needs: [build]
+        steps:
+            run: echo "开始测试"
+            run: echo "暂无测试案例"
+            run: echo "测试结束"
