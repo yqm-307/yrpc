@@ -6,7 +6,7 @@ name: ci
 
 on: 
   push:
-    branches-ignore:
+    branches:
       - 'master'
     paths:
       - '**.cc'
@@ -14,18 +14,33 @@ on:
       - '**.h'
       - '**.hpp'
       - 'CMakeLists.txt'
+  pull_request:
+    branches:
+      - 'master'
+
 
 jobs:
   build:
     name: build-lib
     runs-on: ubuntu-latest
     steps:
-      - name: step1 checkout
-        uses: actions/checkout@v1
-    steps:
+      uses: actions/checkout@v3
       - name: step2 dosomething
         shell: bash
         run: |
           echo "当前所处路径:"
+          echo ${{github.workspace}}
+          echo %PATH%
           pwd
           ls -al
+  test:
+    name: 单元测试
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: do test
+        shell: bash
+        run: |
+          cd ${{github.workspace}}/shell
+          ./build.sh
+          ./test.sh
