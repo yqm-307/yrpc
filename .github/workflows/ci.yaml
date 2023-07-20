@@ -24,8 +24,8 @@ jobs:
     name: build-lib
     runs-on: ubuntu-latest
     steps:
-      uses: actions/checkout@v3
       - name: step2 dosomething
+      uses: actions/checkout@v3
         shell: bash
         run: |
           echo "当前所处路径:"
