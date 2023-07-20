@@ -20,8 +20,9 @@ jobs:
         name: build-lib
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v1
             - name: 输出路径
+                uses: actions/checkout@v1
+                shell: bash
                 run: |
                     echo "当前所处路径:"
                     pwd
