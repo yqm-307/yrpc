@@ -5,34 +5,25 @@
 name: ci
 
 on: 
-    push:
-        branches-ignore:
-            - 'master'
-        paths:
-            - '**.cc'
-            - '**.c'
-            - '**.h'
-            - '**.hpp'
-            - 'CMakeLists.txt'
+  push:
+    branches-ignore:
+      - 'master'
+    paths:
+      - '**.cc'
+      - '**.c'
+      - '**.h'
+      - '**.hpp'
+      - 'CMakeLists.txt'
 
 jobs:
-    build:
-        name: build-lib
-        runs-on: ubuntu-latest
-        steps:
-            - name: 输出路径
-                uses: actions/checkout@v1
-                shell: bash
-                run: |
-                    echo "当前所处路径:"
-                    pwd
-                    ls -al
-    # test:
-    #     name: build-test
-    #     runs-on: ubuntu-latest
-    #     needs: [build]
-    #     steps:
-    #         - name:
-    #         run: echo "开始测试"
-    #         run: echo "暂无测试案例"
-    #         run: echo "测试结束"
+  build:
+    name: build-lib
+    runs-on: ubuntu-latest
+    steps:
+      - name: 输出路径
+        uses: actions/checkout@v1
+        shell: bash
+        run: |
+          echo "当前所处路径:"
+          pwd
+          ls -al
