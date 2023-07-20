@@ -28,4 +28,4 @@ jobs:
         shell: bash
         run: |
           cd shell
-          ./test
+          ./test.sh
