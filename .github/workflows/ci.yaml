@@ -19,7 +19,7 @@ on:
 
 jobs:
   build:
-    name: build-lib
+    name: 项目构建
     runs-on: ubuntu-latest
 
     steps:
@@ -27,20 +27,5 @@ jobs:
       - name: step2 dosomething
         shell: bash
         run: |
-          echo "当前所处路径:"
-          echo ${{github.workspace}}
-          echo %PATH%
-          pwd
-          ls -al
-  test:
-    name: 单元测试
-    runs-on: ubuntu-latest
-
-    needs: [build]
-    steps:
-      - name: do test
-        shell: bash
-        run: |
-          cd ${{github.workspace}}/shell
-          ./build.sh
-          ./test.sh
+          cd shell
+          ./test
