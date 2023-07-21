@@ -58,6 +58,10 @@ Channel::~Channel()
     DEBUG("[YRPC][Channel::~Channel][%d] info: destory channel peer:{ip:port} = {%s}",
             y_scheduler_id,
             m_conn->StrIPPort().c_str());
+
+    m_conn      = nullptr;
+    m_acceptor  = nullptr;
+    m_connector = nullptr;
 }
 
 

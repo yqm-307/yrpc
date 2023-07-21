@@ -3,7 +3,7 @@
 #include <functional>
 #include <bbt/myhash/BKDR.hpp>
 #include "CallObj.h"
-
+#include "ProtocolFactory.h"
 
 namespace yrpc::rpc
 {

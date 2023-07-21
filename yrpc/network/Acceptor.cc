@@ -25,6 +25,7 @@ Acceptor::~Acceptor()
 {//释放套接字资源和Socket内存
     INFO("[YRPC][Acceptor::~Acceptor] Acceptor Destroy!");
     this->ReleaseListenSocket();
+    
 }
 
 void Acceptor::Init()
@@ -32,8 +33,6 @@ void Acceptor::Init()
     if( yrpc::socket::YRCreateListen(&m_fd, m_port) < 0 )
         ERROR("Acceptor::Acceptor() error , YRCreateListen call failed!");
     CreateListenSocket();
-    //listenfd创建完成
-    // scheduler_->AddTask([this](void*){StartListen();},nullptr);
 }
 
 
@@ -98,7 +97,6 @@ void Acceptor::ListenInEvloop()
 
 void Acceptor::CreateListenSocket()
 {
-    // auto evloop = ( m_lber == nullptr ) ? y_scheduler : m_lber();  // 走不走负载均衡，不走就默认在当前线程进行IO
     assert(m_loop != nullptr);
     m_listenfd = yrpc::socket::CreateSocket(m_fd, m_loop, m_loop->GetPollFd(), -1, -1); //需要free
     if(m_listenfd == nullptr) 
