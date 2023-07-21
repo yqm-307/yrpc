@@ -16,20 +16,15 @@ class ChannelMgr: public bbt::templateutil::BaseType<ChannelMgr>
 public:
     ChannelMgr(Epoller* main_loop);
     ~ChannelMgr();
-    /* 注意初始化时机 */
     void SetOnConnect(const OnConnectCallback& cb)
     { m_onconnect = cb; }
-    /* 注意初始化时机 */
     void SetOnAccept(const OnAcceptCallback& cb)
     { m_onaccept = cb; }
-    /* 注意初始化时机 */
     void SetOnClose(const OnCloseCallback& cb)
     { m_onclose = cb; }
-    /* 注意初始化 */
     void SetLoadBalancer(const LoadBalancer& cb)
     { m_loadblancer = cb; }
     void AsyncConnect(const yrpc::detail::net::YAddress& peer_addr);
-    /* 需要先设置acceptor */
     void StartListen(const Address&);
     static SPtr Create(Epoller* main_loop);
 private:
@@ -45,8 +40,8 @@ private:
     void InitAcceptor(const Address& listen_addr);
 private:
     Epoller*                            m_main_loop;
-    yrpc::detail::net::Acceptor::SPtr   m_acceptor{nullptr};
-    yrpc::detail::net::Connector::SPtr  m_connector{nullptr};
+    yrpc::detail::net::Acceptor::UQPtr  m_acceptor{nullptr};
+    yrpc::detail::net::Connector::UQPtr m_connector{nullptr};
     OnConnectCallback   m_onconnect{nullptr};
     OnAcceptCallback    m_onaccept{nullptr};
     OnCloseCallback     m_onclose{nullptr};
