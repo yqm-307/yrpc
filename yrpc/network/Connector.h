@@ -27,7 +27,7 @@ class Connector : public std::enable_shared_from_this<Connector>, public bbt::te
 {
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef std::function<Epoller*()>           LoadBalancer;
-    typedef std::function<void(const yrpc::detail::shared::errorcode&, Connection::SPtr, const yrpc::detail::net::YAddress&)> OnConnectCallback;    // 连接建立完成回调
+    typedef std::function<void(const yrpc::detail::shared::errorcode&, Connection::UQPtr, const yrpc::detail::net::YAddress&)> OnConnectCallback;    // 连接建立完成回调
 public:
     /**
      * @brief Construct a new Connector object
@@ -38,22 +38,15 @@ public:
     ~Connector();
 
     /* 向 servaddr 发起一个连接 */
-    void AsyncConnect(YAddress servaddr)
-    {   
-        scheduler_->AddTask([this,servaddr](void*){
-            this->Connect(servaddr);
-        });
-    }
+    void AsyncConnect(YAddress servaddr);
     
-    void setLoadBalancer(const LoadBalancer& lber)
-    { m_lber = lber; }
+    void SetLoadBalancer(const LoadBalancer& lber);
 
-    void SetOnConnectCallback(const OnConnectCallback& cb)
-    { m_onconn = cb; }
+    void SetOnConnectCallback(const OnConnectCallback& cb);
 
     static Socket* CreateSocket();
     static void DestorySocket(Socket*);
-    static SPtr Create(yrpc::coroutine::poller::Epoller* loop);
+    static UQPtr Create(yrpc::coroutine::poller::Epoller* loop);
 protected:
     auto GetPtr()
     {

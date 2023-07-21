@@ -20,8 +20,8 @@ class Channel: public std::enable_shared_from_this<Channel>, public bbt::templat
     typedef yrpc::detail::net::ConnectionPtr                ConnPtr;
     typedef yrpc::coroutine::poller::Epoller                Epoller;
     typedef yrpc::coroutine::poller::RoutineSocket          Socket;
-    typedef std::function<void(const errorcode&,Buffer&,const ConnPtr)>   RecvCallback;
-    typedef std::function<void(const errorcode&,size_t,const ConnPtr)>    SendCallback;
+    typedef std::function<void(const errorcode&,Buffer&)>   RecvCallback;
+    typedef std::function<void(const errorcode&,size_t)>    SendCallback;
     typedef std::function<void(const errorcode&, Channel::SPtr)>          CloseCallback;
     typedef std::function<void(const errorcode&, Channel::SPtr)>          ErrorCallback;
     typedef std::function<void(Socket*)>                                  TimeOutCallback;
@@ -44,7 +44,7 @@ public:
 
 
     Channel();
-    Channel(yrpc::detail::net::Connection::SPtr new_conn);
+    Channel(yrpc::detail::net::Connection::UQPtr new_conn);
     virtual ~Channel();
     ////////////////////////
     ////// 连接接口 ////////
@@ -66,7 +66,7 @@ public:
     size_t Send(const Buffer& data);
     /* send len byte to peer (thread safe)*/
     size_t Send(const char* data,size_t len);
-    const ConnPtr GetConnInfo()
+    const Connection::UQPtr& GetConnInfo()
     { return m_conn; }
     const Address& GetPeerAddress()
     { return m_conn->GetPeerAddress(); }
@@ -88,7 +88,7 @@ public:
      *  刷新部分callback 到 connection 中,并注册io协程
      */
     void UpdateAllCallbackAndRunInEvloop();
-    static SPtr Create(ConnPtr conn);
+    static SPtr Create(Connection::UQPtr conn);
 
 
 private:
@@ -104,7 +104,7 @@ private:
     yrpc::detail::net::Acceptor::SPtr     m_acceptor;
     yrpc::detail::net::Connector::SPtr    m_connector;
     Epoller*        m_eventloop;
-    ConnPtr         m_conn;     // channel hold conn
+    Connection::UQPtr m_conn;     // channel hold conn
     volatile int    m_status{0};   // 信道应该带有io状态，正在读、正在写、空闲
     bool            m_is_closed{false};
     

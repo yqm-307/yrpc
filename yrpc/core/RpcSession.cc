@@ -83,11 +83,11 @@ size_t RpcSession::Append(const Buffer& bytearray)
 
 void RpcSession::InitFunc()
 {
-    m_channel->SetRecvCallback([this](const errorcode& e,Buffer& buff,const ConnPtr){
+    m_channel->SetRecvCallback([this](const errorcode& e,Buffer& buff){
         this->RecvFunc(e,buff);
     });
 
-    m_channel->SetSendCallback([this](const errorcode& e,size_t len,const ConnPtr){
+    m_channel->SetSendCallback([this](const errorcode& e,size_t len){
         this->SendFunc(e,len);
     });
 

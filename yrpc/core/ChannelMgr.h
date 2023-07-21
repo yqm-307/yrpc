@@ -28,11 +28,11 @@ public:
     void StartListen(const Address&);
     static SPtr Create(Epoller* main_loop);
 private:
-    void OnConnect(const errorcode& err, Connection::SPtr conn, const yrpc::detail::net::YAddress& addr);
-    void OnAccept(const errorcode& err, Connection::SPtr conn);
+    void OnConnect(const errorcode& err, Connection::UQPtr conn, const yrpc::detail::net::YAddress& addr);
+    void OnAccept(const errorcode& err, Connection::UQPtr conn);
 
     void DefaultOnConnect(const errorcode& err, Channel::SPtr conn);
-    void DefaultOnAccept(const errorcode& err, Connection::SPtr conn);
+    void DefaultOnAccept(const errorcode& err, Connection::UQPtr conn);
     void DefaultOnClose(const errorcode& err, Connection::SPtr conn);
 
     void InitAChannel(Channel::SPtr chan);

@@ -44,8 +44,8 @@ Channel::Channel()
 {
 }
 
-Channel::Channel(yrpc::detail::net::Connection::SPtr new_conn)
-    :m_conn(new_conn),
+Channel::Channel(yrpc::detail::net::Connection::UQPtr new_conn)
+    :m_conn(std::move(new_conn)),
     m_eventloop(new_conn->GetScheudler())
 {
 }
@@ -124,15 +124,14 @@ void Channel::InitFunc()
 {
     m_conn->setOnRecvCallback([this](const errorcode& e,Buffer& data){
         assert(this->m_recvcallback!=nullptr);
-        this->m_recvcallback(e,data,this->m_conn);
+        this->m_recvcallback(e, data);
     });
 
     m_conn->setOnTimeoutCallback([this](Socket* socket){
         this->m_timeoutcallback(socket);
     });
 
-    m_conn->setOnCloseCallback([this](const errorcode& e, Connection::SPtr chan){
-        // this->OnClose
+    m_conn->setOnCloseCallback([this](const errorcode& e){
         this->OnClose(e, shared_from_this());
         // this->m_closecallback(e, shared_from_this());
     });
@@ -142,9 +141,9 @@ void Channel::InitFunc()
 
 
 
-Channel::ChannelPtr Channel::Create(ConnPtr conn)
+Channel::ChannelPtr Channel::Create(Connection::UQPtr conn)
 {
-    return std::make_shared<Channel>(conn);
+    return std::make_shared<Channel>(std::move(conn));
 }
 
 
@@ -195,7 +194,7 @@ void Channel::EpollerSend(const char *data, size_t len)
         e.set("send fail",
               yrpc::detail::shared::YRPC_ERR_TYPE::ERRTYPE_NETWORK,
               yrpc::detail::shared::ERR_NETWORK::ERR_NETWORK_SEND_FAIL);
-    m_sendcallback(e, n, m_conn);
+    m_sendcallback(e, n);
 }
 
 #undef IsWriting

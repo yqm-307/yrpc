@@ -25,10 +25,10 @@ void ChannelMgr::InitConnector()
 {
     assert(m_loadblancer != nullptr);
     m_connector = yrpc::detail::net::Connector::Create(m_main_loop);
-    m_connector->setLoadBalancer(m_loadblancer);
+    m_connector->SetLoadBalancer(m_loadblancer);
     m_connector->SetOnConnectCallback(
-    [this](const yrpc::detail::shared::errorcode& err, Connection::SPtr new_conn, const yrpc::detail::net::YAddress& addr){
-        OnConnect(err, new_conn, addr);
+    [this](const yrpc::detail::shared::errorcode& err, Connection::UQPtr new_conn, const yrpc::detail::net::YAddress& addr){
+        OnConnect(err, std::move(new_conn), addr);
     });
 }
 
@@ -36,9 +36,9 @@ void ChannelMgr::InitAcceptor(const Address& listen_addr)
 {
     assert(m_loadblancer != nullptr);
     m_acceptor = yrpc::detail::net::Acceptor::Create(m_main_loop, listen_addr.GetPort(), 3000, 3000);
-    m_acceptor->setLoadBalancer(m_loadblancer);
-    m_acceptor->setOnAccept([this](const errorcode& err, Connection::SPtr conn){
-        this->OnAccept(err, conn);
+    m_acceptor->SetLoadBalancer(m_loadblancer);
+    m_acceptor->SetOnAccept([this](const errorcode& err, Connection::UQPtr conn){
+        this->OnAccept(err, std::move(conn));
     });
 }
 
@@ -49,9 +49,9 @@ void ChannelMgr::InitAChannel(Channel::SPtr chan)
     });
 }
 
-void ChannelMgr::OnConnect(const errorcode& err, Connection::SPtr conn, const yrpc::detail::net::YAddress& addr)
+void ChannelMgr::OnConnect(const errorcode& err, Connection::UQPtr conn, const yrpc::detail::net::YAddress& addr)
 {
-    Channel::SPtr chan_ptr = Channel::Create(conn);
+    Channel::SPtr chan_ptr = Channel::Create(std::move(conn));
     if( err.err() == yrpc::detail::shared::ERR_NETWORK_CONN_OK )
     {
         DEBUG("[YRPC][ChannelMgr::OnConnect][%d] on connect!", y_scheduler_id);
@@ -64,12 +64,12 @@ void ChannelMgr::OnConnect(const errorcode& err, Connection::SPtr conn, const yr
         DefaultOnConnect(err, chan_ptr);
 }
 
-void ChannelMgr::OnAccept(const errorcode& err, Connection::SPtr conn)
+void ChannelMgr::OnAccept(const errorcode& err, Connection::UQPtr conn)
 {
     Channel::SPtr chan_ptr = nullptr;
     if( err.err() == yrpc::detail::shared::ERR_NETWORK_ACCEPT_OK )
     {
-        chan_ptr = Channel::Create(conn);
+        chan_ptr = Channel::Create(std::move(conn));
         InitAChannel(chan_ptr);
         DEBUG("[YRPC][ChannelMgr::OnAccept][%d] on accept! peer:{%s}", y_scheduler_id, conn->GetPeerAddress().GetIPPort().c_str());
     }
@@ -78,7 +78,7 @@ void ChannelMgr::OnAccept(const errorcode& err, Connection::SPtr conn)
         m_onaccept(err, chan_ptr);
     }
     else
-        DefaultOnAccept(err, conn);
+        DefaultOnAccept(err, std::move(conn));
 }
 
 void ChannelMgr::DefaultOnConnect(const errorcode& err, Channel::SPtr chan)
@@ -94,7 +94,7 @@ void ChannelMgr::DefaultOnConnect(const errorcode& err, Channel::SPtr chan)
     }
 }
 
-void ChannelMgr::DefaultOnAccept(const errorcode& err, Connection::SPtr conn)
+void ChannelMgr::DefaultOnAccept(const errorcode& err, Connection::UQPtr conn)
 {
     if( err.err() != yrpc::detail::shared::ERR_NETWORK_ACCEPT_OK )
     {
@@ -124,6 +124,6 @@ void ChannelMgr::StartListen(const Address& listen_addr)
         InitAcceptor(listen_addr);
     }
     assert(m_loadblancer != nullptr);
-    m_acceptor->setLoadBalancer(m_loadblancer);
+    m_acceptor->SetLoadBalancer(m_loadblancer);
     m_acceptor->StartListen();
 }

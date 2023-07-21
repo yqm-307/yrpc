@@ -9,7 +9,7 @@ class Acceptor: public bbt::templateutil::BaseType<Acceptor>
 {
     typedef yrpc::coroutine::poller::Epoller    Epoller;
     typedef yrpc::detail::shared::errorcode     errorcode;
-    typedef std::function<void(const yrpc::detail::shared::errorcode&, Connection::SPtr)> OnAcceptCallback;
+    typedef std::function<void(const yrpc::detail::shared::errorcode&, Connection::UQPtr)> OnAcceptCallback;
 public:
     typedef std::function<Epoller*()>           LoadBalancer;
     /**
@@ -22,39 +22,20 @@ public:
      */
     Acceptor(Epoller* loop, int port,int socket_timeout_ms = SOCKET_TIME_OUT_MS,int connect_timeout_ms = SOCKET_CONN_TIME_MS);
     ~Acceptor();
-
-
-    /**
-     * @brief 开启一个监听的循环事件，注册非阻塞异步任务到event loop 中。
-     * 
-     * @return int 如果返回值大于等于0，注册成功；如果返回值是-1，说明循环正在运行中；如果返回值为-2，说明尚未设置回调函数；
-     */
+    /* 启动acceptor，需要先设置 loadbalancer 和 onaccept */
     int StartListen();
-
-
-    /**
-     * @brief 停止监听
-     */
+    /* 停止acceptor */
     void Close(){ m_closed.store(true); }
-
-    
-    /**
-     * @brief 上层持有者,通过注册该回调来开始运行
-     * @param onconn 新连接建立时回调
-     * @param args  函数参数(保留，可能用到)
-     */
-    void setOnAccept(const OnAcceptHandle& onconn, void* args = nullptr)
-    { m_onaccept = onconn; args_ = args;}
-
-    void setLoadBalancer(const LoadBalancer& lber)
-    { m_lber = lber; }
-
-    static SPtr Create(Epoller* loop, int port, int socket_timeout_ms = 0, int connect_timeout_ms = 0);
+    /* 设置接收到连接的回调 */
+    void SetOnAccept(const OnAcceptCallback& onconn, void* args = nullptr);
+    /* 设置负载均衡的回调 */
+    void SetLoadBalancer(const LoadBalancer& lber);
+    /* 创建实例 */
+    static UQPtr Create(Epoller* loop, int port, int socket_timeout_ms = 0, int connect_timeout_ms = 0);
 protected:
-    /* main loop 运行的函数 */
+    /* 在 loop 中开启监听 */
     void ListenInEvloop();
     void Init();
-    // void ListenRunInLoop();
     void CreateListenSocket();
     void ReleaseListenSocket();
 private:

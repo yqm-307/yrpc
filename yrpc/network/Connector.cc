@@ -32,13 +32,13 @@ void Connector::Connect(const YAddress& peer_addr)
     {
         assert(m_lber != nullptr);
         auto conn_in_loop = m_lber(); 
-        ConnectionPtr conn = Connection::Create(conn_in_loop, tmp_socket, peer_addr);
+        Connection::UQPtr conn = Connection::Create(conn_in_loop, tmp_socket, peer_addr);
         if(connerror == ECONNREFUSED)
         {// 连接被拒绝
             e.setcode(yrpc::detail::shared::ERR_NETWORK_ECONNREFUSED);
             e.setinfo("connect refused %d",connerror);
             ERROR("[YRPC][Connector::Connect][%d] connect err! errno: %d",y_scheduler_id, connerror);
-            m_onconn(e, conn, peer_addr);
+            m_onconn(e, std::move(conn), peer_addr);
             return;
         }
         if(n<0)
@@ -46,7 +46,7 @@ void Connector::Connect(const YAddress& peer_addr)
             e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OTHRE_ERR);
             e.setinfo("connect failed! errno is %d", errno);
             ERROR("[YRPC][Connector::Connect][%d] connect err! errno: %d", y_scheduler_id, connerror);
-            m_onconn(e, conn, peer_addr);
+            m_onconn(e, std::move(conn), peer_addr);
             return;
         }
         else
@@ -54,7 +54,7 @@ void Connector::Connect(const YAddress& peer_addr)
             e.setcode(yrpc::detail::shared::ERR_NETWORK_CONN_OK);
             e.setinfo("connet success peer %s",conn->StrIPPort().c_str());
             DEBUG("[YRPC][Connector::Connect][%d] connect succ", y_scheduler_id);
-            m_onconn(e, conn, peer_addr);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
+            m_onconn(e, std::move(conn), peer_addr);//直接执行没问题，连接要么成功要么失败，和Acceptor不一样，不需要循环处理，阻塞就阻塞。
         }
     }
     else
@@ -64,7 +64,22 @@ void Connector::Connect(const YAddress& peer_addr)
 
 }
 
+void Connector::AsyncConnect(YAddress servaddr)
+{   
+    scheduler_->AddTask([this,servaddr](void*){
+        this->Connect(servaddr);
+    });
+}
 
+void Connector::SetLoadBalancer(const LoadBalancer& lber)
+{ 
+    m_lber = lber; 
+}
+
+void Connector::SetOnConnectCallback(const OnConnectCallback& cb)
+{ 
+    m_onconn = cb; 
+}
 
 Socket* Connector::CreateSocket()
 {
@@ -79,7 +94,7 @@ void Connector::DestorySocket(Socket*socket)
     delete socket;
 }
 
-Connector::SPtr Connector::Create(yrpc::coroutine::poller::Epoller* loop)
+Connector::UQPtr Connector::Create(yrpc::coroutine::poller::Epoller* loop)
 {
-    return std::make_shared<Connector>(loop);
+    return std::make_unique<Connector>(loop);
 }

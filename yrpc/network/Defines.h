@@ -26,9 +26,8 @@ using std::placeholders::_4;
 using std::placeholders::_5;
 
 typedef std::function<void(const errorcode&, const yrpc::detail::net::YAddress&, ConnectionPtr)>    OnConnectHandle;
-typedef std::function<void(const errorcode&, ConnectionPtr)>    OnAcceptHandle;
-typedef std::function<void(const errorcode&, bbt::buffer::Buffer&)>       OnRecvHandle;
-typedef std::function<void(const errorcode&, ConnectionPtr)>                ConnCloseHandle;
+typedef std::function<void(const errorcode&, bbt::buffer::Buffer&)>         OnRecvHandle;
+// typedef std::function<void(const errorcode&, Connection::)>                ConnCloseHandle;
 typedef std::function<void(const errorcode&)>                               OnCloseHandle;
 
 

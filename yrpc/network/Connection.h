@@ -32,6 +32,7 @@ class Connection : public std::enable_shared_from_this<Connection>, public bbt::
     // typedef std::shared_ptr<Connection> ConnectionPtr;
     typedef std::function<void(Socket*)>       OnTimeoutCallback;
     typedef bbt::buffer::Buffer Buffer;
+    typedef std::function<void(const yrpc::detail::shared::errorcode&)> OnCloseCallback;
 public:
 
     Connection(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli);
@@ -65,7 +66,7 @@ public:
     /* 接收数据时回调 */
     void setOnRecvCallback(OnRecvHandle cb);
     /* socket 关闭时回调 */
-    void setOnCloseCallback(ConnCloseHandle cb);
+    void setOnCloseCallback(OnCloseCallback cb);
     /* socket 空闲超时回调 */
     void setOnTimeoutCallback(OnTimeoutCallback cb);
 
@@ -81,7 +82,7 @@ public:
     /* 获取对端ip port 的字符串 */
     std::string StrIPPort();
     /* 创建一个Connection，并返回智能指针 */
-    static SPtr Create(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli);
+    static UQPtr Create(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli);
 
     yrpc::coroutine::poller::Epoller* GetScheudler();
 protected:
@@ -105,7 +106,7 @@ protected:
     bool                    m_Writing; 
 
     OnRecvHandle            m_onrecv;
-    ConnCloseHandle         m_closecb;   // 
+    OnCloseCallback         m_closecb;   // 
     OnTimeoutCallback       m_timeoutcb;  // 超时回调通知
 
     int                     m_init_buffer_size{4096};               // 初始化buffer大小      

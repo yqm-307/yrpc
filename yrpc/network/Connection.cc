@@ -128,7 +128,7 @@ void Connection::Close()
     // ::close(m_socket->sockfd_);
     INFO("[YRPC][Connection::Close][%d] close connect! fd= %d", y_scheduler_id, m_socket->sockfd_);
     if(m_closecb != nullptr)
-        m_closecb(e, shared_from_this());
+        m_closecb(e);
     else
         WARN("[YRPC][Connection::Close][%d] close func is nullptr", y_scheduler_id);
     yrpc::socket::DestorySocket(m_socket);
@@ -150,7 +150,7 @@ void Connection::RecvFunc()
             e.setcode(yrpc::detail::shared::ERR_NETWORK_RECV_OK);
             if(m_onrecv)
             {
-                m_onrecv(e,m_input_buffer);
+                m_onrecv(e, m_input_buffer);
             }
             else
                 ERROR("[YRPC][Connection::RecvFunc][%d] info: recv handler is illegal!", y_scheduler_id);
@@ -170,7 +170,7 @@ void Connection::setOnRecvCallback(OnRecvHandle cb)
     // update();
 }
 
-void Connection::setOnCloseCallback(ConnCloseHandle cb)
+void Connection::setOnCloseCallback(OnCloseHandle cb)
 {
     m_closecb = cb;
 }
@@ -214,9 +214,9 @@ void Connection::TimeOut(Socket* socket)
         m_timeoutcb(socket);
 }
 
-ConnectionPtr Connection::Create(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli)
+Connection::UQPtr Connection::Create(yrpc::coroutine::poller::Epoller* scheduler,Socket* sockfd,const YAddress& cli)
 {
-    return std::make_shared<Connection>(scheduler, sockfd, cli);
+    return std::make_unique<Connection>(scheduler, sockfd, cli);
 }
 
 yrpc::coroutine::poller::Epoller* Connection::GetScheudler()

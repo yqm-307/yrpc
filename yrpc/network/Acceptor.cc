@@ -80,9 +80,9 @@ void Acceptor::ListenInEvloop()
         int succ = ::getpeername(newfd, reinterpret_cast<sockaddr*>(&peeraddr), &len);
         if (succ >= 0) {
             YAddress cli(inet_ntoa(peeraddr.sin_addr), htons(peeraddr.sin_port));
-            Connection::SPtr newconn = Connection::Create(evloop, clisock, std::move(cli));
+            Connection::UQPtr newconn = Connection::Create(evloop, clisock, std::move(cli));
             DEBUG("[YRPC][Acceptor::ListenInEvloop][%d] accept success! peer{%s}", y_scheduler_id, newconn->GetPeerAddress().GetIPPort().c_str());
-            this->m_onaccept(e, newconn); // onconnection 不可以是长时间阻塞的调用
+            this->m_onaccept(e, std::move(newconn)); // onconnection 不可以是长时间阻塞的调用
         }
         else 
         {
@@ -113,15 +113,25 @@ void Acceptor::ReleaseListenSocket()
     ::close(m_fd);
 }
 
-Acceptor::SPtr Acceptor::Create(Epoller* loop, int port, int socket_timeout_ms, int connect_timeout_ms)
+Acceptor::UQPtr Acceptor::Create(Epoller* loop, int port, int socket_timeout_ms, int connect_timeout_ms)
 {
     if( socket_timeout_ms > 0 && connect_timeout_ms > 0 )
-        return std::make_shared<Acceptor>(loop, port, socket_timeout_ms, connect_timeout_ms);
+        return std::make_unique<Acceptor>(loop, port, socket_timeout_ms, connect_timeout_ms);
     else if( socket_timeout_ms )
-        return std::make_shared<Acceptor>(loop, port, socket_timeout_ms);
+        return std::make_unique<Acceptor>(loop, port, socket_timeout_ms);
     else
-        return std::make_shared<Acceptor>(loop, port);
+        return std::make_unique<Acceptor>(loop, port);
 }
 
+void Acceptor::SetOnAccept(const OnAcceptCallback& onconn, void* args)
+{ 
+    m_onaccept = onconn;
+    args_ = args;
+}
+
+void Acceptor::SetLoadBalancer(const LoadBalancer& lber)
+{ 
+    m_lber = lber; 
+}
 
 }

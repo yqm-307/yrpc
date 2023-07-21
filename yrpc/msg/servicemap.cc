@@ -18,7 +18,7 @@ ServiceMap::~ServiceMap()
     //全部析构掉
     for(auto it : m_id2service)
     {
-        delete &it;
+        delete it.second;
     }
 }
 
