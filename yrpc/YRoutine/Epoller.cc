@@ -50,13 +50,13 @@ int Epoller::GetID()
     return m_id;
 }
 
-void Epoller::AddTask(yrpc::coroutine::context::YRoutineFunc func,void* args)
+void Epoller::AddTask(yrpc::coroutine::detail::YRoutineFunc func,void* args)
 {   
     yrpc::util::lock::lock_guard<yrpc::util::lock::Mutex> lock(m_lock);
     this->m_pending_tasks.push(std::make_pair(func,args));
 }
 
-void Epoller::AddTask_Unsafe(yrpc::coroutine::context::YRoutineFunc func,void* args)
+void Epoller::AddTask_Unsafe(yrpc::coroutine::detail::YRoutineFunc func,void* args)
 {
     this->m_pending_tasks.push(std::make_pair(func,args));
 }

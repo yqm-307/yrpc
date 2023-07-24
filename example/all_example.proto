@@ -54,7 +54,13 @@ message GetServiceListRsp
 }
 
 
-// service Echo
-// {
-//     rpc EchoService(EchoRsp) returns(EchoRsp);
-// }
+// NodeServer
+message InsertReq
+{
+
+}
+
+message InsertRsp
+{
+
+}

@@ -74,7 +74,7 @@ void Acceptor::ListenInEvloop()
 
         auto evloop = m_lber();
         assert(evloop != nullptr);
-        Socket* clisock = yrpc::socket::CreateSocket(newfd, evloop, evloop->GetPollFd(), m_socket_timeout_ms, m_connect_timeout_ms);  //普通连接
+        Socket::RawPtr clisock = yrpc::socket::CreateSocket(newfd, evloop, evloop->GetPollFd(), m_socket_timeout_ms, m_connect_timeout_ms);  //普通连接
         // 获取对端ip地址和端口
         len = sizeof(peeraddr);
         int succ = ::getpeername(newfd, reinterpret_cast<sockaddr*>(&peeraddr), &len);

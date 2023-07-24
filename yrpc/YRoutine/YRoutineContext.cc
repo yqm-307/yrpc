@@ -11,7 +11,6 @@
 #include "YRoutineContext.h"
 #include <assert.h>
 
-using namespace yrpc::coroutine::context;
 using namespace yrpc::coroutine::detail;
 
 thread_local bool FirstJump = true;

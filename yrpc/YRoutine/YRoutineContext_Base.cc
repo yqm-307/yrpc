@@ -11,7 +11,7 @@
 #include "YRoutineContext_Base.h"
 
 
-namespace yrpc::coroutine::context
+namespace yrpc::coroutine::detail
 {
 
 YContextCreateFunc YRoutineContext_Base::m_routine_create_func = nullptr;

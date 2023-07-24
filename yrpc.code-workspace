@@ -93,7 +93,7 @@
 		"C_Cpp.default.cppStandard": "c++17",
 		"C_Cpp.default.cStandard": "c11",
 		"C_Cpp.default.includePath": [
-			"/home/yqm/Code/Git/github/yrpc"
+			"${workspaceRoot}/yrpc"
 		]
 	},
 	"launch": {

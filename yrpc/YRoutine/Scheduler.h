@@ -43,7 +43,7 @@ enum YCO_SchedulerStatus : int32_t
  */
 struct RoutineNode
 {
-    context::YRoutineContext_Base* context_ = nullptr;
+    YRoutineContext_Base* context_ = nullptr;
     int Next_Node=-1;
     YCO_SchedulerStatus status_;
 };
@@ -72,7 +72,7 @@ public:
      * @param args 参数
      * @return YRoutine_t 协程句柄
      */
-    template<class RoutineFunc = context::YRoutineFunc>
+    template<class RoutineFunc = YRoutineFunc>
     YRoutine_t Add(RoutineFunc&& func,void* args) { return CreateRoutine(std::move(func),args);}
 
     /**
@@ -122,7 +122,7 @@ private:
      */
     void YRoutineDone();    
 
-    YRoutine_t CreateRoutine(context::YRoutineFunc&& func,void* args);
+    YRoutine_t CreateRoutine(YRoutineFunc&& func,void* args);
 private:
     typedef std::vector<RoutineNode> YRoutineList;
 
