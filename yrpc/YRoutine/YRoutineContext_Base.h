@@ -13,7 +13,7 @@
 #include <functional>
 
 
-namespace yrpc::coroutine::context
+namespace yrpc::coroutine::detail
 {
 
 class YRoutineContext_Base;

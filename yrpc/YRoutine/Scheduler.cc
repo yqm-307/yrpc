@@ -74,7 +74,7 @@ bool YCO_Scheduler::Resume(int index)
 
 
 
-YRoutine_t YCO_Scheduler::CreateRoutine(context::YRoutineFunc&& func,void* args)
+YRoutine_t YCO_Scheduler::CreateRoutine(YRoutineFunc&& func,void* args)
 {
     YRoutine_t i = -1;
     if(m_last_routine_index>=0)  //只需要改变空闲槽
@@ -87,7 +87,7 @@ YRoutine_t YCO_Scheduler::CreateRoutine(context::YRoutineFunc&& func,void* args)
     {
         i = m_routinue_list.size();
         RoutineNode Node;
-        Node.context_ = context::YRoutineContext::CreateHandle(m_max_stack_size,func,args,
+        Node.context_ = YRoutineContext::CreateHandle(m_max_stack_size,func,args,
             std::bind(&YCO_Scheduler::YRoutineDone,this),m_need_memlock_flag); 
         assert(Node.context_);
         m_routinue_list.push_back(Node);

@@ -16,7 +16,7 @@
 #include "yrpc/boost_context/fcontext.hpp"
 
 
-namespace yrpc::coroutine::context
+namespace yrpc::coroutine::detail
 {
 
 

@@ -107,7 +107,7 @@ class Epoller final : bbt::noncopyable
     typedef yrpc::util::clock::YTimer<RoutineSocket*>::Ptr      TTaskPtr;
     typedef yrpc::util::clock::YTimer<TimerTaskFunc>::Ptr       NormalTaskPtr;
 public:
-    typedef yrpc::coroutine::context::YRoutineFunc TaskFunc;
+    typedef yrpc::coroutine::detail::YRoutineFunc TaskFunc;
     /**
      * @brief 构造一个Epoller对象
      * 
@@ -123,8 +123,8 @@ public:
      * @param func 任务函数
      * @param args 任务函数的参数
      */
-    void AddTask(yrpc::coroutine::context::YRoutineFunc func,void* args = nullptr);
-    void AddTask_Unsafe(yrpc::coroutine::context::YRoutineFunc func,void* args = nullptr);
+    void AddTask(yrpc::coroutine::detail::YRoutineFunc func,void* args = nullptr);
+    void AddTask_Unsafe(yrpc::coroutine::detail::YRoutineFunc func,void* args = nullptr);
 
     
     /**
