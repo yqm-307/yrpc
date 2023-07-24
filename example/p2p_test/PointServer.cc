@@ -2,11 +2,6 @@
 #include "yrpc/config/config.hpp"
 
 
-void routine_handle(void* p2pserv)
-{
-
-}
-
 int main(int argc, char* argv[])
 {
     if (argc != 4)
