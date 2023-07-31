@@ -37,7 +37,7 @@ struct HandShakeData
  * 一定要让握手最后阶段完成时，先完成的连接保存在SessionManager中，后完
  * 成的释放自己的连接。
  */
-class ConnQueue : bbt::noncopyable
+class ConnQueue : bbt::templateutil::noncopyable
 {
     typedef uint64_t SessionID;
     typedef std::shared_ptr<RpcSession>         SessionPtr;

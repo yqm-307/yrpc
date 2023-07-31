@@ -90,7 +90,7 @@ public:
 
 
 
-class Epoller final : bbt::noncopyable 
+class Epoller final : bbt::templateutil::noncopyable 
 {
     
     template<typename DataObj>

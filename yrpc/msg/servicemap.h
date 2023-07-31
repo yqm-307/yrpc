@@ -37,7 +37,7 @@ typedef std::pair<ServiceFunc, CodecFunc> ServiceHandles;       // std::pair<Ser
 
 
 
-class ServiceMap:bbt::noncopyable
+class ServiceMap:bbt::templateutil::noncopyable
 {
 public:
     ServiceMap();

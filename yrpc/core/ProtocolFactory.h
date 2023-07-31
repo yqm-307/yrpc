@@ -25,7 +25,7 @@ typedef std::function<std::shared_ptr<google::protobuf::Message>()> CreateFunc;
 
 
 
-class ProtocolFactroy : bbt::noncopyable
+class ProtocolFactroy : bbt::templateutil::noncopyable
 {
 public:
     typedef uint16_t ProtoID;

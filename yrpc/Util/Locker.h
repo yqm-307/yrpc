@@ -25,7 +25,7 @@ private:
 	_Lock& _lock;
 };
 
-class Mutex : bbt::noncopyable
+class Mutex : bbt::templateutil::noncopyable
 {
 public:
 	Mutex():_mutex(PTHREAD_MUTEX_INITIALIZER)
@@ -61,7 +61,7 @@ private:
 };
 
 //自旋锁
-class Spinlock : bbt::noncopyable
+class Spinlock : bbt::templateutil::noncopyable
 {
 public:
 	Spinlock()
@@ -91,7 +91,7 @@ private:
 };
 
 
-class Sem_t : bbt::noncopyable
+class Sem_t : bbt::templateutil::noncopyable
 {
 public:
 	Sem_t()
@@ -154,7 +154,7 @@ private:
 
 
 //
-class CountDownLatch : bbt::noncopyable
+class CountDownLatch : bbt::templateutil::noncopyable
 {
 public:
 	CountDownLatch(int cot):_count(cot)

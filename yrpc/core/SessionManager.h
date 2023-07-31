@@ -12,7 +12,7 @@ namespace yrpc::rpc::detail
  * @brief session 管理器，客户端最重要的管理模块
  * 1、实现了 TCP 连接复用
  */
-class __YRPC_SessionManager : bbt::noncopyable
+class __YRPC_SessionManager : bbt::templateutil::noncopyable
 {
 public:
     typedef std::function<void(SessionPtr)>     OnSession;  

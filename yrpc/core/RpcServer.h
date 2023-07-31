@@ -14,7 +14,7 @@ namespace yrpc::rpc
  * 2、ThreadPool配置: 是否设置线程池异步执行任务，如果不设置，默认为io线程内执行。
  * 3、
  */
-class RpcServer : bbt::noncopyable
+class RpcServer : bbt::templateutil::noncopyable
 {
     typedef yrpc::detail::ServiceFunc           ServiceFunc;
     typedef yrpc::detail::CodecFunc             CodecFunc;
