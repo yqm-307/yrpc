@@ -1,86 +1,34 @@
-cmake_minimum_required(VERSION 3.2) # 这里的话最低版本可以是2.8
-project(libyrpc)
+cmake_minimum_required(VERSION 3.2)
 
-# SET(CMAKE_BUILD_TYPE "Release")
-# 工程名和工程语言
-enable_language(C CXX)
+project(yrpc)
 
-# 自定义变量 环境选项
-set(Wall_Flag "-Wall -Wno-sign-compare -Wno-format -Wno-reorder -Wno-unknown-pragmas")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g ${Wall_Flag}")
+option(RELEASE
+       "Release build (default: Debug)"
+       OFF)
 
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g -Wall")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fno-rtti -std=c++17 -g -Wall")
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin) # 可执行文件目录
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib) # 库输出路径
+if (RELEASE)
+    set(CMAKE_BUILD_TYPE Release)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -o3 -Wall")
+else()
+    set(CMAKE_BUILD_TYPE Debug)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g -Wall")
+endif()
 
-# include 包含路径
 include_directories(
-    # # 下面两个都 include ，为了兼容 vscode cmake tools
-    ${PROJECT_SOURCE_DIR}/yrpc/proto # 在主目录构建
-    ${PROJECT_SOURCE_DIR}/third-lib/boost_contex/include
-    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/yrpc
 )
 
-# lib 文件 包含路径
-link_directories(
-    ${PROJECT_BINARY_DIR}/../third-lib/lib
-    ${PROJECT_SOURCE_DIR}/third-lib/lib
-)
-add_definitions(-Dcmakebuild)
-# 设置输出路径
-set(MESSAGE_DIR ${CMAKE_BINARY_DIR}/rpc/proto)
-
-# 是否需要创建目录
-if(EXISTS "${CMAKE_BINARY_DIR}/rpc/proto" AND IS_DIRECTORY "${CMAKE_BINARY_DIR}/rpc/proto")
-    SET(DST_DIR ${MESSAGE_DIR})
-else()
-    file(MAKE_DIRECTORY ${MESSAGE_DIR})
-    SET(DST_DIR ${MESSAGE_DIR})
-endif()
-
-# 设置protoc的搜索路径
-LIST(APPEND PROTO_FLAGS -I${CMAKE_CURRENT_SOURCE_DIR})
-
-# 获取需要编译的proto文件
-file(GLOB MSG_PROTOS ${CMAKE_BINARY_DIR}/message/*.proto) # 搜索所有proto文件
-
-file(GLOB SRC_FILE
-    # yrpc/YRoutine/*.cc
-    # yrpc/Util/*.cc
-    # yrpc/msg/*.cc
-    # yrpc/network/*.cc
-    # yrpc/protocol/*.cc
-    # yrpc/protocol/protoc/*.cc    # rpc内部使用protobuf文件
-    # yrpc/core/*.cc
-    yrpc/*/*/*.cc
-    yrpc/*/*.cc
-    yrpc/*.cc
-
+file(GLOB_RECURSE SOURCE_FILES
+    ${PROJECT_SOURCE_DIR}/yrpc/*.cc
 )
 
-# 生成 yrpc 的 lib文件
-add_library(yrpc SHARED ${SRC_FILE})
-
-# protobuf lib 依赖
-find_package(Protobuf REQUIRED)
-
-if(PROTOBUF_FOUND)
-    message(STATUS "protobuf library found")
-else()
-    message(FATAL_ERROR "protobuf library is needed but cant be found")
-endif()
-
-# yrpc 的依赖库
-target_link_libraries(yrpc 
-    ${PROTOBUF_LIBRARIES} 
-    boost_context 
-    pthread
-    ybbt
+add_library(yrpc SHARED
+    ${SOURCE_FILES}
 )
 
-install(TARGETS yrpc DESTINATION lib)
-
-install(FILES ${INCLUDE_FILE} DESTINATION include)
-
-add_subdirectory(example)
+target_link_libraries(yrpc PRIVATE
+    inih
+    bbt_core
+    bbt_pollevent
+    bbt_network
+)
