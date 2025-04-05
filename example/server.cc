@@ -12,6 +12,11 @@ public:
     {
         std::cout << "OnError: " << err.What() << std::endl;
     }
+
+    void OnTimeout(bbt::network::ConnId) override
+    {
+        std::cout << "OnTimeout: " << std::endl;
+    }
 };
 
 int main()
@@ -21,7 +26,7 @@ int main()
 
     auto server = std::make_shared<MyServer>(io_thread);
 
-    if (auto err = server->Init("", 10031, 10000, 3000); err.has_value())
+    if (auto err = server->Init("", 10031, 3000); err.has_value())
     {
         std::cout << "Init failed: " << err.value().What() << std::endl;
         return -1;

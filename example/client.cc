@@ -11,6 +11,11 @@ public:
     {
         std::cout << "OnError: " << err.What() << std::endl;
     }
+
+    void OnTimeout(bbt::network::ConnId) override
+    {
+        std::cout << "OnTimeout: " << std::endl;
+    }
 private:
 };
 
@@ -43,7 +48,15 @@ int main()
             }
         };
 
-        client->RemoteCall("test_method", callback, INT32_MAX, INT64_MAX, 3, "helloworld");
+        if (auto err = client->RemoteCall("test_method", 1000, callback, INT32_MAX, INT64_MAX, 3, "helloworld"); err.has_value())
+        {
+            std::cout << "RemoteCall failed: " << err.value().What() << std::endl;
+        }
+
+        if (auto err = client->RemoteCall("bad call", 1000, nullptr); err.has_value())
+        {
+            std::cout << "RemoteCall failed: " << err.value().What() << std::endl;
+        }
     });
 
     io_thread->Start();

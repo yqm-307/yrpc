@@ -21,7 +21,7 @@ public:
     RpcServer(std::shared_ptr<bbt::network::EvThread> io_thread);
     ~RpcServer();
 
-    bbt::core::errcode::ErrOpt Init(const char* ip, int port, int connect_timeout = 10000, int connection_timeout = 5000);
+    bbt::core::errcode::ErrOpt Init(const char* ip, int port, int connection_timeout = 10000);
 
     bbt::core::errcode::ErrOpt RegisterMethod(const char* method_name, const RpcMethod& method);
     bbt::core::errcode::ErrOpt UnRegisterMethod(const char* method_name);

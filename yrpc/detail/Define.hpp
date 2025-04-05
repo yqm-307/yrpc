@@ -24,7 +24,17 @@ enum emErr
     ERR_METHOD_ALREADY_REGISTERED,
     ERR_BAD_PROTOCOL,
     ERR_CLIENT_CLOSE,
+    ERR_CLIENT_TIMEOUT,
+    ERR_CLIENT_FAILED,
     ERR_SERVER_NO_METHOD,
 };
+
+namespace detail
+{
+class RpcCodec;
+class RemoteCaller;
+
+static const int rpc_client_check_timeout = 100; // 100ms 客户端检测一次RemoteCall超时
+}
 
 }

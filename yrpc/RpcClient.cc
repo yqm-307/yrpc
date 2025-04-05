@@ -1,3 +1,5 @@
+#include <bbt/pollevent/Event.hpp>
+
 #include <yrpc/RpcClient.hpp>
 #include <yrpc/detail/Protocol.hpp>
 
@@ -13,12 +15,18 @@ namespace yrpc
 RpcClient::RpcClient(std::shared_ptr<bbt::network::EvThread> io_thread):
     m_tcp_client(std::make_shared<bbt::network::TcpClient>(io_thread))
 {
+    m_update_event = io_thread->RegisterEvent(-1, bbt::pollevent::EventOpt::PERSIST, 
+    [this](int fd, short events, EventId id) {
+        _Update();
+    });
+
+    m_update_event->StartListen(detail::rpc_client_check_timeout);
 }
 
 RpcClient::~RpcClient()
 {
     m_tcp_client = nullptr;
-
+    m_update_event = nullptr;
     FailedAll();
 }
 
@@ -107,40 +115,66 @@ void RpcClient::OnClose(ConnId id)
 void RpcClient::FailedAll()
 {
     std::lock_guard<std::mutex> lock(m_all_opt_mtx);
-    for (auto& it : m_reply_callback_map)
+    for (auto& it : m_reply_caller_map)
     {
-        auto callback = it.second;
-        if (callback)
+        auto caller = it.second;
+        if (caller)
         {
-            callback(Errcode{"client is closed! remote call failed!", emErr::ERR_CLIENT_CLOSE}, bbt::core::Buffer{});
+            caller->FailedReply(Errcode{"client is closed! remote call failed!", emErr::ERR_CLIENT_CLOSE});
         }
     }
+
+    m_reply_caller_map.clear();
 }
 
 bbt::core::errcode::ErrOpt RpcClient::OnReply(RemoteCallSeq seq, const bbt::core::Buffer& buffer)
 {
-    RpcReplyCallback onreply = nullptr;
+    // RpcReplyCallback onreply = nullptr;
+    std::shared_ptr<detail::RemoteCaller> caller = nullptr;
 
     {
         std::lock_guard<std::mutex> lock(m_all_opt_mtx);
-        auto it = m_reply_callback_map.find(seq);
-        if (it == m_reply_callback_map.end())
+        auto it = m_reply_caller_map.find(seq);
+        if (it == m_reply_caller_map.end())
         {
             return Errcode{"seq not found!", emErr::ERR_COMM};
         }
 
-        onreply = it->second;
-        m_reply_callback_map.erase(it);
+        caller = it->second;
+        m_reply_caller_map.erase(it);
     }
 
-    if (onreply)
-    {
-        onreply(std::nullopt, buffer);
-    }
+    if (caller)
+        caller->SuccReply(buffer);
 
     return std::nullopt;
 }
 
+ErrOpt RpcClient::_DoReply(RemoteCallSeq seq, std::shared_ptr<detail::RemoteCaller> caller, const bbt::core::Buffer& buffer)
+{
+    std::lock_guard<std::mutex> lock(m_all_opt_mtx);
+    AssertWithInfo(m_reply_caller_map.find(seq) == m_reply_caller_map.end(), "uint64 not enough?");
+    m_reply_caller_map[seq] = caller;
+    m_timeout_queue.push(caller);
+
+    return m_tcp_client->Send(buffer);
+}
+
+void RpcClient::_Update()
+{
+    std::lock_guard<std::mutex> lock(m_all_opt_mtx);
+    while (!m_timeout_queue.empty())
+    {
+        auto caller = m_timeout_queue.top();
+        if (caller->GetTimeout() > clock::now())
+            break;
+
+        m_timeout_queue.pop();
+        caller->TimeoutReply();
+
+        m_reply_caller_map.erase(caller->GetSeq());
+    }
+}
 
 
 } // namespace yrpc

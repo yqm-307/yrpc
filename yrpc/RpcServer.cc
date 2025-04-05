@@ -18,7 +18,7 @@ RpcServer::~RpcServer()
     m_tcp_server = nullptr;
 }
 
-ErrOpt RpcServer::Init(const char* ip, int port, int connect_timeout, int connection_timeout)
+ErrOpt RpcServer::Init(const char* ip, int port, int connection_timeout)
 {
     m_tcp_server->Init();
 
@@ -42,7 +42,7 @@ ErrOpt RpcServer::Init(const char* ip, int port, int connect_timeout, int connec
         if (auto shared_this = weak_this.lock(); shared_this != nullptr)
             shared_this->OnError(err);
     });
-    m_tcp_server->SetTimeout(connect_timeout);
+    m_tcp_server->SetTimeout(connection_timeout);
     
     if (auto err = m_tcp_server->AsyncListen(IPAddress(ip, port), [weak_this{weak_from_this()}](auto connid){
         if (auto shared_this = weak_this.lock(); shared_this != nullptr)
@@ -135,7 +135,8 @@ void RpcServer::OnRecv(ConnId connid, const bbt::core::Buffer& buffer)
 
 void RpcServer::OnClose(ConnId connid)
 {
-
+    std::lock_guard<std::mutex> lock(m_all_opt_mtx);
+    m_buffer_mgr.RemoveBuffer(connid);
 }
 
 ErrOpt RpcServer::OnRemoteCall(ConnId connid, const bbt::core::Buffer& buffer)
