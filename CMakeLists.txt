@@ -15,6 +15,7 @@ else()
 endif()
 
 include_directories(
+    ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/yrpc
 )
 
@@ -32,3 +33,5 @@ target_link_libraries(yrpc PRIVATE
     bbt_pollevent
     bbt_network
 )
+
+add_subdirectory(example)

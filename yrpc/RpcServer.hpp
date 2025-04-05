@@ -1,10 +1,14 @@
 #pragma once
-#include <yrpc/detail/Define.hpp>
+#include <yrpc/detail/RpcCodec.hpp>
+#include <yrpc/detail/Protocol.hpp>
+#include <yrpc/detail/BufferMgr.hpp>
 
 namespace yrpc
 {
 
-class RpcServer
+class RpcServer:
+    public std::enable_shared_from_this<RpcServer>,
+    private boost::noncopyable
 {
 public:
     /**
@@ -17,36 +21,45 @@ public:
     RpcServer(std::shared_ptr<bbt::network::EvThread> io_thread);
     ~RpcServer();
 
-    bbt::core::errcode::ErrOpt Init(const char* ip, int port);
-
-    /**
-     * @brief rpc server开始运行，接收来自rpcclient的连接并处理remote call
-     * 
-     */
-    void Run();
-
-    /**
-     * @brief 使Run返回
-     * 
-     */
-    void Stop();
+    bbt::core::errcode::ErrOpt Init(const char* ip, int port, int connect_timeout = 10000, int connection_timeout = 5000);
 
     bbt::core::errcode::ErrOpt RegisterMethod(const char* method_name, const RpcMethod& method);
     bbt::core::errcode::ErrOpt UnRegisterMethod(const char* method_name);
-private:
-    void _Accept(ConnId connid, short events);
 
-    void OnRecv(ConnId connid, bbt::core::Buffer& buffer);
-    void OnSend(ConnId connid, bbt::core::errcode::ErrOpt err, size_t send_len);
+    template<typename... Args>
+    bbt::core::errcode::ErrOpt DoReply(ConnId connid, RemoteCallSeq seq, Args&&... args);
+
+    bbt::core::errcode::ErrOpt DoReply(ConnId connid, RemoteCallSeq seq, const bbt::core::Buffer& results);
+
+protected:
+    virtual void OnError(const bbt::core::errcode::Errcode& err) {}
+    virtual void OnTimeout(ConnId connid) {}
+    virtual void OnSend(ConnId connid, bbt::core::errcode::ErrOpt err, size_t send_len) {}
+
+private:
+    void OnAccept(ConnId connid);
+    void OnRecv(ConnId connid, const bbt::core::Buffer& buffer);
     void OnClose(ConnId connid);
-    void OnTimeout(ConnId connid);
-    void OnErr(const bbt::core::errcode::Errcode& err);
-private:
-    bbt::network::TcpServer* m_tcp_server{nullptr};
 
-    std::mutex m_method_map_mutex;
-    std::unordered_map<std::string, RpcMethod> m_method_map;
+    bbt::core::errcode::ErrOpt OnRemoteCall(ConnId connid, const bbt::core::Buffer& buffer);
+private:
+    detail::RpcCodec m_codec;
+
+    std::shared_ptr<bbt::network::TcpServer> m_tcp_server{nullptr};
+
+    std::mutex m_all_opt_mtx;
+
+    std::unordered_map<RpcMethodHash, RpcMethod> m_method_map;
+    detail::BufferMgr m_buffer_mgr;
 };
 
+
+template<typename... Args>
+bbt::core::errcode::ErrOpt RpcServer::DoReply(ConnId connid, RemoteCallSeq seq, Args&&... args)
+{
+    auto buffer = bbt::core::Buffer{};
+    detail::Helper::SerializeReq(buffer, 0, seq, std::forward<Args>(args)...);
+    return m_tcp_server->Send(connid, buffer);
+}
 
 } // namespace yrpc
