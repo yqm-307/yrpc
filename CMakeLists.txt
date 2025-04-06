@@ -17,6 +17,7 @@ else()
 endif()
 
 include_directories(
+    ${PROJECT_SOURCE_DIR}/bbt
     ${PROJECT_SOURCE_DIR}
 )
 

@@ -1,6 +1,6 @@
 
 
-set(${EXECUTABLE_OUTPUT_PATH} ${PROJECT_SOURCE_DIR}/build/bin/example)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/bin/example)
 
 add_executable(client client.cc)
 target_link_libraries(client

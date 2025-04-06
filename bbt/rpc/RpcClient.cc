@@ -188,5 +188,14 @@ void RpcClient::_Update()
     }
 }
 
+std::string RpcClient::DebugInfo()
+{
+    std::string info;
+    info += "RpcClient Debug Info:\n";
+    info += "  - Current Seq: " + std::to_string(m_current_seq) + "\n";
+    info += "  - Reply Caller Map Size: " + std::to_string(m_reply_caller_map.size()) + "\n";
+    info += "  - Timeout Queue Size: " + std::to_string(m_timeout_queue.size()) + "\n";
+    return info;
+}
 
 } // namespace bbt::rpc
