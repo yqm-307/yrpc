@@ -35,3 +35,5 @@ target_link_libraries(yrpc PRIVATE
 )
 
 add_subdirectory(example)
+
+add_subdirectory(benchmark)

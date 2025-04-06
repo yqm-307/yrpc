@@ -23,6 +23,7 @@ enum emErr
     ERR_COMM = 0,
     ERR_METHOD_ALREADY_REGISTERED,
     ERR_BAD_PROTOCOL,
+    ERR_BAD_PROTOCOL_LENGTH_OVER_LIMIT,
     ERR_CLIENT_CLOSE,
     ERR_CLIENT_TIMEOUT,
     ERR_CLIENT_FAILED,
@@ -35,6 +36,7 @@ class RpcCodec;
 class RemoteCaller;
 
 static const int rpc_client_check_timeout = 100; // 100ms 客户端检测一次RemoteCall超时
+static const int rpc_protocol_length_limit = 1024 * 1024 * 2; // 2M 协议长度限制，超长认为非法断开连接
 }
 
 }

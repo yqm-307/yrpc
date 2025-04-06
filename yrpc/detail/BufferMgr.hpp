@@ -16,7 +16,13 @@ public:
 
     void RemoveBuffer(bbt::network::ConnId connid);
 
-    std::optional<bbt::core::Buffer> GetBuffer(bbt::network::ConnId connid);
+    bbt::core::Buffer* GetBuffer(bbt::network::ConnId connid);
+
+    // 获取当前buffer的数量
+    size_t Size() const;
+
+    // 获取所有buffer的总字节数
+    size_t GetTotalByte() const;
 
 private:
     std::unordered_map<bbt::network::ConnId, bbt::core::Buffer> m_buffer_map;

@@ -19,7 +19,7 @@ public:
      * @param port 
      */
     RpcServer(std::shared_ptr<bbt::network::EvThread> io_thread);
-    ~RpcServer();
+    virtual ~RpcServer();
 
     bbt::core::errcode::ErrOpt Init(const char* ip, int port, int connection_timeout = 10000);
 
@@ -31,8 +31,9 @@ public:
 
     bbt::core::errcode::ErrOpt DoReply(ConnId connid, RemoteCallSeq seq, const bbt::core::Buffer& results);
 
+    std::string DebugInfo();
 protected:
-    virtual void OnError(const bbt::core::errcode::Errcode& err) {}
+    virtual void OnError(const bbt::core::errcode::Errcode& err);
     virtual void OnTimeout(ConnId connid) {}
     virtual void OnSend(ConnId connid, bbt::core::errcode::ErrOpt err, size_t send_len) {}
 

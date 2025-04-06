@@ -23,6 +23,7 @@ public:
     void SuccReply(const bbt::core::Buffer& buffer);
     void FailedReply(const bbt::core::errcode::Errcode& err);
     RemoteCallSeq GetSeq() const;
+    bool IsReplyed() const;
 private:
     bbt::core::clock::Timestamp<>   m_timeout;
     RpcReplyCallback                m_callback{nullptr};
@@ -34,7 +35,7 @@ struct RemoteCallerComp
 {
     bool operator()(const std::shared_ptr<RemoteCaller>& lhs, const std::shared_ptr<RemoteCaller>& rhs) const
     {
-        return *lhs < *rhs;
+        return *lhs > *rhs;
     }
 };
 

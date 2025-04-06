@@ -1,4 +1,5 @@
 #include <tuple>
+#include <bbt/core/clock/Clock.hpp>
 #include <yrpc/RpcServer.hpp>
 
 using namespace bbt::core::errcode;
@@ -90,8 +91,22 @@ bbt::core::errcode::ErrOpt RpcServer::DoReply(ConnId connid, RemoteCallSeq seq, 
     return m_tcp_server->Send(connid, buffer);
 }
 
+std::string RpcServer::DebugInfo()
+{
+    std::lock_guard<std::mutex> lock(m_all_opt_mtx);
+    std::string info;
+    info += "RpcServer Debug Info:\n";
+    info += "  Method Map Size: " + std::to_string(m_method_map.size()) + "\n";
+    info += "  Buffer Map Size: " + std::to_string(m_buffer_mgr.Size()) + "\n";
+    info += "  Buffer Total Size: " + std::to_string(m_buffer_mgr.GetTotalByte()) + "\n";
+    return info;
+}
 
 
+void RpcServer::OnError(const bbt::core::errcode::Errcode& err)
+{
+    std::cerr << bbt::core::clock::getnow_str() << "[RpcServer::DefaultErr]" <<  " " << err.What() << std::endl;
+}
 
 void RpcServer::OnAccept(ConnId connid)
 {
@@ -104,11 +119,14 @@ void RpcServer::OnRecv(ConnId connid, const bbt::core::Buffer& buffer)
 {
     std::vector<Buffer> protocols;
 
+    if (buffer.Size() <= 0)
+        return;
+
     {
         std::lock_guard<std::mutex> lock(m_all_opt_mtx);
     
         auto conn_buffer = m_buffer_mgr.GetBuffer(connid);
-        if (!conn_buffer.has_value())
+        if (!conn_buffer)
         {
             OnError(Errcode{"buffer not found!", ERR_COMM});
             return;
@@ -119,6 +137,8 @@ void RpcServer::OnRecv(ConnId connid, const bbt::core::Buffer& buffer)
         if (err.has_value())
         {
             OnError(err.value());
+            if (err->Type() == ERR_BAD_PROTOCOL_LENGTH_OVER_LIMIT)
+                m_tcp_server->Close(connid);
             return;
         }
     }

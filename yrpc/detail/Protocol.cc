@@ -15,6 +15,10 @@ ErrOpt Helper::ParseProtocolFromBuffer(bbt::core::Buffer& buffer, std::vector<bb
             break;
 
         ProtocolHead* head = (ProtocolHead*)buffer.Peek();
+
+        if (head->protocol_length >= rpc_protocol_length_limit)
+            return Errcode{"protocol length is invalid!", emErr::ERR_BAD_PROTOCOL_LENGTH_OVER_LIMIT};
+
         if (buffer.Size() < head->protocol_length)
             break;
 

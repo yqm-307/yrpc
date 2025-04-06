@@ -76,4 +76,9 @@ RemoteCallSeq RemoteCaller::GetSeq() const
     return m_seq;
 }
 
+bool RemoteCaller::IsReplyed() const
+{
+    return m_is_replyed.load();
+}
+
 } // namespace yrpc::detail

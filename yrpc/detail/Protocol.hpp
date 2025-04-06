@@ -39,11 +39,13 @@ public:
     template<typename ...Args>
     static void SerializeReq(bbt::core::Buffer& buffer, RpcMethodHash hash, RemoteCallSeq seq, Args&&... args)
     {
-        RpcCodec codec;
+        static RpcCodec codec;
         ProtocolHead* head = nullptr;
 
+        // protocol head
         buffer.WriteNull(sizeof(ProtocolHead));
 
+        // protocol body
         codec.SerializeAppend(buffer, std::forward<Args>(args)...);
 
         head = (ProtocolHead*)buffer.Peek();

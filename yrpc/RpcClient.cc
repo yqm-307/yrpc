@@ -63,6 +63,11 @@ ErrOpt RpcClient::Init(const char* ip, int port, int connect_timeout, int connec
     return m_tcp_client->AsyncConnect(IPAddress(ip, port), connection_timeout);
 }
 
+void RpcClient::OnError(const bbt::core::errcode::Errcode& err)
+{
+    std::cerr << bbt::core::clock::getnow_str() << "[RpcServer::DefaultErr]" <<  " " << err.What() << std::endl;
+}
+
 void RpcClient::OnRecv(ConnId id, const bbt::core::Buffer& buffer)
 {
     std::vector<bbt::core::Buffer> protocols;
@@ -152,17 +157,19 @@ bbt::core::errcode::ErrOpt RpcClient::OnReply(RemoteCallSeq seq, const bbt::core
 
 ErrOpt RpcClient::_DoReply(RemoteCallSeq seq, std::shared_ptr<detail::RemoteCaller> caller, const bbt::core::Buffer& buffer)
 {
-    std::lock_guard<std::mutex> lock(m_all_opt_mtx);
-    AssertWithInfo(m_reply_caller_map.find(seq) == m_reply_caller_map.end(), "uint64 not enough?");
-    m_reply_caller_map[seq] = caller;
-    m_timeout_queue.push(caller);
+    {
+        std::lock_guard<std::mutex> lock(m_all_opt_mtx);
+        AssertWithInfo(m_reply_caller_map.find(seq) == m_reply_caller_map.end(), "uint64 not enough?");
+        m_reply_caller_map[seq] = caller;
+        m_timeout_queue.push(caller);
+    }
 
     return m_tcp_client->Send(buffer);
 }
 
 void RpcClient::_Update()
 {
-    std::lock_guard<std::mutex> lock(m_all_opt_mtx);
+    std::unique_lock<std::mutex> lock(m_all_opt_mtx);
     while (!m_timeout_queue.empty())
     {
         auto caller = m_timeout_queue.top();
@@ -170,9 +177,14 @@ void RpcClient::_Update()
             break;
 
         m_timeout_queue.pop();
-        caller->TimeoutReply();
+        if (caller->IsReplyed())
+            continue;
+        Assert(m_reply_caller_map.erase(caller->GetSeq()));
 
-        m_reply_caller_map.erase(caller->GetSeq());
+        // 超时通知用户的时候不可以加锁
+        lock.unlock();
+        caller->TimeoutReply();
+        lock.lock();
     }
 }
 

@@ -16,7 +16,7 @@ class RpcClient:
 {
 public:
     RpcClient(std::shared_ptr<bbt::network::EvThread> io_thread);
-    ~RpcClient();
+    virtual~RpcClient();
 
     bbt::core::errcode::ErrOpt  Init(const char* ip, int port, int connect_timeout = 10000, int connection_timeout = 0,
                                     const std::function<void(std::shared_ptr<RpcClient>)>& on_connect_callback = nullptr);
@@ -24,10 +24,12 @@ public:
     template<typename... Args>
     bbt::core::errcode::ErrOpt  RemoteCall(const char* method_name, int timeout, const RpcReplyCallback& callback, Args&&... args);
 
+    std::string                 DebugInfo();
+
 protected:
     virtual void                OnTimeout(ConnId id) {}
     virtual void                OnSend(ConnId id, bbt::core::errcode::ErrOpt err, size_t len) {}
-    virtual void                OnError(const bbt::core::errcode::Errcode& err) {}
+    virtual void                OnError(const bbt::core::errcode::Errcode& err);
 private:
     void                        OnRecv(ConnId id, const bbt::core::Buffer& buffer);
     void                        OnConnect(ConnId id, bbt::core::errcode::ErrOpt err);
@@ -59,15 +61,30 @@ template<typename... Args>
 bbt::core::errcode::ErrOpt RpcClient::RemoteCall(const char* method_name, int timeout, const RpcReplyCallback& callback, Args&&... args)
 {
     static detail::RpcCodec codec;
-    bbt::core::Buffer buffer;
 
-    std::shared_ptr<detail::RemoteCaller> caller = std::make_shared<detail::RemoteCaller>(timeout, ++m_current_seq, callback);
+    if (!m_tcp_client->IsConnected())
+        return bbt::core::errcode::Errcode{"client not connected!", emErr::ERR_CLIENT_CLOSE};
+
+    bbt::core::Buffer buffer;
+    auto seq = ++m_current_seq;
+
+    std::shared_ptr<detail::RemoteCaller> caller = std::make_shared<detail::RemoteCaller>(timeout, seq, callback);
     
     auto hash = codec.GetMethodHash(method_name);
-    auto seq = ++m_current_seq;
     detail::Helper::SerializeReq(buffer, hash, seq, std::forward<Args>(args)...);
 
     return _DoReply(seq, caller, buffer);
 }
+
+std::string RpcClient::DebugInfo()
+{
+    std::string info;
+    info += "RpcClient Debug Info:\n";
+    info += "  - Current Seq: " + std::to_string(m_current_seq) + "\n";
+    info += "  - Reply Caller Map Size: " + std::to_string(m_reply_caller_map.size()) + "\n";
+    info += "  - Timeout Queue Size: " + std::to_string(m_timeout_queue.size()) + "\n";
+    return info;
+}
+
 
 } // namespace yrpc
