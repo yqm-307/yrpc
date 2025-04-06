@@ -5,7 +5,7 @@
 #include <bbt/network/TcpClient.hpp>
 #include <bbt/network/EvThread.hpp>
 
-namespace yrpc
+namespace bbt::rpc
 {
 
 class RpcServer;

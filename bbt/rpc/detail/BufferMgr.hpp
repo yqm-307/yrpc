@@ -3,7 +3,7 @@
 #include <bbt/core/buffer/Buffer.hpp>
 #include <bbt/core/errcode/Errcode.hpp>
 
-namespace yrpc::detail
+namespace bbt::rpc::detail
 {
 
 class BufferMgr
@@ -28,4 +28,4 @@ private:
     std::unordered_map<bbt::network::ConnId, bbt::core::Buffer> m_buffer_map;
 };
 
-} // namespace yrpc::detail
+} // namespace bbt::rpc::detail

@@ -1,10 +1,10 @@
-#include <yrpc/RpcClient.hpp>
+#include <bbt/rpc/RpcClient.hpp>
 
-class MyClient : public yrpc::RpcClient
+class MyClient : public bbt::rpc::RpcClient
 {
 public:
     MyClient(std::shared_ptr<bbt::network::EvThread> io_thread):
-        yrpc::RpcClient(io_thread)
+        bbt::rpc::RpcClient(io_thread)
     {}
 
     void OnError(const bbt::core::errcode::Errcode& err)
@@ -26,11 +26,11 @@ int main()
 
     auto client = std::make_shared<MyClient>(io_thread);
 
-    client->Init("127.0.0.1", 10031, 10000, 0, [](std::shared_ptr<yrpc::RpcClient> client) {
+    client->Init("127.0.0.1", 10031, 10000, 0, [](std::shared_ptr<bbt::rpc::RpcClient> client) {
         std::cout << "Connected to server!" << std::endl;
 
         auto callback = [](bbt::core::errcode::ErrOpt err, const bbt::core::Buffer& buffer) {
-            yrpc::detail::RpcCodec codec;
+            bbt::rpc::detail::RpcCodec codec;
             auto [errdecode, values] = codec.Deserialize(buffer);
             if (errdecode.has_value())
             {

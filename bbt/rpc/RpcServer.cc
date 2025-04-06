@@ -1,12 +1,12 @@
 #include <tuple>
 #include <bbt/core/clock/Clock.hpp>
-#include <yrpc/RpcServer.hpp>
+#include <bbt/rpc/RpcServer.hpp>
 
 using namespace bbt::core::errcode;
 using namespace bbt::network;
 using namespace bbt::core;
 
-namespace yrpc
+namespace bbt::rpc
 {
 
 RpcServer::RpcServer(std::shared_ptr<EvThread> io_thread):
@@ -189,4 +189,4 @@ ErrOpt RpcServer::OnRemoteCall(ConnId connid, const bbt::core::Buffer& buffer)
     return std::nullopt;
 }
 
-}// namespace yrpc
+}// namespace bbt::rpc

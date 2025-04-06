@@ -1,9 +1,9 @@
 #pragma once
-#include <yrpc/detail/Define.hpp>
-#include <yrpc/detail/RpcCodec.hpp>
+#include <bbt/rpc/detail/Define.hpp>
+#include <bbt/rpc/detail/RpcCodec.hpp>
 #include <bbt/core/buffer/Buffer.hpp>
 
-namespace yrpc::detail
+namespace bbt::rpc::detail
 {
 
 /**
@@ -55,4 +55,4 @@ public:
     }
 };
 
-} // namespace yrpc::detail
+} // namespace bbt::rpc::detail

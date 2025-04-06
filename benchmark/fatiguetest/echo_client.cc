@@ -1,7 +1,7 @@
-#include <yrpc/RpcClient.hpp>
+#include <bbt/rpc/RpcClient.hpp>
 #include <bbt/pollevent/Event.hpp>
 
-void Monitor(std::shared_ptr<yrpc::RpcClient> client)
+void Monitor(std::shared_ptr<bbt::rpc::RpcClient> client)
 {
     std::cout << "Monitor" << std::endl;
     std::cout << client->DebugInfo() << std::endl;
@@ -14,7 +14,7 @@ int main()
     auto evloop = std::make_shared<bbt::pollevent::EventLoop>();
     auto io_thread = std::make_shared<bbt::network::EvThread>(evloop);
 
-    auto client = std::make_shared<yrpc::RpcClient>(io_thread);
+    auto client = std::make_shared<bbt::rpc::RpcClient>(io_thread);
     if (auto err = client->Init("", 10031, 3000); err.has_value())
     {
         std::cout << "Init failed: " << err.value().What() << std::endl;

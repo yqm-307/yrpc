@@ -1,9 +1,9 @@
-#include <yrpc/RpcServer.hpp>
+#include <bbt/rpc/RpcServer.hpp>
 #include <bbt/pollevent/Event.hpp>
 
-void Echo(std::shared_ptr<yrpc::RpcServer> server, bbt::network::ConnId connid, yrpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
+void Echo(std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
 {
-    yrpc::detail::RpcCodec codec;
+    bbt::rpc::detail::RpcCodec codec;
     auto [err, values] = codec.Deserialize(data);
     // Assert(err == std::nullopt && values.size() == 1);
     if (err != std::nullopt)
@@ -16,12 +16,12 @@ void Echo(std::shared_ptr<yrpc::RpcServer> server, bbt::network::ConnId connid, 
         std::cout << "Invalid number of arguments" << std::endl;
         return;
     }
-    Assert(values[0].header.field_type == yrpc::detail::FieldType::STRING);
+    Assert(values[0].header.field_type == bbt::rpc::detail::FieldType::STRING);
     Assert(values[0].string == "hello world");
     server->DoReply(connid, seq, values[0].string);
 }
 
-void Monitor(std::shared_ptr<yrpc::RpcServer> server)
+void Monitor(std::shared_ptr<bbt::rpc::RpcServer> server)
 {
     // std::cout << "Monitor: " << data.ToString() << std::endl;
     std::cout << "Monitor" << std::endl;
@@ -33,7 +33,7 @@ int main()
     auto evloop = std::make_shared<bbt::pollevent::EventLoop>();
     auto io_thread = std::make_shared<bbt::network::EvThread>(evloop);
 
-    auto server = std::make_shared<yrpc::RpcServer>(io_thread);
+    auto server = std::make_shared<bbt::rpc::RpcServer>(io_thread);
 
     if (auto err = server->Init("", 10031, 3000); err.has_value())
     {
@@ -41,7 +41,7 @@ int main()
         return -1;
     }
 
-    if (auto err = server->RegisterMethod("echo", [](std::shared_ptr<yrpc::RpcServer> server, bbt::network::ConnId connid, yrpc::RemoteCallSeq seq, const bbt::core::Buffer& data) {
+    if (auto err = server->RegisterMethod("echo", [](std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data) {
         Echo(server, connid, seq, data);
     }); err.has_value())
     {

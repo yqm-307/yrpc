@@ -1,7 +1,7 @@
-#include <yrpc/detail/Protocol.hpp>
+#include <bbt/rpc/detail/Protocol.hpp>
 
 
-namespace yrpc::detail
+namespace bbt::rpc::detail
 {
 
 using namespace bbt::core::errcode;
@@ -34,4 +34,4 @@ ErrOpt Helper::ParseProtocolFromBuffer(bbt::core::Buffer& buffer, std::vector<bb
     return std::nullopt;
 }
 
-} // namespace yrpc::detail
+} // namespace bbt::rpc::detail

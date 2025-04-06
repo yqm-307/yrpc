@@ -1,11 +1,11 @@
-#include <yrpc/detail/Define.hpp>
-#include <yrpc/detail/RemoteCaller.hpp>
+#include <bbt/rpc/detail/Define.hpp>
+#include <bbt/rpc/detail/RemoteCaller.hpp>
 
 using namespace bbt::core::errcode;
 using namespace bbt::core::clock;
 using namespace bbt::core;
 
-namespace yrpc::detail
+namespace bbt::rpc::detail
 {
 
 RemoteCaller::RemoteCaller(int timeout, RemoteCallSeq seq, const RpcReplyCallback& callback):
@@ -81,4 +81,4 @@ bool RemoteCaller::IsReplyed() const
     return m_is_replyed.load();
 }
 
-} // namespace yrpc::detail
+} // namespace bbt::rpc::detail

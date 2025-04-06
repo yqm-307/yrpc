@@ -1,8 +1,8 @@
 #pragma once
-#include <yrpc/detail/Define.hpp>
+#include <bbt/rpc/detail/Define.hpp>
 
 
-namespace yrpc::detail
+namespace bbt::rpc::detail
 {
 
 /**
@@ -194,4 +194,4 @@ private:
 
     void SerializeArgs(bbt::core::Buffer& buffer) {}
 };
-} // namespace yrpc::detail
+} // namespace bbt::rpc::detail

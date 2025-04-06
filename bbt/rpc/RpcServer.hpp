@@ -1,9 +1,9 @@
 #pragma once
-#include <yrpc/detail/RpcCodec.hpp>
-#include <yrpc/detail/Protocol.hpp>
-#include <yrpc/detail/BufferMgr.hpp>
+#include <bbt/rpc/detail/RpcCodec.hpp>
+#include <bbt/rpc/detail/Protocol.hpp>
+#include <bbt/rpc/detail/BufferMgr.hpp>
 
-namespace yrpc
+namespace bbt::rpc
 {
 
 class RpcServer:
@@ -63,4 +63,4 @@ bbt::core::errcode::ErrOpt RpcServer::DoReply(ConnId connid, RemoteCallSeq seq, 
     return m_tcp_server->Send(connid, buffer);
 }
 
-} // namespace yrpc
+} // namespace bbt::rpc

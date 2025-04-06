@@ -1,13 +1,13 @@
 #pragma once
 #include <bbt/network/TcpClient.hpp>
 
-#include <yrpc/detail/Define.hpp>
-#include <yrpc/detail/RpcCodec.hpp>
-#include <yrpc/detail/Protocol.hpp>
-#include <yrpc/detail/RemoteCaller.hpp>
+#include <bbt/rpc/detail/Define.hpp>
+#include <bbt/rpc/detail/RpcCodec.hpp>
+#include <bbt/rpc/detail/Protocol.hpp>
+#include <bbt/rpc/detail/RemoteCaller.hpp>
 
 
-namespace yrpc
+namespace bbt::rpc
 {
 
 class RpcClient:
@@ -87,4 +87,4 @@ std::string RpcClient::DebugInfo()
 }
 
 
-} // namespace yrpc
+} // namespace bbt::rpc

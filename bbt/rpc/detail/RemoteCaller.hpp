@@ -3,9 +3,9 @@
 
 #include <bbt/core/clock/Clock.hpp>
 
-#include <yrpc/detail/Define.hpp>
+#include <bbt/rpc/detail/Define.hpp>
 
-namespace yrpc::detail
+namespace bbt::rpc::detail
 {
 
 class RemoteCaller:
@@ -39,4 +39,4 @@ struct RemoteCallerComp
     }
 };
 
-} // namespace yrpc::detail
+} // namespace bbt::rpc::detail

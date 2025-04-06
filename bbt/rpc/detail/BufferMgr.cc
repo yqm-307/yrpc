@@ -1,9 +1,9 @@
-#include <yrpc/detail/Define.hpp>
-#include <yrpc/detail/BufferMgr.hpp>
+#include <bbt/rpc/detail/Define.hpp>
+#include <bbt/rpc/detail/BufferMgr.hpp>
 
 using namespace bbt::core::errcode;
 
-namespace yrpc::detail
+namespace bbt::rpc::detail
 {
 
 ErrOpt BufferMgr::AddBuffer(bbt::network::ConnId connid, const bbt::core::Buffer& buffer)
@@ -46,4 +46,4 @@ size_t BufferMgr::GetTotalByte() const
 
 
 
-} // namespace yrpc::detail
+} // namespace bbt::rpc::detail

@@ -1,15 +1,15 @@
 #include <bbt/pollevent/Event.hpp>
 
-#include <yrpc/RpcClient.hpp>
-#include <yrpc/detail/Protocol.hpp>
+#include <bbt/rpc/RpcClient.hpp>
+#include <bbt/rpc/detail/Protocol.hpp>
 
 using namespace bbt::core::errcode;
 using namespace bbt::network;
 using namespace bbt::core;
 
-yrpc::detail::RpcCodec codec;
+bbt::rpc::detail::RpcCodec codec;
 
-namespace yrpc
+namespace bbt::rpc
 {
 
 RpcClient::RpcClient(std::shared_ptr<bbt::network::EvThread> io_thread):
@@ -189,4 +189,4 @@ void RpcClient::_Update()
 }
 
 
-} // namespace yrpc
+} // namespace bbt::rpc

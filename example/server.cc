@@ -1,11 +1,11 @@
-#include <yrpc/RpcServer.hpp>
+#include <bbt/rpc/RpcServer.hpp>
 
-class MyServer : public yrpc::RpcServer
+class MyServer : public bbt::rpc::RpcServer
 {
 public:
 
     MyServer(std::shared_ptr<bbt::network::EvThread> io_thread):
-        yrpc::RpcServer(io_thread)
+        bbt::rpc::RpcServer(io_thread)
     {}
 
     void OnError(const bbt::core::errcode::Errcode& err) override
@@ -33,8 +33,8 @@ int main()
     }
 
     if (auto err = server->RegisterMethod("test_method", []
-        (std::shared_ptr<yrpc::RpcServer> server, bbt::network::ConnId connid, yrpc::RemoteCallSeq seq, const bbt::core::Buffer& data) {
-        yrpc::detail::RpcCodec codec;
+        (std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data) {
+        bbt::rpc::detail::RpcCodec codec;
         auto [err, values] = codec.Deserialize(data);
 
         if (err.has_value())
