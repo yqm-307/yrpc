@@ -53,19 +53,19 @@ ErrOpt RpcClient::Init(const char* ip, int port, int connect_timeout, int connec
         if (auto shared_this = weak_this.lock(); shared_this != nullptr)
             shared_this->OnError(err);
     });
-    m_tcp_client->SetConnectionTimeout(connect_timeout);
+    m_tcp_client->SetConnectionTimeout(connection_timeout);
     m_tcp_client->SetOnConnect([weak_this{weak_from_this()}](ConnId id, ErrOpt err) {
         if (auto shared_this = weak_this.lock(); shared_this != nullptr)
             shared_this->OnConnect(id, err);
     });
     m_on_connect_callback = on_connect_callback;
 
-    return m_tcp_client->AsyncConnect(IPAddress(ip, port), connection_timeout);
+    return m_tcp_client->AsyncConnect(IPAddress(ip, port), connect_timeout);
 }
 
 void RpcClient::OnError(const bbt::core::errcode::Errcode& err)
 {
-    std::cerr << bbt::core::clock::getnow_str() << "[RpcServer::DefaultErr]" <<  " " << err.What() << std::endl;
+    std::cerr << bbt::core::clock::getnow_str() << "[RpcClient::DefaultErr]" <<  " " << err.What() << std::endl;
 }
 
 void RpcClient::OnRecv(ConnId id, const bbt::core::Buffer& buffer)
@@ -187,6 +187,17 @@ void RpcClient::_Update()
         lock.lock();
     }
 }
+
+bool RpcClient::IsConnected() const
+{
+    return m_tcp_client->IsConnected();
+}
+
+bbt::core::errcode::ErrOpt RpcClient::ReConnect()
+{
+    return m_tcp_client->ReConnect();
+}
+
 
 std::string RpcClient::DebugInfo()
 {

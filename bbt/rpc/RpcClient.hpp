@@ -26,6 +26,9 @@ public:
 
     std::string                 DebugInfo();
 
+    bool                        IsConnected() const;
+    bbt::core::errcode::ErrOpt  ReConnect();
+
 protected:
     virtual void                OnTimeout(ConnId id) {}
     virtual void                OnSend(ConnId id, bbt::core::errcode::ErrOpt err, size_t len) {}
