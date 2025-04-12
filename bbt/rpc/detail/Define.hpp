@@ -1,9 +1,10 @@
 #pragma once
+#include <atomic>
 #include <boost/noncopyable.hpp>
 
 #include <bbt/network/TcpServer.hpp>
 #include <bbt/network/TcpClient.hpp>
-#include <bbt/network/EvThread.hpp>
+#include <bbt/pollevent/EvThread.hpp>
 
 namespace bbt::rpc
 {
