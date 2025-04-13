@@ -18,9 +18,30 @@ public:
     RpcClient(std::shared_ptr<bbt::network::EvThread> io_thread);
     virtual~RpcClient();
 
+    /**
+     * @brief 初始化RpcClient配置
+     * 
+     * @param ip RpcServer的ip
+     * @param port RpcServer的端口
+     * @param connect_timeout Connect的超时时间
+     * @param connection_timeout 连接空闲超时时间
+     * @param on_connect_callback 连接完成回调
+     * @return bbt::core::errcode::ErrOpt 
+     */
     bbt::core::errcode::ErrOpt  Init(const char* ip, int port, int connect_timeout = 10000, int connection_timeout = 0,
                                     const std::function<void(std::shared_ptr<RpcClient>)>& on_connect_callback = nullptr);
 
+
+    /**
+     * @brief 发起一个rpc调用
+     * 
+     * @tparam Args 
+     * @param method_name 
+     * @param timeout 
+     * @param callback 
+     * @param args 
+     * @return bbt::core::errcode::ErrOpt 
+     */
     template<typename... Args>
     bbt::core::errcode::ErrOpt  RemoteCall(const char* method_name, int timeout, const RpcReplyCallback& callback, Args&&... args);
 

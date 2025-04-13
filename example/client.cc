@@ -26,7 +26,7 @@ int main()
 
     auto client = std::make_shared<MyClient>(io_thread);
 
-    client->Init("127.0.0.1", 10031, 10000, 0, [](std::shared_ptr<bbt::rpc::RpcClient> client) {
+    client->Init("127.0.0.1", 10031, 1000, 10000, [](std::shared_ptr<bbt::rpc::RpcClient> client) {
         std::cout << "Connected to server!" << std::endl;
 
         auto callback = [](bbt::core::errcode::ErrOpt err, const bbt::core::Buffer& buffer) {

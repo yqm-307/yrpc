@@ -49,7 +49,17 @@ int main()
         }
         for (auto& value : values)
         {
-            std::cout << "Field Type: " << (int)value.header.field_type << ", Length: " << value.header.field_len << value.value.int64_value << value.string << std::endl;
+            if (value.header.field_type == bbt::rpc::detail::FieldType::INT32)
+                std::cout << "Field Type: " << (int)value.header.field_type << ", Length: " << value.header.field_len << ", Value:" << value.value.int32_value << std::endl;
+            else if (value.header.field_type == bbt::rpc::detail::FieldType::INT64)
+                std::cout << "Field Type: " << (int)value.header.field_type << ", Length: " << value.header.field_len << ", Value:" << value.value.int64_value << std::endl;
+            else if (value.header.field_type == bbt::rpc::detail::FieldType::UINT32)
+                std::cout << "Field Type: " << (int)value.header.field_type << ", Length: " << value.header.field_len << ", Value:" << value.value.uint32_value << std::endl;
+            else if (value.header.field_type == bbt::rpc::detail::FieldType::UINT64)
+                std::cout << "Field Type: " << (int)value.header.field_type << ", Length: " << value.header.field_len << ", Value:" << value.value.uint64_value << std::endl;
+            else if (value.header.field_type == bbt::rpc::detail::FieldType::STRING)
+                std::cout << "Field Type: " << (int)value.header.field_type << ", Length: " << value.header.field_len << ", Value:" << value.string << std::endl;
+            
         }
 
         server->DoReply(connid, seq, "nothing happened!");
