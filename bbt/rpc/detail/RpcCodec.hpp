@@ -142,7 +142,7 @@ public:
             break;
         case INT32:
         case UINT32:
-            Assert(buffer.ToString(offset + sizeof(value.header), (char*)&(value.value), sizeof(value.value)));
+            Assert(buffer.ToString(offset + sizeof(value.header), (char*)&(value.value.int32_value), sizeof(value.value.int32_value)));
             offset += sizeof(value.header) + sizeof(value.value.int32_value);
             break;
         case STRING:

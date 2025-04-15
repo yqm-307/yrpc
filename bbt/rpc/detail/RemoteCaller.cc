@@ -32,7 +32,7 @@ Timestamp<> RemoteCaller::GetTimeout() const
 void RemoteCaller::TimeoutReply()
 {
     bool expected = false;
-    if (m_is_replyed.compare_exchange_strong(expected, true))
+    if (!m_is_replyed.compare_exchange_strong(expected, true))
     {
         return;
     }
@@ -46,7 +46,7 @@ void RemoteCaller::TimeoutReply()
 void RemoteCaller::SuccReply(const Buffer& buffer)
 {
     bool expected = false;
-    if (m_is_replyed.compare_exchange_strong(expected, true))
+    if (!m_is_replyed.compare_exchange_strong(expected, true))
     {
         return;
     }
@@ -60,7 +60,7 @@ void RemoteCaller::SuccReply(const Buffer& buffer)
 void RemoteCaller::FailedReply(const Errcode& err)
 {
     bool expected = false;
-    if (m_is_replyed.compare_exchange_strong(expected, true))
+    if (!m_is_replyed.compare_exchange_strong(expected, true))
     {
         return;
     }
