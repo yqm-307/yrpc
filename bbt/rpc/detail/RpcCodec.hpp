@@ -47,6 +47,36 @@ enum FieldType : int8_t
     STRING,
 };
 
+
+template<typename T> struct IsSupportType { static constexpr bool value = false; };
+
+template<> struct IsSupportType<int32_t> { static constexpr bool value = true; };
+
+template<> struct IsSupportType<uint32_t> { static constexpr bool value = true; };
+
+template<> struct IsSupportType<int64_t> { static constexpr bool value = true; };
+
+template<> struct IsSupportType<uint64_t> { static constexpr bool value = true; };
+
+template<> struct IsSupportType<std::string> { static constexpr bool value = true; };
+
+template<typename T>
+inline FieldType ToFieldType()
+{
+    if constexpr (std::is_same_v<T, int32_t>)
+        return INT32;
+    else if constexpr (std::is_same_v<T, uint32_t>)
+        return UINT32;
+    else if constexpr (std::is_same_v<T, int64_t>)
+        return INT64;
+    else if constexpr (std::is_same_v<T, uint64_t>)
+        return UINT64;
+    else if constexpr (std::is_same_v<T, std::string>)
+        return STRING;
+    else
+        static_assert(IsSupportType<T>::value, "Unsupported type for ToFieldType");
+}
+
 class RpcCodec
 {
 public:
@@ -69,6 +99,13 @@ public:
     void SerializeAppend(bbt::core::Buffer& buffer, Args... args)
     {
         SerializeArgs(buffer, args...);
+    }
+
+    template<typename... Args>
+    bbt::core::errcode::ErrOpt DeserializeWithArgs(const bbt::core::Buffer& buffer, std::tuple<Args...>& args)
+    {
+        size_t offset = 0;
+        return DeserializeArgsRecursive(buffer, offset, args, std::index_sequence_for<Args...>{});
     }
 
     bbt::core::errcode::ErrTuple<std::vector<FieldValue>> Deserialize(const bbt::core::Buffer& buffer)
@@ -125,6 +162,44 @@ public:
         return std::hash<std::string>{}(method);
     }
 private:
+    template<typename Tuple, size_t... Index>
+    bbt::core::errcode::ErrOpt DeserializeArgsRecursive(const bbt::core::Buffer& buffer, size_t& offset, Tuple& args, std::index_sequence<Index...>)
+    {
+        bbt::core::errcode::ErrOpt err;
+        // 递归展开每个参数
+        ((err = DeserializeOneArg(buffer, offset, std::get<Index>(args))) || ...);
+        return err;
+    }
+
+    template<typename T>
+    bbt::core::errcode::ErrOpt DeserializeOneArg(const bbt::core::Buffer& buffer, size_t& offset, T& arg)
+    {
+        FieldValue value;
+        auto err = DeserializeOne(buffer, offset, value);
+        if (err != std::nullopt)
+            return err;
+
+        // 检查类型是否匹配
+        if (value.header.field_type != ToFieldType<T>())
+            return bbt::core::errcode::Errcode("deserialize failed, type mismatch!", emErr::ERR_COMM);
+
+        // 根据类型赋值
+        if constexpr (std::is_same_v<T, std::string>)
+        {
+            arg = value.string;
+        }
+        else if constexpr (std::is_trivial_v<T>)
+        {
+            arg = static_cast<T>(value.value.uint64_value);
+        }
+        else
+        {
+            return bbt::core::errcode::Errcode("deserialize failed, unsupported type!", emErr::ERR_COMM);
+        }
+
+        return std::nullopt;
+    }
+
     template<typename T>
     void SerializeArg(bbt::core::Buffer& bytes, T arg)
     {

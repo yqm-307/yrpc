@@ -48,10 +48,13 @@ int main()
             }
         };
 
+        // 正确参数调用
         if (auto err = client->RemoteCall("test_method", 1000, callback, INT32_MAX, INT64_MAX, 3, "helloworld"); err.has_value())
-        {
             std::cout << "RemoteCall failed: " << err.value().What() << std::endl;
-        }
+
+        // 错误参数调用
+        if (auto err = client->RemoteCall("test_method", 1000, callback, INT32_MAX, INT64_MAX, 3, 112, "helloworld"); err.has_value())
+            std::cout << "RemoteCall failed: " << err.value().What() << std::endl;
 
         if (auto err = client->RemoteCall("bad call", 1000, nullptr); err.has_value())
         {
