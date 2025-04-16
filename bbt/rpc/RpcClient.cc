@@ -125,14 +125,15 @@ void RpcClient::FailedAll()
         auto caller = it.second;
         if (caller)
         {
-            caller->FailedReply(Errcode{"client is closed! remote call failed!", emErr::ERR_CLIENT_CLOSE});
+            bbt::core::Buffer buffer{0};
+            caller->Reply(buffer, Errcode{"client is closed! remote call failed!", emErr::ERR_CLIENT_CLOSE});
         }
     }
 
     m_reply_caller_map.clear();
 }
 
-bbt::core::errcode::ErrOpt RpcClient::OnReply(RemoteCallSeq seq, const bbt::core::Buffer& buffer)
+bbt::core::errcode::ErrOpt RpcClient::OnReply(RemoteCallSeq seq, bbt::core::Buffer& buffer)
 {
     // RpcReplyCallback onreply = nullptr;
     std::shared_ptr<detail::RemoteCaller> caller = nullptr;
@@ -150,7 +151,7 @@ bbt::core::errcode::ErrOpt RpcClient::OnReply(RemoteCallSeq seq, const bbt::core
     }
 
     if (caller)
-        caller->SuccReply(buffer);
+        caller->Reply(buffer, std::nullopt);
 
     return std::nullopt;
 }
@@ -183,7 +184,8 @@ void RpcClient::_Update()
 
         // 超时通知用户的时候不可以加锁
         lock.unlock();
-        caller->TimeoutReply();
+        bbt::core::Buffer buffer{0};
+        caller->Reply(buffer, Errcode{"reply is timeout!", emErr::ERR_CLIENT_TIMEOUT});
         lock.lock();
     }
 }

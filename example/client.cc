@@ -1,4 +1,5 @@
 #include <bbt/rpc/RpcClient.hpp>
+#include "proto.hpp"
 
 class MyClient : public bbt::rpc::RpcClient
 {
@@ -30,6 +31,11 @@ int main()
         std::cout << "Connected to server!" << std::endl;
 
         auto callback = [](bbt::core::errcode::ErrOpt err, const bbt::core::Buffer& buffer) {
+            if (err.has_value())
+            {
+                std::cout << "RemoteCall failed: " << err.value().What() << std::endl;
+                return;
+            }
             bbt::rpc::detail::RpcCodec codec;
             auto tuple = std::make_tuple(std::string{buffer.Peek(), buffer.Size()});
             auto errdecode = codec.DeserializeWithTuple(buffer, tuple);
@@ -42,19 +48,19 @@ int main()
         };
 
         // 正确参数调用
-        if (auto err = client->RemoteCall("test_method", 1000, callback, INT32_MAX, INT64_MAX, 3, "helloworld"); err.has_value())
+        if (auto err = client->RemoteCallWithTuple("test_method", 1000, std::make_tuple(INT32_MAX, INT64_MAX, 3, "helloworld"), callback); err.has_value())
             std::cout << "RemoteCall failed 1: " << err.value().What() << std::endl;
 
         // 错误参数调用
-        if (auto err = client->RemoteCall("test_method", 1000, callback, INT32_MAX, INT64_MAX, 3, 112, "helloworld"); err.has_value())
+        if (auto err = client->RemoteCallWithTuple("test_method", 1000, std::make_tuple(INT32_MAX, INT64_MAX, 3, 112, "helloworld"), callback); err.has_value())
             std::cout << "RemoteCall failed 2: " << err.value().What() << std::endl;
 
         std::cout << "-- do call with tuple --" << std::endl;
         auto tuple = std::make_tuple(100, (int64_t)10, 3, "helloworld");
-        if (auto err = client->RemoteCallWithTuple("test_method", 1000, callback, tuple); err.has_value())
+        if (auto err = client->RemoteCallWithTuple("test_method", 1000, tuple, callback); err.has_value())
             std::cout << "RemoteCall failed 4: " << err.value().What() << std::endl;
 
-        if (auto err = client->RemoteCall("bad call", 1000, nullptr); err.has_value())
+        if (auto err = client->RemoteCallWithTuple("bad call", 1000, std::make_tuple(""), nullptr); err.has_value())
         {
             std::cout << "RemoteCall failed 3: " << err.value().What() << std::endl;
         }

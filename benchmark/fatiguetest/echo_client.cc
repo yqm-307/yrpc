@@ -34,7 +34,7 @@ int main()
     {
         for (int i = 0; i < 10000; ++i)
         {
-            auto err = client->RemoteCall("echo", 1000, [&count](bbt::core::errcode::ErrOpt err, const bbt::core::Buffer& buf){ count += buf.Size(); }, "hello world");
+            auto err = client->RemoteCallWithTuple("echo", 1000, std::make_tuple("hello world"), [&count](bbt::core::errcode::ErrOpt err, const bbt::core::Buffer& buf){ count += buf.Size(); });
             if (err.has_value())
             {
                 std::cout << "RemoteCall failed: " << err.value().What() << std::endl;

@@ -1,4 +1,5 @@
 #include <bbt/rpc/RpcServer.hpp>
+#include "proto.hpp"
 
 class MyServer : public bbt::rpc::RpcServer
 {
@@ -33,18 +34,22 @@ int main()
     }
 
     if (auto err = server->RegisterMethod("test_method", []
-        (std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data) {
+        (std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data) ->bbt::core::errcode::ErrOpt {
         bbt::rpc::detail::RpcCodec codec;
-        std::tuple<int32_t, int64_t, int32_t, std::string> tuple;
-        if (auto err = codec.DeserializeWithTuple(data, tuple); err.has_value())
-            std::cerr << "codec.DeserializeWithArgs bad! " << err->CWhat() << std::endl;
+        Test1Request req;
+        if (auto err = codec.DeserializeWithTuple(data, req); err.has_value())
+            return err;
 
         std::cout << "Tuple contents: "
-              << std::get<0>(tuple) << ", "
-              << std::get<1>(tuple) << ", "
-              << std::get<2>(tuple) << ", "
-              << std::get<3>(tuple) << std::endl;
-        server->DoReply(connid, seq, "nothing happened!");
+              << std::get<0>(req) << ", "
+              << std::get<1>(req) << ", "
+              << std::get<2>(req) << ", "
+              << std::get<3>(req) << std::endl;
+        
+        Test1Reply results{bbt::rpc::emRpcReplyType::RPC_REPLY_TYPE_SUCCESS, "nothing happened!"};
+        server->DoReply(connid, seq, results);
+
+        return std::nullopt;
     }); err.has_value())
     {
         std::cout << "RegisterMethod failed: " << err.value().What() << std::endl;

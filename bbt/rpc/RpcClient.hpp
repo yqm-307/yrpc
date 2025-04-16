@@ -31,22 +31,8 @@ public:
     bbt::core::errcode::ErrOpt  Init(const char* ip, int port, int connect_timeout = 10000, int connection_timeout = 0,
                                     const std::function<void(std::shared_ptr<RpcClient>)>& on_connect_callback = nullptr);
 
-
-    /**
-     * @brief 发起一个rpc调用
-     * 
-     * @tparam Args 
-     * @param method_name 
-     * @param timeout 
-     * @param callback 
-     * @param args 
-     * @return bbt::core::errcode::ErrOpt 
-     */
-    template<typename... Args>
-    bbt::core::errcode::ErrOpt  RemoteCall(const char* method_name, int timeout, const RpcReplyCallback& callback, Args&&... args);
-
     template<typename Tuple>
-    bbt::core::errcode::ErrOpt  RemoteCallWithTuple(const char* method_name, int timeout, const RpcReplyCallback& callback, Tuple&& args);
+    bbt::core::errcode::ErrOpt  RemoteCallWithTuple(const char* method_name, int timeout, Tuple&& args, const RpcReplyCallback& callback);
 
     std::string                 DebugInfo();
 
@@ -62,7 +48,7 @@ private:
     void                        OnConnect(ConnId id, bbt::core::errcode::ErrOpt err);
     void                        OnClose(ConnId id);
     void                        FailedAll();
-    bbt::core::errcode::ErrOpt  OnReply(RemoteCallSeq seq, const bbt::core::Buffer& buffer);
+    bbt::core::errcode::ErrOpt  OnReply(RemoteCallSeq seq, bbt::core::Buffer& buffer);
     bbt::core::errcode::ErrOpt  _DoReply(RemoteCallSeq seq, std::shared_ptr<detail::RemoteCaller> caller, const bbt::core::Buffer& buffer);
     void                        _Update();
 private:
@@ -84,27 +70,8 @@ private:
                                     m_update_event{nullptr};
 };
 
-template<typename... Args>
-bbt::core::errcode::ErrOpt RpcClient::RemoteCall(const char* method_name, int timeout, const RpcReplyCallback& callback, Args&&... args)
-{
-    static detail::RpcCodec codec;
-
-    if (!m_tcp_client->IsConnected())
-        return bbt::core::errcode::Errcode{"client not connected!", emErr::ERR_CLIENT_CLOSE};
-
-    bbt::core::Buffer buffer;
-    auto seq = ++m_current_seq;
-
-    std::shared_ptr<detail::RemoteCaller> caller = std::make_shared<detail::RemoteCaller>(timeout, seq, callback);
-    
-    auto hash = codec.GetMethodHash(method_name);
-    detail::Helper::SerializeReq(buffer, hash, seq, std::forward<Args>(args)...);
-
-    return _DoReply(seq, caller, buffer);
-}
-
 template<typename Tuple>
-bbt::core::errcode::ErrOpt RpcClient::RemoteCallWithTuple(const char* method_name, int timeout, const RpcReplyCallback& callback, Tuple&& args)
+bbt::core::errcode::ErrOpt RpcClient::RemoteCallWithTuple(const char* method_name, int timeout, Tuple&& args, const RpcReplyCallback& callback)
 {
     static detail::RpcCodec codec;
 

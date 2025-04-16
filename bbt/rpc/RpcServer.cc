@@ -148,7 +148,6 @@ void RpcServer::OnRecv(ConnId connid, const bbt::core::Buffer& buffer)
         if (auto err = OnRemoteCall(connid, protocol); err.has_value())
         {
             OnError(err.value());
-            return;
         }
     }
 }
@@ -164,26 +163,29 @@ ErrOpt RpcServer::OnRemoteCall(ConnId connid, const bbt::core::Buffer& buffer)
     auto* head = (detail::ProtocolHead*)buffer.Peek();
     RpcMethod method = nullptr;
     RemoteCallSeq call_seq = head->call_seq;
+    ErrOpt err_reply;
 
     {
         std::lock_guard<std::mutex> lock(m_all_opt_mtx);
         auto it = m_method_map.find(head->method_hash);
-        if (it == m_method_map.end())
-        {
-            return Errcode{"method not found!", ERR_SERVER_NO_METHOD};
-        }
-
-        method = it->second;
+        if (it != m_method_map.end())
+            method = it->second;
     }
 
     if (method)
     {
         bbt::core::Buffer body{buffer.Peek() + sizeof(detail::ProtocolHead), buffer.Size() - sizeof(detail::ProtocolHead)};
-        method(shared_from_this(), connid, call_seq, body);
+        if (auto err = method(shared_from_this(), connid, call_seq, body); err.has_value())
+            err_reply = err;
     }
     else
-    {
-        return Errcode{"method not found!", ERR_SERVER_NO_METHOD};
+        err_reply = Errcode{"[bbt::rpc::server] method not found!", ERR_SERVER_NO_METHOD};
+    
+    // 有错误，返回给RpcClient
+    if (err_reply.has_value()) {
+        detail::RpcErrReply reply{RPC_REPLY_TYPE_FAILED, err_reply->What()};
+        if (err_reply = DoReply(connid, call_seq, reply); err_reply.has_value())
+            return err_reply;
     }
 
     return std::nullopt;

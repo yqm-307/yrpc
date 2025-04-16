@@ -12,7 +12,8 @@ void Echo(std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId conn
         return;
     }
 
-    server->DoReply(connid, seq, std::get<0>(values));
+
+    server->DoReply(connid, seq, std::make_tuple(std::get<0>(values)));
 }
 
 void Monitor(std::shared_ptr<bbt::rpc::RpcServer> server)
@@ -37,6 +38,7 @@ int main()
 
     if (auto err = server->RegisterMethod("echo", [](std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data) {
         Echo(server, connid, seq, data);
+        return std::nullopt;
     }); err.has_value())
     {
         std::cout << "RegisterMethod failed: " << err.value().What() << std::endl;

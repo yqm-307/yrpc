@@ -1,6 +1,7 @@
 #pragma once
 #include <bbt/rpc/detail/Define.hpp>
 
+#define ERR_PREFIX "[bbt::rpc::codec] "
 
 namespace bbt::rpc::detail
 {
@@ -129,24 +130,24 @@ private:
         // 检查类型是否匹配
         static_assert(IsSupportType<T>::value, "Unsupported type for deserialization!");
         if (!buffer.ToString(offset, (char*)&header, sizeof(header)))
-            return bbt::core::errcode::Errcode("deserialize failed, buffer too short!", emErr::ERR_COMM);
+            return bbt::core::errcode::Errcode(ERR_PREFIX"deserialize failed, buffer too short!", emErr::ERR_COMM);
         offset += sizeof(header);
 
         if (header.field_type != ToFieldType<T>())
-            return bbt::core::errcode::Errcode("deserialize failed, field type mismatch! expected type=" + std::to_string(ToFieldType<T>()) + " , but it is actually=" + std::to_string(header.field_type), emErr::ERR_COMM);
+            return bbt::core::errcode::Errcode(ERR_PREFIX"deserialize failed, field type mismatch! expected type=" + std::to_string(ToFieldType<T>()) + " , but it is actually=" + std::to_string(header.field_type), emErr::ERR_COMM);
 
         if constexpr (std::is_same_v<T, std::string>)
         {
             arg.resize(header.field_len);
             if (!buffer.ToString(offset, arg.data(), header.field_len))
-                return bbt::core::errcode::Errcode("deserialize failed, buffer too short!", emErr::ERR_COMM);
+                return bbt::core::errcode::Errcode(ERR_PREFIX"deserialize failed, buffer too short!", emErr::ERR_COMM);
         }
         else {
             if (header.field_len != sizeof(arg))
-                return bbt::core::errcode::Errcode("deserialize failed, field length mismatch!", emErr::ERR_COMM);
+                return bbt::core::errcode::Errcode(ERR_PREFIX"deserialize failed, field length mismatch!", emErr::ERR_COMM);
 
             if (!buffer.ToString(offset, (char*)&arg, sizeof(arg)))
-                return bbt::core::errcode::Errcode("deserialize failed, buffer too short!", emErr::ERR_COMM);
+                return bbt::core::errcode::Errcode(ERR_PREFIX"deserialize failed, buffer too short!", emErr::ERR_COMM);
         }
         offset += header.field_len;
 
@@ -191,3 +192,5 @@ private:
     void SerializeArgs(bbt::core::Buffer& buffer) {}
 };
 } // namespace bbt::rpc::detail
+
+#undef ERR_PREFIX

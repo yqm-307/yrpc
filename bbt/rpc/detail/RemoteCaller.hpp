@@ -19,11 +19,10 @@ public:
 
     bool operator<(const RemoteCaller& other) const;
 
-    void TimeoutReply();
-    void SuccReply(const bbt::core::Buffer& buffer);
-    void FailedReply(const bbt::core::errcode::Errcode& err);
     RemoteCallSeq GetSeq() const;
     bool IsReplyed() const;
+
+    void Reply(bbt::core::Buffer& buffer, bbt::core::errcode::ErrOpt err);
 private:
     bbt::core::clock::Timestamp<>   m_timeout;
     RpcReplyCallback                m_callback{nullptr};

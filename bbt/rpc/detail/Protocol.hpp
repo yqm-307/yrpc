@@ -24,6 +24,8 @@ struct ProtocolHead
 
 #pragma pack(pop)
 
+typedef std::tuple<emRpcReplyType, std::string> RpcErrReply;
+
 class Helper
 {
 public:
@@ -64,6 +66,7 @@ public:
         buffer.WriteNull(sizeof(ProtocolHead));
 
         // protocol body
+        // codec.SerializeAppend(buffer, RPC_REPLY_TYPE_SUCCESS);
         codec.SerializeAppendWithTuple(buffer, std::forward<Tuple>(args));
 
         head = (ProtocolHead*)buffer.Peek();
@@ -71,6 +74,14 @@ public:
         head->call_seq = seq;
         head->protocol_length = buffer.Size();
     }
+
+    /**
+     * @brief 尝试从reply中获取一个Err
+     * 
+     * @param buffer 
+     * @return ErrOpt 
+     */
+    static bbt::core::errcode::ErrOpt ReplyToErr(bbt::core::Buffer& buffer);
 };
 
 } // namespace bbt::rpc::detail

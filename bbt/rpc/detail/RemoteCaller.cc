@@ -1,5 +1,6 @@
 #include <bbt/rpc/detail/Define.hpp>
 #include <bbt/rpc/detail/RemoteCaller.hpp>
+#include <bbt/rpc/detail/Protocol.hpp>
 
 using namespace bbt::core::errcode;
 using namespace bbt::core::clock;
@@ -29,7 +30,7 @@ Timestamp<> RemoteCaller::GetTimeout() const
     return m_timeout;
 }
 
-void RemoteCaller::TimeoutReply()
+void RemoteCaller::Reply(bbt::core::Buffer& buffer, bbt::core::errcode::ErrOpt err)
 {
     bool expected = false;
     if (!m_is_replyed.compare_exchange_strong(expected, true))
@@ -37,38 +38,20 @@ void RemoteCaller::TimeoutReply()
         return;
     }
 
-    if (m_callback)
-    {
-        m_callback(Errcode{"reply is timeout!", emErr::ERR_CLIENT_TIMEOUT}, Buffer{0});
-    }
-}
-
-void RemoteCaller::SuccReply(const Buffer& buffer)
-{
-    bool expected = false;
-    if (!m_is_replyed.compare_exchange_strong(expected, true))
-    {
+    if (!m_callback)
         return;
-    }
 
-    if (m_callback)
-    {
-        m_callback(std::nullopt, buffer);
-    }
-}
-
-void RemoteCaller::FailedReply(const Errcode& err)
-{
-    bool expected = false;
-    if (!m_is_replyed.compare_exchange_strong(expected, true))
-    {
-        return;
-    }
-
-    if (m_callback)
+    if (err.has_value())
     {
         m_callback(err, Buffer{0});
+        return;
     }
+
+    err = Helper::ReplyToErr(buffer);
+    if (err.has_value())
+        m_callback(err, Buffer{0});
+    else
+        m_callback(std::nullopt, buffer);
 }
 
 RemoteCallSeq RemoteCaller::GetSeq() const

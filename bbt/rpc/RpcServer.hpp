@@ -55,17 +55,8 @@ public:
      */
     bbt::core::errcode::ErrOpt UnRegisterMethod(const char* method_name);
 
-    /**
-     * @brief 向指定连接发送一个Rpc响应
-     * 
-     * @tparam Args 
-     * @param connid 指定的连接id，应该是接收数据的连接
-     * @param seq 序列号，用于标识请求的seq，应该和传来的seq相同
-     * @param args Reply的参数，会被自动序列化
-     * @return bbt::core::errcode::ErrOpt 
-     */
-    template<typename... Args>
-    bbt::core::errcode::ErrOpt DoReply(ConnId connid, RemoteCallSeq seq, Args&&... args);
+    template<typename Tuple>
+    bbt::core::errcode::ErrOpt DoReply(ConnId connid, RemoteCallSeq seq, Tuple&& args);
 
     /**
      * @brief 向指定连接发送一个Rpc响应
@@ -121,13 +112,11 @@ private:
     detail::BufferMgr m_buffer_mgr;
 };
 
-
-template<typename... Args>
-bbt::core::errcode::ErrOpt RpcServer::DoReply(ConnId connid, RemoteCallSeq seq, Args&&... args)
+template<typename Tuple>
+bbt::core::errcode::ErrOpt RpcServer::DoReply(ConnId connid, RemoteCallSeq seq, Tuple&& args)
 {
     auto buffer = bbt::core::Buffer{};
-    detail::Helper::SerializeReq(buffer, 0, seq, std::forward<Args>(args)...);
+    detail::Helper::SerializeReqWithTuple(buffer, 0, seq, std::forward<Tuple>(args));
     return m_tcp_server->Send(connid, buffer);
 }
-
 } // namespace bbt::rpc
