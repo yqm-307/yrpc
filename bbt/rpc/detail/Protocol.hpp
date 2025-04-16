@@ -53,6 +53,24 @@ public:
         head->call_seq = seq;
         head->protocol_length = buffer.Size();
     }
+
+    template<typename Tuple>
+    static void SerializeReqWithTuple(bbt::core::Buffer& buffer, RpcMethodHash hash, RemoteCallSeq seq, Tuple&& args)
+    {
+        static RpcCodec codec;
+        ProtocolHead* head = nullptr;
+
+        // protocol head
+        buffer.WriteNull(sizeof(ProtocolHead));
+
+        // protocol body
+        codec.SerializeAppendWithTuple(buffer, std::forward<Tuple>(args));
+
+        head = (ProtocolHead*)buffer.Peek();
+        head->method_hash = hash;
+        head->call_seq = seq;
+        head->protocol_length = buffer.Size();
+    }
 };
 
 } // namespace bbt::rpc::detail

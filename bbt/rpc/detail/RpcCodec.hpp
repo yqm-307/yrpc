@@ -14,30 +14,6 @@ namespace bbt::rpc::detail
  * 
  */
 
-#pragma pack(push, 1)
-
-struct FieldHeader
-{
-    int8_t field_type;
-    int16_t field_len;
-};
-
-struct FieldValue
-{
-    FieldHeader header;
-    union RpcSerializerValue
-    {
-        int32_t int32_value;
-        int64_t uint32_value;
-        int64_t int64_value;
-        uint64_t uint64_value;
-    } value;
-    std::string string;
-};
-
-#pragma pack(pop)
-
-//TODO 先支持最简单的类型，后续拓展
 enum FieldType : int8_t
 {
     INT64 = 1,
@@ -45,20 +21,23 @@ enum FieldType : int8_t
     INT32,
     UINT32,
     STRING,
+    BYTEOBJ, // 字节对象
 };
 
+#pragma pack(push, 1)
 
-template<typename T> struct IsSupportType { static constexpr bool value = false; };
+struct FieldHeader
+{
+    FieldType field_type;
+    int16_t field_len;
+};
 
-template<> struct IsSupportType<int32_t> { static constexpr bool value = true; };
+#pragma pack(pop)
 
-template<> struct IsSupportType<uint32_t> { static constexpr bool value = true; };
 
-template<> struct IsSupportType<int64_t> { static constexpr bool value = true; };
 
-template<> struct IsSupportType<uint64_t> { static constexpr bool value = true; };
 
-template<> struct IsSupportType<std::string> { static constexpr bool value = true; };
+template<typename T> struct IsSupportType { static constexpr bool value = true; };
 
 template<typename T>
 inline FieldType ToFieldType()
@@ -74,7 +53,7 @@ inline FieldType ToFieldType()
     else if constexpr (std::is_same_v<T, std::string>)
         return STRING;
     else
-        static_assert(IsSupportType<T>::value, "Unsupported type for ToFieldType");
+        return BYTEOBJ;
 }
 
 class RpcCodec
@@ -95,66 +74,37 @@ public:
         return buffer;
     }
 
+    template<typename Tuple>
+    bbt::core::Buffer SerializeWithTuple(Tuple&& tuple)
+    {
+        bbt::core::Buffer buffer;
+
+        std::apply([&](auto&&... args) {
+            SerializeArgs(buffer, args...);
+        }, std::forward<Tuple>(tuple));
+
+        return buffer;
+    }
+
     template<typename ...Args>
     void SerializeAppend(bbt::core::Buffer& buffer, Args... args)
     {
         SerializeArgs(buffer, args...);
     }
 
+    template<typename Tuple>
+    void SerializeAppendWithTuple(bbt::core::Buffer& buffer, Tuple&& args)
+    {
+        std::apply([&](auto&&... args) {
+            SerializeArgs(buffer, args...);
+        }, std::forward<Tuple>(args));
+    }
+
     template<typename... Args>
-    bbt::core::errcode::ErrOpt DeserializeWithArgs(const bbt::core::Buffer& buffer, std::tuple<Args...>& args)
+    bbt::core::errcode::ErrOpt DeserializeWithTuple(const bbt::core::Buffer& buffer, std::tuple<Args...>& args)
     {
         size_t offset = 0;
         return DeserializeArgsRecursive(buffer, offset, args, std::index_sequence_for<Args...>{});
-    }
-
-    bbt::core::errcode::ErrTuple<std::vector<FieldValue>> Deserialize(const bbt::core::Buffer& buffer)
-    {
-        std::vector<FieldValue> values;
-        FieldValue value;
-        size_t offset = 0;
-
-        while (buffer.Size() > offset)
-        {
-            if (buffer.Size() < sizeof(value.header))
-                return {bbt::core::errcode::Errcode{"deserialize failed, buffer too short!", emErr::ERR_COMM}, values};
-
-            auto err = DeserializeOne(buffer, offset, value);
-            if (err != std::nullopt)
-                return {err, values};
-            
-            values.push_back(value);
-        }
-
-        return {std::nullopt, values};
-    }
-
-    bbt::core::errcode::ErrOpt DeserializeOne(const bbt::core::Buffer& buffer, size_t& offset, FieldValue& value)
-    {
-        Assert(buffer.ToString(offset, (char*)&(value.header), sizeof(value.header)));
-
-        switch (value.header.field_type)
-        {
-        case INT64:
-        case UINT64:
-            Assert(buffer.ToString(offset + sizeof(value.header), (char*)&(value.value), sizeof(value.value)));
-            offset += sizeof(value.header) + sizeof(value.value.int64_value);
-            break;
-        case INT32:
-        case UINT32:
-            Assert(buffer.ToString(offset + sizeof(value.header), (char*)&(value.value.int32_value), sizeof(value.value.int32_value)));
-            offset += sizeof(value.header) + sizeof(value.value.int32_value);
-            break;
-        case STRING:
-            value.string.resize(value.header.field_len);
-            Assert(buffer.ToString(offset + sizeof(value.header), value.string.data(), value.string.size()));
-            offset += sizeof(value.header) + value.string.size();
-            break;
-        default:
-            return bbt::core::errcode::Errcode("deserialize failed, not support this type!", emErr::ERR_COMM);
-        }
-
-        return std::nullopt;
     }
     
     RpcMethodHash GetMethodHash(const std::string& method)
@@ -174,28 +124,31 @@ private:
     template<typename T>
     bbt::core::errcode::ErrOpt DeserializeOneArg(const bbt::core::Buffer& buffer, size_t& offset, T& arg)
     {
-        FieldValue value;
-        auto err = DeserializeOne(buffer, offset, value);
-        if (err != std::nullopt)
-            return err;
+        FieldHeader header;
 
         // 检查类型是否匹配
-        if (value.header.field_type != ToFieldType<T>())
-            return bbt::core::errcode::Errcode("deserialize failed, type mismatch!", emErr::ERR_COMM);
+        static_assert(IsSupportType<T>::value, "Unsupported type for deserialization!");
+        if (!buffer.ToString(offset, (char*)&header, sizeof(header)))
+            return bbt::core::errcode::Errcode("deserialize failed, buffer too short!", emErr::ERR_COMM);
+        offset += sizeof(header);
 
-        // 根据类型赋值
+        if (header.field_type != ToFieldType<T>())
+            return bbt::core::errcode::Errcode("deserialize failed, field type mismatch! expected type=" + std::to_string(ToFieldType<T>()) + " , but it is actually=" + std::to_string(header.field_type), emErr::ERR_COMM);
+
         if constexpr (std::is_same_v<T, std::string>)
         {
-            arg = value.string;
+            arg.resize(header.field_len);
+            if (!buffer.ToString(offset, arg.data(), header.field_len))
+                return bbt::core::errcode::Errcode("deserialize failed, buffer too short!", emErr::ERR_COMM);
         }
-        else if constexpr (std::is_trivial_v<T>)
-        {
-            arg = static_cast<T>(value.value.uint64_value);
+        else {
+            if (header.field_len != sizeof(arg))
+                return bbt::core::errcode::Errcode("deserialize failed, field length mismatch!", emErr::ERR_COMM);
+
+            if (!buffer.ToString(offset, (char*)&arg, sizeof(arg)))
+                return bbt::core::errcode::Errcode("deserialize failed, buffer too short!", emErr::ERR_COMM);
         }
-        else
-        {
-            return bbt::core::errcode::Errcode("deserialize failed, unsupported type!", emErr::ERR_COMM);
-        }
+        offset += header.field_len;
 
         return std::nullopt;
     }
@@ -203,7 +156,11 @@ private:
     template<typename T>
     void SerializeArg(bbt::core::Buffer& bytes, T arg)
     {
-        AssertWithInfo(false, "Not support this type");
+        FieldHeader header;
+        header.field_type = ToFieldType<T>();
+        header.field_len = sizeof(arg);
+        bytes.WriteString((char*)&header, sizeof(header));
+        bytes.Write(arg);
     }
 
     void SerializeArg(bbt::core::Buffer& buffer, const std::string& arg)
@@ -222,42 +179,6 @@ private:
         header.field_len = strlen(arg);
         buffer.WriteString((char*)&header, sizeof(header));
         buffer.WriteString(arg, strlen(arg));
-    }
-
-    void SerializeArg(bbt::core::Buffer& buffer, int64_t arg)
-    {
-        FieldHeader header;
-        header.field_type = INT64;
-        header.field_len = sizeof(arg);
-        buffer.WriteString((char*)&header, sizeof(header));
-        buffer.Write(arg);
-    }
-
-    void SerializeArg(bbt::core::Buffer& buffer, uint64_t arg)
-    {
-        FieldHeader header;
-        header.field_type = UINT64;
-        header.field_len = sizeof(arg);
-        buffer.WriteString((char*)&header, sizeof(header));
-        buffer.Write(arg);
-    }
-
-    void SerializeArg(bbt::core::Buffer& buffer, int32_t arg)
-    {
-        FieldHeader header;
-        header.field_type = INT32;
-        header.field_len = sizeof(arg);
-        buffer.WriteString((char*)&header, sizeof(header));
-        buffer.Write(arg);
-    }
-
-    void SerializeArg(bbt::core::Buffer& buffer, uint32_t arg)
-    {
-        FieldHeader header;
-        header.field_type = UINT32;
-        header.field_len = sizeof(arg);
-        buffer.WriteString((char*)&header, sizeof(header));
-        buffer.Write(arg);
     }
 
     template<typename T, typename... Args>

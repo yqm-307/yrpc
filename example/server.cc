@@ -26,7 +26,7 @@ int main()
 
     auto server = std::make_shared<MyServer>(io_thread);
 
-    if (auto err = server->Init("", 10031, 3000); err.has_value())
+    if (auto err = server->Init("", 10031, 10000); err.has_value())
     {
         std::cout << "Init failed: " << err.value().What() << std::endl;
         return -1;
@@ -35,15 +35,8 @@ int main()
     if (auto err = server->RegisterMethod("test_method", []
         (std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data) {
         bbt::rpc::detail::RpcCodec codec;
-        auto [err, values] = codec.Deserialize(data);
-
-        if (err.has_value())
-        {
-            std::cout << "Deserialize failed: " << err.value().What() << std::endl;
-            return;
-        }
         std::tuple<int32_t, int64_t, int32_t, std::string> tuple;
-        if (err = codec.DeserializeWithArgs(data, tuple); err.has_value())
+        if (auto err = codec.DeserializeWithTuple(data, tuple); err.has_value())
             std::cerr << "codec.DeserializeWithArgs bad! " << err->CWhat() << std::endl;
 
         std::cout << "Tuple contents: "

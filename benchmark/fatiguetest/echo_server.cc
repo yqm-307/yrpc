@@ -4,21 +4,15 @@
 void Echo(std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
 {
     bbt::rpc::detail::RpcCodec codec;
-    auto [err, values] = codec.Deserialize(data);
-    // Assert(err == std::nullopt && values.size() == 1);
-    if (err != std::nullopt)
+    std::tuple<std::string> values;
+    auto err = codec.DeserializeWithTuple(data, values);
+    if (err.has_value())
     {
         std::cout << "Deserialize failed: " << err.value().What() << std::endl;
         return;
     }
-    if (values.size() != 1)
-    {
-        std::cout << "Invalid number of arguments" << std::endl;
-        return;
-    }
-    Assert(values[0].header.field_type == bbt::rpc::detail::FieldType::STRING);
-    Assert(values[0].string == "hello world");
-    server->DoReply(connid, seq, values[0].string);
+
+    server->DoReply(connid, seq, std::get<0>(values));
 }
 
 void Monitor(std::shared_ptr<bbt::rpc::RpcServer> server)
