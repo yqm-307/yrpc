@@ -46,8 +46,6 @@ bbt::core::errcode::ErrOpt Helper::ReplyToErr(bbt::core::Buffer& buffer)
         return Errcode{"[bbt::rpc] service reply-data has no RpcReplyType!", emErr::ERR_BAD_PROTOCOL};
 
     if (std::get<0>(err_type) != RPC_REPLY_TYPE_FAILED) {
-        // 读取这些字节，保证给到使用者的buffer和服务器发送时一致
-        buffer.ReadNull(sizeof(emRpcReplyType) + sizeof(FieldHeader));
         return std::nullopt;
     }
 
