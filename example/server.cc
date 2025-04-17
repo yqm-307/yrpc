@@ -1,6 +1,8 @@
 #include <bbt/rpc/RpcServer.hpp>
 #include "proto.hpp"
 
+using namespace bbt::rpc;
+
 class MyServer : public bbt::rpc::RpcServer
 {
 public:
@@ -35,9 +37,8 @@ int main()
 
     if (auto err = server->RegisterMethod("test_method", []
         (std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data) ->bbt::core::errcode::ErrOpt {
-        bbt::rpc::detail::RpcCodec codec;
         Test1Request req;
-        if (auto err = codec.DeserializeWithTuple(data, req); err.has_value())
+        if (auto err = codec::DeserializeWithTuple(data, req); err.has_value())
             return err;
 
         std::cout << "Tuple contents: "

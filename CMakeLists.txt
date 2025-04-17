@@ -23,6 +23,8 @@ include_directories(
 
 file(GLOB_RECURSE SOURCE_FILES
     ${PROJECT_SOURCE_DIR}/bbt/*.cc
+    ${PROJECT_SOURCE_DIR}/bbt/*.hpp
+    ${PROJECT_SOURCE_DIR}/bbt/*.inl
 )
 
 add_library(bbt_rpc SHARED
@@ -30,7 +32,6 @@ add_library(bbt_rpc SHARED
 )
 
 target_link_libraries(bbt_rpc PRIVATE
-    inih
     bbt_core
     bbt_pollevent
     bbt_network
@@ -39,3 +40,6 @@ target_link_libraries(bbt_rpc PRIVATE
 add_subdirectory(example)
 
 add_subdirectory(benchmark)
+
+enable_testing()
+add_subdirectory(unit_test)

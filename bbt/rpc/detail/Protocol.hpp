@@ -41,14 +41,13 @@ public:
     template<typename ...Args>
     static void SerializeReq(bbt::core::Buffer& buffer, RpcMethodHash hash, RemoteCallSeq seq, Args&&... args)
     {
-        static RpcCodec codec;
         ProtocolHead* head = nullptr;
 
         // protocol head
         buffer.WriteNull(sizeof(ProtocolHead));
 
         // protocol body
-        codec.SerializeAppend(buffer, std::forward<Args>(args)...);
+        codec::SerializeAppend(buffer, std::forward<Args>(args)...);
 
         head = (ProtocolHead*)buffer.Peek();
         head->method_hash = hash;
@@ -59,7 +58,6 @@ public:
     template<typename Tuple>
     static void SerializeReqWithTuple(bbt::core::Buffer& buffer, RpcMethodHash hash, RemoteCallSeq seq, Tuple&& args)
     {
-        static RpcCodec codec;
         ProtocolHead* head = nullptr;
 
         // protocol head
@@ -67,7 +65,7 @@ public:
 
         // protocol body
         // codec.SerializeAppend(buffer, RPC_REPLY_TYPE_SUCCESS);
-        codec.SerializeAppendWithTuple(buffer, std::forward<Tuple>(args));
+        codec::SerializeAppendWithTuple(buffer, std::forward<Tuple>(args));
 
         head = (ProtocolHead*)buffer.Peek();
         head->method_hash = hash;

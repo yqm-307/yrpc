@@ -1,11 +1,12 @@
 #include <bbt/rpc/RpcServer.hpp>
 #include <bbt/pollevent/Event.hpp>
 
+using namespace bbt::rpc;
+
 void Echo(std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
 {
-    bbt::rpc::detail::RpcCodec codec;
     std::tuple<std::string> values;
-    auto err = codec.DeserializeWithTuple(data, values);
+    auto err = codec::DeserializeWithTuple(data, values);
     if (err.has_value())
     {
         std::cout << "Deserialize failed: " << err.value().What() << std::endl;

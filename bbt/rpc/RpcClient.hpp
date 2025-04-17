@@ -73,8 +73,6 @@ private:
 template<typename Tuple>
 bbt::core::errcode::ErrOpt RpcClient::RemoteCallWithTuple(const char* method_name, int timeout, Tuple&& args, const RpcReplyCallback& callback)
 {
-    static detail::RpcCodec codec;
-
     if (!m_tcp_client->IsConnected())
         return bbt::core::errcode::Errcode{"client not connected!", emErr::ERR_CLIENT_CLOSE};
 
@@ -83,7 +81,7 @@ bbt::core::errcode::ErrOpt RpcClient::RemoteCallWithTuple(const char* method_nam
 
     std::shared_ptr<detail::RemoteCaller> caller = std::make_shared<detail::RemoteCaller>(timeout, seq, callback);
     
-    auto hash = codec.GetMethodHash(method_name);
+    auto hash = codec::GetMethodHash(method_name);
     detail::Helper::SerializeReqWithTuple(buffer, hash, seq, std::forward<Tuple>(args));
 
     return _DoReply(seq, caller, buffer);

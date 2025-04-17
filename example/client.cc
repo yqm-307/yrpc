@@ -1,6 +1,8 @@
 #include <bbt/rpc/RpcClient.hpp>
 #include "proto.hpp"
 
+using namespace bbt::rpc;
+
 class MyClient : public bbt::rpc::RpcClient
 {
 public:
@@ -36,9 +38,9 @@ int main()
                 std::cout << "RemoteCall failed: " << err.value().What() << std::endl;
                 return;
             }
-            bbt::rpc::detail::RpcCodec codec;
+
             auto tuple = std::make_tuple(std::string{buffer.Peek(), buffer.Size()});
-            auto errdecode = codec.DeserializeWithTuple(buffer, tuple);
+            auto errdecode = codec::DeserializeWithTuple(buffer, tuple);
             if (errdecode.has_value())
             {
                 std::cout << "Deserialize failed: " << errdecode.value().What() << std::endl;

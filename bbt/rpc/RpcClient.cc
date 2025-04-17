@@ -7,8 +7,6 @@ using namespace bbt::core::errcode;
 using namespace bbt::network;
 using namespace bbt::core;
 
-bbt::rpc::detail::RpcCodec codec;
-
 namespace bbt::rpc
 {
 
@@ -126,7 +124,7 @@ void RpcClient::FailedAll()
         if (caller)
         {
             bbt::core::Buffer buffer{0};
-            caller->Reply(buffer, Errcode{"client is closed! remote call failed!", emErr::ERR_CLIENT_CLOSE});
+            caller->Reply(buffer, Errcode{BBT_RPC_ERR_PREFIX "[RpcClient] client is closed! remote call failed!", emErr::ERR_CLIENT_CLOSE});
         }
     }
 
@@ -143,7 +141,7 @@ bbt::core::errcode::ErrOpt RpcClient::OnReply(RemoteCallSeq seq, bbt::core::Buff
         auto it = m_reply_caller_map.find(seq);
         if (it == m_reply_caller_map.end())
         {
-            return Errcode{"seq not found!", emErr::ERR_COMM};
+            return Errcode{BBT_RPC_ERR_PREFIX "[RpcClient] seq not found!", emErr::ERR_COMM};
         }
 
         caller = it->second;
@@ -185,7 +183,7 @@ void RpcClient::_Update()
         // 超时通知用户的时候不可以加锁
         lock.unlock();
         bbt::core::Buffer buffer{0};
-        caller->Reply(buffer, Errcode{"reply is timeout!", emErr::ERR_CLIENT_TIMEOUT});
+        caller->Reply(buffer, Errcode{BBT_RPC_ERR_PREFIX "[RpcClient] reply is timeout!", emErr::ERR_CLIENT_TIMEOUT});
         lock.lock();
     }
 }

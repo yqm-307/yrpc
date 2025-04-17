@@ -6,6 +6,8 @@
 #include <bbt/network/TcpClient.hpp>
 #include <bbt/pollevent/EvThread.hpp>
 
+#define BBT_RPC_ERR_PREFIX "[bbt::rpc] "
+
 namespace bbt::rpc
 {
 

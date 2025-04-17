@@ -59,11 +59,11 @@ ErrOpt RpcServer::Init(const char* ip, int port, int connection_timeout)
 ErrOpt RpcServer::RegisterMethod(const char* method_name, const RpcMethod& method)
 {
     std::lock_guard<std::mutex> lock(m_all_opt_mtx);
-    auto hash = m_codec.GetMethodHash(method_name);
+    auto hash = codec::GetMethodHash(method_name);
     auto it = m_method_map.find(hash);
     if (it != m_method_map.end())
     {
-        return Errcode{"repeat regist method!", ERR_METHOD_ALREADY_REGISTERED};
+        return Errcode{BBT_RPC_ERR_PREFIX "[RpcServer] repeat regist method!", ERR_METHOD_ALREADY_REGISTERED};
     }
 
     m_method_map[hash] = method;
@@ -73,10 +73,10 @@ ErrOpt RpcServer::RegisterMethod(const char* method_name, const RpcMethod& metho
 ErrOpt RpcServer::UnRegisterMethod(const char* method_name)
 {
     std::lock_guard<std::mutex> lock(m_all_opt_mtx);
-    auto it = m_method_map.find(m_codec.GetMethodHash(method_name));
+    auto it = m_method_map.find(codec::GetMethodHash(method_name));
     if (it == m_method_map.end())
     {
-        return Errcode{"repeat regist method!", ERR_COMM};
+        return Errcode{BBT_RPC_ERR_PREFIX "[RpcServer] repeat regist method!", ERR_COMM};
     }
 
     m_method_map.erase(it);
@@ -128,7 +128,7 @@ void RpcServer::OnRecv(ConnId connid, const bbt::core::Buffer& buffer)
         auto conn_buffer = m_buffer_mgr.GetBuffer(connid);
         if (!conn_buffer)
         {
-            OnError(Errcode{"buffer not found!", ERR_COMM});
+            OnError(Errcode{BBT_RPC_ERR_PREFIX "[RpcServer] buffer not found!", ERR_COMM});
             return;
         }
     
@@ -179,7 +179,7 @@ ErrOpt RpcServer::OnRemoteCall(ConnId connid, const bbt::core::Buffer& buffer)
             err_reply = err;
     }
     else
-        err_reply = Errcode{"[bbt::rpc::server] method not found!", ERR_SERVER_NO_METHOD};
+        err_reply = Errcode{BBT_RPC_ERR_PREFIX "[RpcServer] method not found!", ERR_SERVER_NO_METHOD};
     
     // 有错误，返回给RpcClient
     if (err_reply.has_value()) {

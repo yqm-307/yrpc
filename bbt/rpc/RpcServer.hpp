@@ -102,8 +102,6 @@ private:
 
     bbt::core::errcode::ErrOpt OnRemoteCall(ConnId connid, const bbt::core::Buffer& buffer);
 private:
-    detail::RpcCodec m_codec;
-
     std::shared_ptr<bbt::network::TcpServer> m_tcp_server{nullptr};
 
     std::mutex m_all_opt_mtx;

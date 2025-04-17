@@ -9,7 +9,7 @@ namespace bbt::rpc::detail
 ErrOpt BufferMgr::AddBuffer(bbt::network::ConnId connid, const bbt::core::Buffer& buffer)
 {
     if (m_buffer_map.find(connid) != m_buffer_map.end())
-        return Errcode("Buffer already exists", emErr::ERR_COMM);
+        return Errcode(BBT_RPC_ERR_PREFIX "Buffer already exists", emErr::ERR_COMM);
 
     m_buffer_map[connid] = buffer;
     return std::nullopt;
