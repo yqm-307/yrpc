@@ -31,8 +31,29 @@ public:
     bbt::core::errcode::ErrOpt  Init(const char* ip, int port, int connect_timeout = 10000, int connection_timeout = 0,
                                     const std::function<void(std::shared_ptr<RpcClient>)>& on_connect_callback = nullptr);
 
+    /**
+     * @brief 发起一个有限时且有响应的远程调用
+     * 
+     * @tparam Tuple 
+     * @param method_name 
+     * @param timeout 
+     * @param args 
+     * @param callback 
+     * @return bbt::core::errcode::ErrOpt 
+     */
     template<typename Tuple>
     bbt::core::errcode::ErrOpt  RemoteCallWithTuple(const char* method_name, int timeout, Tuple&& args, const RpcReplyCallback& callback);
+
+    /**
+     * @brief 发起一个无响应的远程调用
+     * 
+     * @tparam Tuple 
+     * @param method_name 
+     * @param args 
+     * @return bbt::core::errcode::ErrOpt 
+     */
+    template<typename Tuple>
+    bbt::core::errcode::ErrOpt  RemoteCallWithTuple(const char* method_name, Tuple&& args);
 
     std::string                 DebugInfo();
 
@@ -73,7 +94,7 @@ private:
 template<typename Tuple>
 bbt::core::errcode::ErrOpt RpcClient::RemoteCallWithTuple(const char* method_name, int timeout, Tuple&& args, const RpcReplyCallback& callback)
 {
-    if (!m_tcp_client->IsConnected())
+    if (!IsConnected())
         return bbt::core::errcode::Errcode{"client not connected!", emErr::ERR_CLIENT_CLOSE};
 
     bbt::core::Buffer buffer;
@@ -81,6 +102,23 @@ bbt::core::errcode::ErrOpt RpcClient::RemoteCallWithTuple(const char* method_nam
 
     std::shared_ptr<detail::RemoteCaller> caller = std::make_shared<detail::RemoteCaller>(timeout, seq, callback);
     
+    auto hash = codec::GetMethodHash(method_name);
+    detail::Helper::SerializeReqWithTuple(buffer, hash, seq, std::forward<Tuple>(args));
+
+    return _DoReply(seq, caller, buffer);
+}
+
+template<typename Tuple>
+bbt::core::errcode::ErrOpt RpcClient::RemoteCallWithTuple(const char* method_name, Tuple&& args)
+{
+    if (!IsConnected())
+        return bbt::core::errcode::Errcode{"client not connected!", emErr::ERR_CLIENT_CLOSE};
+    
+    bbt::core::Buffer buffer;
+    auto seq = ++m_current_seq;
+
+    std::shared_ptr<detail::RemoteCaller> caller = std::make_shared<detail::RemoteCaller>(0, seq, nullptr);
+
     auto hash = codec::GetMethodHash(method_name);
     detail::Helper::SerializeReqWithTuple(buffer, hash, seq, std::forward<Tuple>(args));
 

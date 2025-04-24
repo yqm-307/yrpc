@@ -21,6 +21,7 @@ public:
 
     RemoteCallSeq GetSeq() const;
     bool IsReplyed() const;
+    emRemoteCallType GetType() const;
 
     void Reply(bbt::core::Buffer& buffer, bbt::core::errcode::ErrOpt err);
 private:
@@ -28,6 +29,7 @@ private:
     RpcReplyCallback                m_callback{nullptr};
     std::atomic_bool                m_is_replyed{false};
     const RemoteCallSeq             m_seq{0};
+    const emRemoteCallType          m_type;
 };
 
 struct RemoteCallerComp

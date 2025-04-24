@@ -12,7 +12,8 @@ namespace bbt::rpc::detail
 RemoteCaller::RemoteCaller(int timeout, RemoteCallSeq seq, const RpcReplyCallback& callback):
     m_timeout(nowAfter(ms(timeout > 0 ? timeout : INT32_MAX))),
     m_callback(callback),
-    m_seq(seq)
+    m_seq(seq),
+    m_type(callback ? emRemoteCallType::TIMEOUT_REPLY : emRemoteCallType::ONLY_REQ)
 {
 }
 
@@ -62,6 +63,11 @@ RemoteCallSeq RemoteCaller::GetSeq() const
 bool RemoteCaller::IsReplyed() const
 {
     return m_is_replyed.load();
+}
+
+emRemoteCallType RemoteCaller::GetType() const
+{
+    return m_type;
 }
 
 } // namespace bbt::rpc::detail

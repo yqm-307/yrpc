@@ -140,9 +140,7 @@ bbt::core::errcode::ErrOpt RpcClient::OnReply(RemoteCallSeq seq, bbt::core::Buff
         std::lock_guard<std::mutex> lock(m_all_opt_mtx);
         auto it = m_reply_caller_map.find(seq);
         if (it == m_reply_caller_map.end())
-        {
-            return Errcode{BBT_RPC_ERR_PREFIX "[RpcClient] seq not found!", emErr::ERR_COMM};
-        }
+            return std::nullopt;
 
         caller = it->second;
         m_reply_caller_map.erase(it);
@@ -159,8 +157,18 @@ ErrOpt RpcClient::_DoReply(RemoteCallSeq seq, std::shared_ptr<detail::RemoteCall
     {
         std::lock_guard<std::mutex> lock(m_all_opt_mtx);
         AssertWithInfo(m_reply_caller_map.find(seq) == m_reply_caller_map.end(), "uint64 not enough?");
-        m_reply_caller_map[seq] = caller;
-        m_timeout_queue.push(caller);
+
+        switch (caller->GetType())
+        {
+        case detail::emRemoteCallType::ONLY_REQ:
+            break;
+        case detail::emRemoteCallType::TIMEOUT_REPLY:
+            m_reply_caller_map[seq] = caller;
+            m_timeout_queue.push(caller);
+            break;
+        default:
+            break;
+        }
     }
 
     return m_tcp_client->Send(buffer);
