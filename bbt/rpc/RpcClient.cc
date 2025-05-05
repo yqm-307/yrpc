@@ -146,8 +146,11 @@ bbt::core::errcode::ErrOpt RpcClient::OnReply(RemoteCallSeq seq, bbt::core::Buff
         m_reply_caller_map.erase(it);
     }
 
-    if (caller)
-        caller->Reply(buffer, std::nullopt);
+    if (caller) {
+        if (auto err = caller->Reply(buffer, std::nullopt); err.has_value())
+            OnError(err.value());
+
+    }
 
     return std::nullopt;
 }

@@ -95,8 +95,10 @@ protected:
      */
     virtual void OnSend(ConnId connid, bbt::core::errcode::ErrOpt err, size_t send_len) {}
 
+    virtual void OnAccept(ConnId connid, const bbt::network::IPAddress& addr) {}
+
 private:
-    void OnAccept(ConnId connid);
+    void _OnAccept(ConnId connid);
     void OnRecv(ConnId connid, const bbt::core::Buffer& buffer);
     void OnClose(ConnId connid);
 

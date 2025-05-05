@@ -1,4 +1,5 @@
 #include <tuple>
+#include <bbt/network/detail/Connection.hpp>
 #include <bbt/core/clock/Clock.hpp>
 #include <bbt/rpc/RpcServer.hpp>
 
@@ -47,7 +48,7 @@ ErrOpt RpcServer::Init(const char* ip, int port, int connection_timeout)
     
     if (auto err = m_tcp_server->AsyncListen(IPAddress(ip, port), [weak_this{weak_from_this()}](auto connid){
         if (auto shared_this = weak_this.lock(); shared_this != nullptr)
-            shared_this->OnAccept(connid);
+            shared_this->_OnAccept(connid);
     }); err.has_value())
     {
         return err;
@@ -108,11 +109,19 @@ void RpcServer::OnError(const bbt::core::errcode::Errcode& err)
     std::cerr << bbt::core::clock::getnow_str() << "[RpcServer::DefaultErr]" <<  " " << err.What() << std::endl;
 }
 
-void RpcServer::OnAccept(ConnId connid)
+void RpcServer::_OnAccept(ConnId connid)
 {
-    std::lock_guard<std::mutex> lock(m_all_opt_mtx);
+    {
+        std::lock_guard<std::mutex> lock(m_all_opt_mtx);
+    
+        m_buffer_mgr.AddBuffer(connid, Buffer());
+    }
 
-    m_buffer_mgr.AddBuffer(connid, Buffer());
+    auto conn = m_tcp_server->GetConnection(connid);
+    if (conn)
+    {
+        OnAccept(connid, conn->GetPeerAddress());
+    }
 }
 
 void RpcServer::OnRecv(ConnId connid, const bbt::core::Buffer& buffer)

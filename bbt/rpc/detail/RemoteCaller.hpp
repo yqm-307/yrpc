@@ -23,7 +23,7 @@ public:
     bool IsReplyed() const;
     emRemoteCallType GetType() const;
 
-    void Reply(bbt::core::Buffer& buffer, bbt::core::errcode::ErrOpt err);
+    bbt::core::errcode::ErrOpt Reply(bbt::core::Buffer& buffer, bbt::core::errcode::ErrOpt err);
 private:
     bbt::core::clock::Timestamp<>   m_timeout;
     RpcReplyCallback                m_callback{nullptr};

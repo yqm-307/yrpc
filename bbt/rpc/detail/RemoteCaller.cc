@@ -31,28 +31,32 @@ Timestamp<> RemoteCaller::GetTimeout() const
     return m_timeout;
 }
 
-void RemoteCaller::Reply(bbt::core::Buffer& buffer, bbt::core::errcode::ErrOpt err)
+bbt::core::errcode::ErrOpt RemoteCaller::Reply(bbt::core::Buffer& buffer, bbt::core::errcode::ErrOpt err)
 {
     bool expected = false;
     if (!m_is_replyed.compare_exchange_strong(expected, true))
     {
-        return;
+        return std::nullopt;
     }
 
     if (!m_callback)
-        return;
+        return std::nullopt;
 
     if (err.has_value())
     {
         m_callback(err, Buffer{0});
-        return;
+        return std::nullopt;
     }
 
     err = Helper::ReplyToErr(buffer);
-    if (err.has_value())
+    if (err.has_value()) {
         m_callback(err, Buffer{0});
+        return err;
+    }
     else
         m_callback(std::nullopt, buffer);
+
+    return std::nullopt;
 }
 
 RemoteCallSeq RemoteCaller::GetSeq() const
