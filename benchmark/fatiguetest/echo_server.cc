@@ -4,9 +4,12 @@
 using namespace bbt::rpc;
 using namespace bbt::core;
 
+typedef RemoteCallTemplateRequest<std::string> EchoReq;
+typedef RemoteCallTemplateReply<std::string> EchoReply;
+
 void Echo(std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
 {
-    std::tuple<std::string> values;
+    EchoReq values;
     auto err = codec::DeserializeWithTuple(data, values);
     if (err.has_value())
     {
@@ -14,8 +17,8 @@ void Echo(std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId conn
         return;
     }
 
-
-    server->DoReply(connid, seq, std::make_tuple(std::get<0>(values)));
+    EchoReply reply = std::make_tuple(bbt::rpc::RPC_REPLY_TYPE_SUCCESS, std::get<0>(values));
+    server->DoReply(connid, seq, reply);
 }
 
 void Monitor(std::shared_ptr<bbt::rpc::RpcServer> server)
