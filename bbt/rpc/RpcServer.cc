@@ -60,7 +60,7 @@ ErrOpt RpcServer::Init(const char* ip, int port, int connection_timeout)
 ErrOpt RpcServer::RegisterMethod(const char* method_name, const RpcMethod& method)
 {
     std::lock_guard<std::mutex> lock(m_all_opt_mtx);
-    auto hash = codec::GetMethodHash(method_name);
+    auto hash = detail::Helper::GetMethodHash(method_name);
     auto it = m_method_map.find(hash);
     if (it != m_method_map.end())
     {
@@ -74,7 +74,7 @@ ErrOpt RpcServer::RegisterMethod(const char* method_name, const RpcMethod& metho
 ErrOpt RpcServer::UnRegisterMethod(const char* method_name)
 {
     std::lock_guard<std::mutex> lock(m_all_opt_mtx);
-    auto it = m_method_map.find(codec::GetMethodHash(method_name));
+    auto it = m_method_map.find(detail::Helper::GetMethodHash(method_name));
     if (it == m_method_map.end())
     {
         return Errcode{BBT_RPC_ERR_PREFIX "[RpcServer] repeat regist method!", ERR_COMM};

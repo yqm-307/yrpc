@@ -2,6 +2,8 @@
 #include "proto.hpp"
 
 using namespace bbt::rpc;
+using namespace bbt::core;
+
 
 class MyServer : public bbt::rpc::RpcServer
 {

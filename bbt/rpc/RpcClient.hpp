@@ -2,7 +2,6 @@
 #include <bbt/network/TcpClient.hpp>
 
 #include <bbt/rpc/detail/Define.hpp>
-#include <bbt/rpc/detail/RpcCodec.hpp>
 #include <bbt/rpc/detail/Protocol.hpp>
 #include <bbt/rpc/detail/RemoteCaller.hpp>
 
@@ -102,7 +101,7 @@ bbt::core::errcode::ErrOpt RpcClient::RemoteCallWithTuple(const char* method_nam
 
     std::shared_ptr<detail::RemoteCaller> caller = std::make_shared<detail::RemoteCaller>(timeout, seq, callback);
     
-    auto hash = codec::GetMethodHash(method_name);
+    auto hash = detail::Helper::GetMethodHash(method_name);
     detail::Helper::SerializeReqWithTuple(buffer, hash, seq, std::forward<Tuple>(args));
 
     return _DoReply(seq, caller, buffer);
@@ -119,7 +118,7 @@ bbt::core::errcode::ErrOpt RpcClient::RemoteCallWithTuple(const char* method_nam
 
     std::shared_ptr<detail::RemoteCaller> caller = std::make_shared<detail::RemoteCaller>(0, seq, nullptr);
 
-    auto hash = codec::GetMethodHash(method_name);
+    auto hash = detail::Helper::GetMethodHash(method_name);
     detail::Helper::SerializeReqWithTuple(buffer, hash, seq, std::forward<Tuple>(args));
 
     return _DoReply(seq, caller, buffer);

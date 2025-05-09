@@ -2,6 +2,7 @@
 #include "proto.hpp"
 
 using namespace bbt::rpc;
+using namespace bbt::core;
 
 class MyClient : public bbt::rpc::RpcClient
 {
@@ -39,14 +40,14 @@ int main()
                 return;
             }
 
-            auto tuple = std::make_tuple(std::string{buffer.Peek(), buffer.Size()});
+            Test1Reply tuple;
             auto errdecode = codec::DeserializeWithTuple(buffer, tuple);
             if (errdecode.has_value())
             {
                 std::cout << "Deserialize failed: " << errdecode.value().What() << std::endl;
                 return;
             }
-            std::cout << "Received: " << std::get<0>(tuple) << std::endl;
+            std::cout << "Received: " << std::get<1>(tuple) << std::endl;
         };
 
         // 正确参数调用
@@ -62,7 +63,7 @@ int main()
         if (auto err = client->RemoteCallWithTuple("test_method", 1000, tuple, callback); err.has_value())
             std::cout << "RemoteCall failed 4: " << err.value().What() << std::endl;
 
-        if (auto err = client->RemoteCallWithTuple("bad call", 1000, std::make_tuple(""), nullptr); err.has_value())
+        if (auto err = client->RemoteCallWithTuple("bad call", 1000, std::make_tuple(""), callback); err.has_value())
         {
             std::cout << "RemoteCall failed 3: " << err.value().What() << std::endl;
         }

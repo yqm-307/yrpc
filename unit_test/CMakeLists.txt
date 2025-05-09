@@ -13,10 +13,3 @@ target_link_libraries(test1 PRIVATE
     ${MY_COMM_LIB}
 )
 add_test(NAME test1 COMMAND test1)
-
-
-add_executable(test2 test2.cc)
-target_link_libraries(test2 PRIVATE
-    ${MY_COMM_LIB}
-)
-add_test(NAME test2 COMMAND test2)

@@ -1,6 +1,7 @@
 #include <bbt/rpc/detail/RpcCodec.hpp>
 
 using namespace bbt::rpc;
+using namespace bbt::core;
 
 int main()
 {

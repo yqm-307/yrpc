@@ -2,6 +2,7 @@
 #include <bbt/pollevent/Event.hpp>
 
 using namespace bbt::rpc;
+using namespace bbt::core;
 
 void Echo(std::shared_ptr<bbt::rpc::RpcServer> server, bbt::network::ConnId connid, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
 {

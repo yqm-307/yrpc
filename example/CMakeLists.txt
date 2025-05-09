@@ -17,11 +17,3 @@ target_link_libraries(server
     bbt_pollevent
     bbt_network
 )
-
-add_executable(codec codec.cc)
-target_link_libraries(codec
-    bbt_rpc
-    bbt_core
-    bbt_pollevent
-    bbt_network
-)

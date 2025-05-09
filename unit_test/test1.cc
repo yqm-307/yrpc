@@ -7,6 +7,7 @@
 #include <bbt/rpc/RpcClient.hpp>
 
 using namespace bbt::rpc;
+using namespace bbt::core;
 
 BOOST_AUTO_TEST_SUITE()
 

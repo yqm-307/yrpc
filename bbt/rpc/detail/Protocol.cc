@@ -1,5 +1,4 @@
 #include <bbt/rpc/detail/Protocol.hpp>
-#include <bbt/rpc/detail/RpcCodec.hpp>
 #include <bbt/rpc/detail/Define.hpp>
 
 
@@ -7,6 +6,7 @@ namespace bbt::rpc::detail
 {
 
 using namespace bbt::core::errcode;
+using namespace bbt::core::codec;
 
 ErrOpt Helper::ParseProtocolFromBuffer(bbt::core::Buffer& buffer, std::vector<bbt::core::Buffer>& protocols)
 {
@@ -42,7 +42,7 @@ bbt::core::errcode::ErrOpt Helper::ReplyToErr(bbt::core::Buffer& buffer)
     std::tuple<emRpcReplyType> err_type;
 
     // 服务器的reply返回必须带有类型
-    if (auto err = codec::DeserializeWithTuple(buffer, err_type); err.has_value())
+    if (auto err = DeserializeWithTuple(buffer, err_type); err.has_value())
         return Errcode{BBT_RPC_ERR_PREFIX "service reply-data has no RpcReplyType!", emErr::ERR_BAD_PROTOCOL};
 
     if (std::get<0>(err_type) != RPC_REPLY_TYPE_FAILED) {
@@ -50,14 +50,19 @@ bbt::core::errcode::ErrOpt Helper::ReplyToErr(bbt::core::Buffer& buffer)
     }
 
     // 服务器的err reply格式
-    if (auto err = codec::DeserializeWithTuple(buffer, err_tuple); err.has_value())
+    if (auto err = DeserializeWithTuple(buffer, err_tuple); err.has_value())
         return Errcode{BBT_RPC_ERR_PREFIX "service reply-data err type is bad!", emErr::ERR_BAD_PROTOCOL};
 
     // 解析正确的错误类型
     std::string err_msg = std::get<1>(err_tuple);
 
-    buffer.ReadNull(sizeof(codec::FieldHeader) * 2 + sizeof(emRpcReplyType) + err_msg.size());
+    buffer.ReadNull(sizeof(FieldHeader) * 2 + sizeof(emRpcReplyType) + err_msg.size());
     return Errcode{std::get<1>(err_tuple), emErr::ERR_CLIENT_FAILED};
+}
+
+RpcMethodHash Helper::GetMethodHash(const std::string& method)
+{
+    return std::hash<std::string>{}(method);
 }
 
 } // namespace bbt::rpc::detail

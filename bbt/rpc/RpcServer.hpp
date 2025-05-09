@@ -1,5 +1,4 @@
 #pragma once
-#include <bbt/rpc/detail/RpcCodec.hpp>
 #include <bbt/rpc/detail/Protocol.hpp>
 #include <bbt/rpc/detail/BufferMgr.hpp>
 

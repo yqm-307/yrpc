@@ -1,6 +1,6 @@
 #pragma once
 #include <bbt/rpc/detail/Define.hpp>
-#include <bbt/rpc/detail/RpcCodec.hpp>
+#include <bbt/core/codec/Codec.hpp>
 #include <bbt/core/buffer/Buffer.hpp>
 
 namespace bbt::rpc::detail
@@ -47,7 +47,7 @@ public:
         buffer.WriteNull(sizeof(ProtocolHead));
 
         // protocol body
-        codec::SerializeAppend(buffer, std::forward<Args>(args)...);
+        bbt::core::codec::SerializeAppend(buffer, std::forward<Args>(args)...);
 
         head = (ProtocolHead*)buffer.Peek();
         head->method_hash = hash;
@@ -65,7 +65,7 @@ public:
 
         // protocol body
         // codec.SerializeAppend(buffer, RPC_REPLY_TYPE_SUCCESS);
-        codec::SerializeAppendWithTuple(buffer, std::forward<Tuple>(args));
+        bbt::core::codec::SerializeAppendWithTuple(buffer, std::forward<Tuple>(args));
 
         head = (ProtocolHead*)buffer.Peek();
         head->method_hash = hash;
@@ -80,6 +80,8 @@ public:
      * @return ErrOpt 
      */
     static bbt::core::errcode::ErrOpt ReplyToErr(bbt::core::Buffer& buffer);
+
+    static RpcMethodHash GetMethodHash(const std::string& method);
 };
 
 } // namespace bbt::rpc::detail
